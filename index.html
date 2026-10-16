@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 내용 데이터 (수정은 data.js 에서) -->
+  <script src="data.js"></script>
+  <script src="site.config.js"></script>
+
+  <!-- 연결 설정(site.config.js) 적용 + 편집기에서 저장한 설정(Firestore site/config) 불러오기 -->
+  <script>
+  (function () {
+    var S = (typeof SITE !== "undefined") ? SITE : null;
+    if (!S) return;
+    var KEY = 'site-override-v1';
+    var C = window.SITE_CONFIG || {};
+    var cfg = (C.firebase && C.firebase.apiKey) ? C.firebase : null;
+    window.SITE_FB = cfg;
+    var SKIP = { firebase: 1, admin: 1, firebaseSdk: 1 };
+
+    /* 연결 정보는 항상 site.config.js 값을 써요 (저장된 설정이 덮어쓰지 못하게 마지막에 다시 적용) */
+    function applyConfig() {
+      S.admin = { email: (C.admin && C.admin.email) || '' };
+      if (!cfg) return;
+      S.firebase = { config: cfg };
+      S.guest = S.guest || {};
+      var g = S.guest;
+      var formLink = g.form && g.form.formLink;
+      if ((!g.mode || g.mode === 'form') && !formLink) g.mode = 'firebase';
+      g.firebase = g.firebase || {};
+      g.firebase.config = cfg;
+      if (!g.firebase.collection) g.firebase.collection = 'guests';
+    }
+
+    /* 편집기 미리보기(iframe) : 부모 편집기에서 편집 중인 값을 그대로 보여줘요 */
+    if (window.parent !== window && /[?&]preview=1/.test(location.search)) {
+      try {
+        var pd = window.parent.OHAdmin && window.parent.OHAdmin._state.draft;
+        if (pd) Object.keys(pd).forEach(function (k) { if (!SKIP[k]) S[k] = JSON.parse(JSON.stringify(pd[k])); });
+      } catch (e) {}
+      applyConfig();
+      return;
+    }
+
+    var cached = null;
+    try { cached = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (cached && cached.data) Object.keys(cached.data).forEach(function (k) { if (!SKIP[k]) S[k] = cached.data[k]; });
+    applyConfig();
+    if (!cfg || S.remote === false) return;
+
+    var BASE = 'https://www.gstatic.com/firebasejs/' + (S.firebaseSdk || '13.0.0') + '/';
+    function reloadOnce(rev) {
+      try { if (sessionStorage.getItem('site-reloaded') === String(rev)) return; sessionStorage.setItem('site-reloaded', String(rev)); } catch (e) {}
+      location.reload();
+    }
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        Promise.all([import(BASE + 'firebase-app.js'), import(BASE + 'firebase-firestore.js')]).then(function (m) {
+          var app = m[0].getApps().length ? m[0].getApps()[0] : m[0].initializeApp(cfg);
+          return m[1].getDoc(m[1].doc(m[1].getFirestore(app), 'site', 'config'));
+        }).then(function (snap) {
+          var have = cached ? cached.rev : 0;
+          if (!snap.exists()) { if (cached) { try { localStorage.removeItem(KEY); } catch (e) {} reloadOnce('reset'); } return; }
+          var v = snap.data();
+          if (v.rev === have) return;
+          var data = JSON.parse(v.json);
+          try { localStorage.setItem(KEY, JSON.stringify({ rev: v.rev, data: data })); } catch (e) {}
+          reloadOnce(v.rev);
+        }).catch(function () {});
+      }, 300);
+    });
+  })();
+  </script>
+</head>
+<body>
+
+  <!-- =========================================================
+       한 파일 홈페이지
+       - 페이지는 주소 뒤 # 으로 나뉘어요.
+         메인 : index.html   캐릭터 : index.html#character
+         페어 : index.html#pair   오너 : index.html#owner   방명록 : index.html#guest
+       - 내용 수정은 data.js 에서 해주세요.
+       ========================================================= -->
+
+  <!-- 배경 (모든 페이지 공통) -->
+  <div class="bg-photo" id="bgPhoto"></div>
+  <div class="bg-overlay" id="bgOverlay"></div>
+  <div class="bg-grid" id="bgGrid"></div>
+  <div class="bg-fade" id="bgFade"></div>
+
+  <!-- 지금 보고 있는 페이지가 여기에 들어가요 -->
+  <div id="app"></div>
+
+  <!-- ===== 페이지: home ===== -->
+  <template id="tpl-home">
+  <main class="home">
+    <!-- 꾸밈: 왼쪽 위 뱃지 + 라벨 -->
+    <div class="deco-top-left" id="decoTopLeft"></div>
+    <!-- 꾸밈: 오른쪽 위 -->
+    <div class="deco-top-right" id="decoTopRight"></div>
+    <!-- 꾸밈: 왼쪽 세로 글자 -->
+    <div class="deco-side" id="decoSide"></div>
+    <!-- 꾸밈: 왼쪽 아래 소개 블록 -->
+    <section class="deco-info" id="decoInfo"></section>
+
+    <!-- 타이틀 -->
+    <header class="title-area" id="title"></header>
+
+    <!-- 메뉴 -->
+    <nav class="menu-area">
+      <ul class="menu-list" id="menu"></ul>
+    </nav>
+  </main>
+  </template>
+
+  <!-- ===== 페이지: character ===== -->
+  <template id="tpl-character">
+  <main class="home ch-page">
+    <!-- 뒤집으면 오른쪽에서 들어오는 대각선 색 배경 (상세 프로필 뒤) -->
+    <div class="ch-detail-bg" id="chDetailBg"></div>
+
+    <!-- 왼쪽 위: 뱃지 (누르면 메인홈으로) -->
+    <a class="deco-top-left" id="decoTopLeft" href="#"></a>
+
+    <!-- 오른쪽 위: 홈 버튼 + 번호 -->
+    <div class="deco-top-right ch-top-right">
+      <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
+      <span class="ch-count" id="chCount"></span>
+    </div>
+
+    <!-- 왼쪽: 캐릭터 타일 목록 -->
+    <div class="ch-tiles" id="chTiles">
+      <div class="ch-tiles-in" id="chTilesIn"></div>
+    </div>
+
+    <!-- 뒤집으면 나타나는 상세 프로필 -->
+    <section class="ch-detail" id="chDetail"></section>
+
+    <!-- 오른쪽: 카드 -->
+    <div class="ch-stage">
+      <div class="ch-holder" id="chHolder"></div>
+    </div>
+  </main>
+
+  <!-- 갤러리 크게 보기 -->
+  <div class="ch-box" id="chBox">
+    <button class="box-close" aria-label="닫기">×</button>
+    <button class="box-prev ch-arrow prev" aria-label="이전"><i></i><i></i><i></i></button>
+    <figure>
+      <div class="box-img"></div>
+      <figcaption class="box-cap"></figcaption>
+    </figure>
+    <button class="box-next ch-arrow next" aria-label="다음"><i></i><i></i><i></i></button>
+  </div>
+  </template>
+
+  <!-- ===== 페이지: pair ===== -->
+  <template id="tpl-pair">
+  <main class="home pr-page">
+    <!-- 왼쪽 위: 뱃지 (누르면 메인홈으로) -->
+    <a class="deco-top-left" id="decoTopLeft" href="#"></a>
+
+    <!-- 오른쪽 위: 홈 버튼 + 번호 -->
+    <div class="deco-top-right ch-top-right">
+      <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
+      <span class="ch-count" id="prCount"></span>
+    </div>
+
+    <!-- 왼쪽: 리뷰 목록 -->
+    <section class="pr-reviews" id="prReviews"></section>
+
+    <!-- 오른쪽: 캐릭터 포스터 -->
+    <section class="pr-center" id="prCenter"></section>
+  </main>
+
+  <!-- 리뷰를 누르면 열리는 관계 화면 -->
+  <div class="rl" id="rl"></div>
+
+  <!-- TRPG 로그 보기 -->
+  <div class="lv" id="logView">
+    <div class="lv-panel">
+      <header class="lv-head">
+        <div>
+          <p class="lv-meta"></p>
+          <h3 class="lv-title"></h3>
+        </div>
+        <button class="lv-close" aria-label="닫기">×</button>
+      </header>
+      <div class="lv-bar">
+        <nav class="lv-tabs"></nav>
+        <span class="lv-count"></span>
+        <a class="lv-raw" target="_blank" rel="noopener">원본 열기</a>
+      </div>
+      <div class="lv-body"></div>
+    </div>
+  </div>
+
+  <!-- 갤러리 크게 보기 -->
+  <div class="ch-box" id="prBox">
+    <button class="box-close" aria-label="닫기">×</button>
+    <button class="box-prev ch-arrow prev" aria-label="이전"><i></i><i></i><i></i></button>
+    <figure>
+      <div class="box-img"></div>
+      <figcaption class="box-cap"></figcaption>
+    </figure>
+    <button class="box-next ch-arrow next" aria-label="다음"><i></i><i></i><i></i></button>
+  </div>
+  </template>
+
+  <!-- ===== 페이지: owner ===== -->
+  <template id="tpl-owner">
+  <main class="home ch-page ow-page">
+    <!-- 뒤집으면 오른쪽에서 들어오는 대각선 색 배경 -->
+    <div class="ch-detail-bg" id="chDetailBg"></div>
+
+    <!-- 왼쪽 위: 뱃지 (누르면 메인홈으로) -->
+    <a class="deco-top-left" id="decoTopLeft" href="#"></a>
+
+    <!-- 오른쪽 위: 홈 버튼 -->
+    <div class="deco-top-right ch-top-right">
+      <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
+    </div>
+
+    <!-- 뒤집으면 나타나는 상세 소개 -->
+    <section class="ch-detail" id="chDetail"></section>
+
+    <!-- 가운데: 오너 카드 -->
+    <div class="ch-stage">
+      <div class="ch-holder" id="chHolder"></div>
+    </div>
+
+    <p class="ow-hint" id="owHint"></p>
+  </main>
+  </template>
+
+  <!-- ===== 페이지: guest ===== -->
+  <template id="tpl-guest">
+  <main class="home gb-page">
+    <!-- 왼쪽 위: 뱃지 (누르면 메인홈으로) -->
+    <a class="deco-top-left" id="decoTopLeft" href="#"></a>
+
+    <!-- 오른쪽 위: 홈 버튼 -->
+    <div class="deco-top-right ch-top-right">
+      <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
+    </div>
+
+    <div class="gb-wrap" id="gbWrap"></div>
+  </main>
+  </template>
+
+  <script>
+    (function () {
+      const S = (typeof SITE !== "undefined") ? SITE : {};
+      const C = S.colors || {};
+      const F = S.fonts || {};
+      const root = document.documentElement.style;
+
+      /* =====================================================
+         공통 설정 (메인홈과 동일: 색상 · 배경 · 글꼴)
+         ===================================================== */
+
+      /* ----- 대표 색 → 사이트 전체 색 자동 계산 ----- */
+      function hexRGB(h) {
+        h = String(h || "").trim().replace("#", "");
+        if (h.length === 3) h = h.replace(/./g, "$&$&");
+        const n = parseInt(h, 16);
+        return isNaN(n) || h.length !== 6 ? [34, 34, 34] : [n >> 16 & 255, n >> 8 & 255, n & 255];
+      }
+      function toHex(c) { return "#" + c.map(function (v) { return ("0" + Math.round(v).toString(16)).slice(-2); }).join(""); }
+      // a 색과 b 색을 t 비율로 섞기 (t = 0 → a, 1 → b)
+      function mix(a, b, t) {
+        const x = hexRGB(a), y = hexRGB(b);
+        return toHex([0, 1, 2].map(function (i) { return x[i] + (y[i] - x[i]) * t; }));
+      }
+      // 밝은 색인지 (0 어두움 ~ 1 밝음)
+      function light(h) { const c = hexRGB(h); return (c[0] * 299 + c[1] * 587 + c[2] * 114) / 255000; }
+      // 그 색 위에 올릴 글자색 (흰색 / 검은색)
+      function onColor(h) { return light(h) > 0.6 ? "#111111" : "#ffffff"; }
+
+      // 회색 계열(채도 낮음)인지
+      function gray(h) { const c = hexRGB(h); return Math.max.apply(null, c) - Math.min.apply(null, c) < 24; }
+
+      const THEME = S.themeColor || "#222222";
+      const INK = light(THEME) > 0.55 ? mix(THEME, "#000000", 0.65) : THEME;   // 글자용 진한 색
+      const ON = onColor(THEME);
+      const AUTO = {
+        background: gray(THEME) ? "#ffffff" : mix(THEME, "#ffffff", 0.95),   // 무채색이면 흰 바탕
+        title: INK,
+        subText: mix(INK, "#ffffff", 0.2),
+        menuBar: THEME,
+        menuText: ON,
+        menuDesc: mix(ON, THEME, 0.4),
+        accent: ON === "#ffffff" ? "#ffffff" : INK,
+        accentText: ON === "#ffffff" ? THEME : "#ffffff",
+        icon: mix(ON, THEME, 0.55),
+        dots: INK,
+        deco: INK
+      };
+      const COL = {};
+      Object.keys(AUTO).forEach(function (k) { COL[k] = C[k] || AUTO[k]; });   // 직접 적은 색이 있으면 그걸 써요
+
+      const colorMap = {
+        "--bg": COL.background, "--title": COL.title, "--sub-text": COL.subText,
+        "--menu-bar": COL.menuBar, "--menu-text": COL.menuText, "--menu-desc": COL.menuDesc,
+        "--accent": COL.accent, "--accent-text": COL.accentText, "--icon": COL.icon,
+        "--dots": COL.dots, "--deco": COL.deco
+      };
+      for (const k in colorMap) if (colorMap[k]) root.setProperty(k, colorMap[k]);
+      root.setProperty("--btn", COL.menuBar);       // 버튼 · 칩 색
+      root.setProperty("--btn-text", COL.menuText);
+
+      // 캐릭터 · 오너 카드: 색을 비워두면 대표 색을 써요
+      // SD 크기: 캐릭터에 적은 sdSize → 없으면 characterPage.sdSize → 기본 230
+      const sdW = function (o) {
+        const v = (o && o.sdSize) || (S.characterPage || {}).sdSize || 230;
+        return /^\d+$/.test(String(v)) ? v + "px" : v;
+      };
+      const cardColor = function (c) { return c || THEME; };
+      const cardSub = function (c, main) { return c || mix(main || THEME, "#ffffff", 0.45); };
+      const cardText = function (c, main) { return c || onColor(main || THEME); };
+
+      const B = S.background || {};
+      if (B.image) {
+        const photo = document.getElementById("bgPhoto");
+        photo.style.backgroundImage = "url('" + B.image + "')";
+        photo.style.backgroundPosition = B.position || "center";
+        if (B.blur) {
+          photo.style.filter = "blur(" + B.blur + "px)";
+          photo.style.inset = "-" + (B.blur * 3) + "px";
+        }
+        photo.style.display = "block";
+        if (B.overlay) {
+          const ov = document.getElementById("bgOverlay");
+          ov.style.backgroundColor = B.overlayColor || COL.background;
+          ov.style.opacity = (B.overlayStrength != null) ? B.overlayStrength : 0.5;
+          ov.style.display = "block";
+        }
+      }
+      if (B.grid) {
+        const gd = document.getElementById("bgGrid");
+        gd.style.setProperty("--grid-color", B.gridColor || INK);
+        gd.style.setProperty("--grid-size", (B.gridSize || 46) + "px");
+        gd.style.setProperty("--grid-line", (B.gridLine || 2) + "px");
+        gd.style.opacity = (B.gridStrength != null) ? B.gridStrength : 1;
+        gd.style.display = "block";
+      }
+      if (B.fade) {
+        const fd = document.getElementById("bgFade");
+        fd.style.setProperty("--fade-color", B.fadeColor || COL.background);
+        fd.style.height = (B.fadeHeight || 45) + "%";
+        fd.style.opacity = (B.fadeStrength != null) ? B.fadeStrength : 0.9;
+        fd.style.display = "block";
+      }
+
+      function loadFont(name, weight) {
+        if (!name) return;
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://fonts.googleapis.com/css2?family=" +
+          name.trim().replace(/ /g, "+") + (weight ? ":wght@" + weight : "") + "&display=swap";
+        document.head.appendChild(link);
+      }
+      loadFont(F.title);
+      if (F.titleWeight) loadFont(F.title, F.titleWeight);
+      loadFont(F.menu);
+      loadFont(F.body);
+      loadFont(F.body, "400;700;900");
+      loadFont(F.mono);
+      loadFont(F.mono, "400;700");
+      loadFont(F.sign || "Caveat", "700");
+      loadFont(F.hand || "Nanum Pen Script");
+      if (F.titleWeight) root.setProperty("--title-weight", F.titleWeight);
+      root.setProperty("--font-title", "'" + (F.title || "serif") + "'");
+      root.setProperty("--font-menu", "'" + (F.menu || "sans-serif") + "'");
+      root.setProperty("--font-body", "'" + (F.body || "sans-serif") + "'");
+      root.setProperty("--font-mono", "'" + (F.mono || "monospace") + "'");
+      root.setProperty("--font-sign", "'" + (F.sign || "Caveat") + "'");
+      root.setProperty("--font-hand", "'" + (F.hand || "Nanum Pen Script") + "'");
+
+      /* =====================================================
+         페이지 이동 (주소 뒤 #이름)
+         ===================================================== */
+      const ROUTES = ["home", "character", "pair", "owner", "guest"];
+      const TITLES = { home: "", character: "Character", pair: "Pair", owner: "Owner", guest: "Guest" };
+
+      // "character.html" 처럼 적힌 링크도 "#character" 로 바꿔줘요
+      function routeLink(l) {
+        const m = /^(?:\.\/)?([a-z]+)\.html$/i.exec(String(l || ""));
+        if (m) {
+          const r = m[1].toLowerCase() === "index" ? "home" : m[1].toLowerCase();
+          if (ROUTES.indexOf(r) > -1) return r === "home" ? "#" : "#" + r;
+        }
+        return l || "#";
+      }
+
+      // 키보드 단축키는 지금 페이지 것만 작동하게
+      let keyHandlers = [];
+      function addKey(fn) { keyHandlers.push(fn); }
+      document.addEventListener("keydown", function (e) {
+        keyHandlers.forEach(function (fn) { fn(e); });
+      });
+
+      const PAGES = {};
+
+      /* ##################################################### */
+      /* ##### 페이지: home ##### */
+      /* ##################################################### */
+      PAGES.home = function () {
+      /* ----- 타이틀 그리기 ----- */
+      const T = S.title || {};
+      const titleBox = document.getElementById("title");
+      let titleHTML = "";
+      if (T.type === "image" && T.image) {
+        titleHTML = '<img class="title-logo" src="' + T.image + '" alt="logo" style="width:' + (T.imageWidth || "480px") + '">';
+      } else {
+        titleHTML = '<h1 class="title-text">' + (T.text || "") + '</h1>';
+      }
+      if (T.subText) titleHTML += '<p class="title-sub"><span>' + T.subText + '</span></p>';
+
+      const D = S.deco || {};
+      const tag = D.titleTag ? '<p class="title-tag">' + D.titleTag + '</p>' : "";
+      const frame = D.titleFrame
+        ? '<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>'
+        : "";
+      titleBox.innerHTML = '<div class="title-inner">' + frame + tag + titleHTML + '</div>';
+
+      /* ----- 꾸밈 요소 ----- */
+      if (D.badge || D.topLabel) {
+        document.getElementById("decoTopLeft").innerHTML =
+          (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
+          (D.topLabel ? '<span class="top-label">' + D.topLabel + '</span>' : "") +
+          '<span class="top-line"></span>';
+      }
+      if (D.topRight) {
+        document.getElementById("decoTopRight").innerHTML =
+          '<span class="mini-chev"><i></i><i></i><i></i></span>' +
+          '<span>' + D.topRight + '</span>';
+      }
+      if (D.sideText) {
+        document.getElementById("decoSide").innerHTML =
+          '<span class="side-dot"></span><span class="side-text">' + D.sideText + '</span><span class="side-line"></span>';
+      }
+      const I = D.info || {};
+      if (I.show) {
+        document.getElementById("decoInfo").innerHTML =
+          (I.heading ? '<h2 class="info-heading">' + I.heading + '</h2>' : "") +
+          '<span class="info-rule"></span>' +
+          (I.text ? '<p class="info-text">' + I.text + '</p>' : "");
+      }
+
+      /* ----- 기본 아이콘 (아이콘 주소가 비었을 때) ----- */
+      const defaultIcon =
+        '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5">' +
+          '<circle cx="32" cy="32" r="29"/>' +
+          '<circle cx="32" cy="32" r="21"/>' +
+          '<path d="M32 3v14M32 47v14M3 32h14M47 32h14"/>' +
+          '<rect x="25" y="25" width="14" height="14" transform="rotate(45 32 32)"/>' +
+        '</svg>';
+
+      /* ----- 메뉴 그리기 ----- */
+      const menuBox = document.getElementById("menu");
+      (S.menus || []).forEach(function (m, i) {
+        const num = m.num || String(i + 1).padStart(2, "0");
+        const icon = m.icon ? '<img src="' + m.icon + '" alt="">' : defaultIcon;
+        const target = m.newTab ? ' target="_blank" rel="noopener"' : "";
+
+        const li = document.createElement("li");
+        li.className = "menu-item";
+        li.style.setProperty("--i", i);
+        li.innerHTML =
+          '<a class="menu-link" href="' + routeLink(m.link) + '"' + target + '>' +
+            '<div class="menu-num"><span>' + num + '</span></div>' +
+            '<div class="chevrons"><i></i><i></i><i></i></div>' +
+            '<div class="menu-text">' +
+              '<span class="menu-title">' + (m.title || "") + '</span>' +
+              (m.desc ? '<span class="menu-desc">' + m.desc + '</span>' : "") +
+            '</div>' +
+            '<div class="menu-icon">' + icon + '</div>' +
+          '</a>';
+        menuBox.appendChild(li);
+      });
+      };
+
+      /* ##################################################### */
+      /* ##### 페이지: character ##### */
+      /* ##################################################### */
+      PAGES.character = function () {
+      /* =====================================================
+         페이지 꾸밈
+         ===================================================== */
+      const D = S.deco || {};
+      const P = S.characterPage || {};
+      document.getElementById("decoTopLeft").innerHTML =
+        (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
+        '<span class="top-label">' + (P.label || "CHARACTER") + '</span>' +
+        '<span class="top-line"></span>';
+
+      /* =====================================================
+         카드 부품
+         ===================================================== */
+      const list = S.characters || [];
+
+      // 수배지 종이 질감을 다른 이미지로 바꿀 때
+      if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
+
+      // 상세 프로필 뒤 색 배경 진하기
+      root.setProperty("--panel-mix", Math.round(((P.panelStrength != null) ? P.panelStrength : 0.18) * 100) + "%");
+
+      // SD 이미지: 뒷면일 때만 / 항상
+      if (P.sdShow === "always") document.body.classList.add("sd-always");
+
+      // 카드 이미지 색 입히기 설정
+      if (P.imageTint === false) document.body.classList.add("no-tint");
+      root.setProperty("--tint", (P.tintStrength != null) ? P.tintStrength : 0.85);
+
+      // 기본 실루엣 (사진이 없을 때)
+      const silhouette =
+        '<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMax meet">' +
+          '<circle cx="50" cy="48" r="22" fill="currentColor"/>' +
+          '<path d="M8 130 C8 92 26 76 50 76 C74 76 92 92 92 130 Z" fill="currentColor"/>' +
+        '</svg>';
+
+      function photo(ch) {
+        return '<div class="cd-photo' + (ch.image ? " has-img" : "") + '">' +
+          (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) +
+        '</div>';
+      }
+
+      // 번호에 따라 늘 같은 모양이 나오는 바코드
+      function barcode(seed) {
+        let h = 0;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+        let bars = "";
+        for (let i = 0; i < 46; i++) {
+          h = (h * 1103515245 + 12345) >>> 0;
+          const w = 1 + (h >>> 16) % 3;
+          const gap = 1 + (h >>> 20) % 2;
+          bars += '<i style="width:' + w + 'px;margin-right:' + gap + 'px"></i>';
+        }
+        return '<div class="cd-barcode">' + bars + '</div>';
+      }
+
+      function tags(ch) {
+        return (ch.tags || []).map(function (t) {
+          return '<span class="cd-tag"><b>#</b>' + t + '</span>';
+        }).join("");
+      }
+
+      /* ----- 앞면: 사원증 / 학생증 ----- */
+      function frontId(ch) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="cd-head"><strong>' + (ch.cardTitle || "") + '</strong><span>' + (ch.cardSub || "") + '</span></div>' +
+          photo(ch) +
+          '<h3 class="cd-name">' + (ch.name || "") + '</h3>' +
+          '<p class="cd-en">' + (ch.nameEn || "") + '</p>' +
+          '<p class="cd-intro">' + (ch.intro || "") + '</p>' +
+          '<div class="cd-tags">' + tags(ch) + '</div>' +
+          '<div class="cd-foot"><span>ID No. ' + (ch.number || "") + '</span>' + barcode(ch.number) + '</div>';
+      }
+
+      // 번호에 따라 늘 같은 숫자열
+      function digits(seed, n) {
+        let h = 7;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 131 + str.charCodeAt(i)) >>> 0;
+        let out = "";
+        for (let i = 0; i < n; i++) { h = (h * 1103515245 + 12345) >>> 0; out += (h >>> 16) % 10; }
+        return out;
+      }
+
+      // 번호에 따라 늘 같은 QR 모양 (장식용)
+      function qr(seed) {
+        const N = 21;
+        let h = 3;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 33 + str.charCodeAt(i)) >>> 0;
+        let r = "";
+        const finder = function (x, y) {
+          return '<rect x="' + x + '" y="' + y + '" width="7" height="7"/>' +
+                 '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="5" height="5" fill="var(--paper)"/>' +
+                 '<rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"/>';
+        };
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+          const inF = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+          if (inF) continue;
+          h = (h * 1103515245 + 12345) >>> 0;
+          if ((h >>> 16) % 2) r += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>';
+        }
+        return '<svg class="wt-qr" viewBox="0 0 21 21" shape-rendering="crispEdges">' +
+          r + finder(0, 0) + finder(14, 0) + finder(0, 14) + '</svg>';
+      }
+
+      /* ----- 앞면: 티켓 ----- */
+      function frontTicket(ch) {
+        const name = String(ch.name || "");
+        const d = digits(ch.number, 15);
+
+        return '<div class="tk-body">' +
+            '<div class="tk-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
+            '<div class="tk-text">' +
+              '<h3 class="tk-name">' + name + '</h3>' +
+              '<p class="tk-intro">' + (ch.intro || "") + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="tk-stub">' +
+            '<div class="tk-stub-head"><strong>ADMIT ONE</strong><span>' + (ch.cardSub || "") + '</span></div>' +
+            '<p class="tk-stub-label">' + name + '</p>' +
+            seatGrid(ch) +
+            '<div class="tk-code">' + (ch.number || "") + '</div>' +
+            '<p class="tk-digits">' + d.replace(/(\d{3})/g, "$1.").replace(/\.$/, "") + '</p>' +
+            barcode(ch.number + "x") +
+            '<p class="tk-digits2">' + digits(ch.number + "y", 16) + '</p>' +
+          '</div>';
+      }
+
+      // 좌석 정보 (GATE / ROW / SEAT)
+      function seatGrid(ch) {
+        const st = ch.seat || {};
+        const cell = function (k, v) { return '<div><span>' + k + '</span><b>' + (v || "-") + '</b></div>'; };
+        return '<div class="tk-seat">' + cell("GATE", st.gate) + cell("ROW", st.row) + cell("SEAT", st.seat) + '</div>';
+      }
+
+      /* ----- 앞면: 수배지 ----- */
+      function frontWanted(ch) {
+        const pr = (ch.profile || []).slice(0, 6);
+        const half = Math.ceil(pr.length / 2);
+        const col = function (arr) {
+          return arr.map(function (r) {
+            return '<p><b>' + (r.label || "") + ':</b> ' + (r.value || "") + '</p>';
+          }).join("");
+        };
+        return '<div class="wt-inner">' +
+          '<div class="wt-banner">' + (ch.cardTitle || "WANTED") + '</div>' +
+          '<h3 class="wt-name">' + (ch.name || "") + '</h3>' +
+          (ch.cardSub ? '<p class="wt-sub">' + ch.cardSub + '</p>' : "") +
+          '<div class="wt-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
+          '<h4 class="wt-desc-title">DESCRIPTION</h4>' +
+          '<div class="wt-desc"><div>' + col(pr.slice(0, half)) + '</div><div>' + col(pr.slice(half)) + '</div></div>' +
+          '<div class="wt-rule"></div>' +
+          '<div class="wt-bottom">' +
+            '<span class="wt-sign">' + (ch.nameEn || "") + '</span>' +
+            '<div class="wt-reward"><span>REWARD</span><strong>' + (ch.number || "") + '</strong></div>' +
+            qr(ch.number) +
+          '</div>' +
+        '</div>';
+      }
+
+      /* =====================================================
+         뒷면 (실제 카드 뒷면처럼)
+         ===================================================== */
+      const TERMS = P.ticketTerms || [
+        "본 티켓은 1인 1매 입장권이며, 재입장이 불가합니다.",
+        "공연 시작 후에는 입장이 제한될 수 있습니다.",
+        "티켓 분실 · 훼손 시 재발행되지 않습니다.",
+        "무단 촬영 · 녹음 · 녹화를 금지합니다.",
+        "부정 거래된 티켓은 사전 통보 없이 취소될 수 있습니다.",
+        "공연 일정은 주최 측 사정에 따라 변경될 수 있습니다."
+      ];
+
+      /* ----- 뒷면: 사원증 / 학생증 ----- */
+      function backId(ch) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="ib-stripe"></div>' +
+          '<div class="ib-body">' +
+            '<p class="ib-notice">' + (P.idNotice || "본 카드는 아래 소유자 본인만 사용할 수 있으며, 타인에게 양도할 수 없습니다.<br>습득하신 분은 아래 기관으로 돌려주세요.") + '</p>' +
+            '<p class="ib-org">' + (ch.cardSub || "") + '</p>' +
+            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (ch.nameEn || ch.name || "") + '</b></div>' +
+            '<div class="ib-rows">' +
+              '<div><span>ISSUED</span><b>' + (P.idIssued || "2026.03.02") + '</b></div>' +
+              '<div><span>VALID THRU</span><b>' + (P.idValid || "2029.02.28") + '</b></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cd-foot"><span>No. ' + (ch.number || "") + '</span>' + barcode((ch.number || "") + "b") + '</div>';
+      }
+
+      /* ----- 뒷면: 티켓 (조각은 왼쪽, 약관) ----- */
+      function backTicket(ch) {
+        const d = digits(ch.number, 15);
+        return '<div class="tk-stub tkb-stub">' +
+            '<p class="tkb-noentry">NO<br>RE-ENTRY</p>' +
+            seatGrid(ch) +
+            '<p class="tkb-serial">SERIAL<br><b>' + d.slice(0, 10) + '</b></p>' +
+            barcode(ch.number + "z") +
+          '</div>' +
+          '<div class="tk-body tkb-body">' +
+            '<h3 class="tkb-title">TERMS &amp; CONDITIONS</h3>' +
+            '<ol class="tkb-terms">' + TERMS.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ol>' +
+            '<div class="tkb-bottom">' +
+              '<div class="tkb-holo"><span>AUTHENTIC</span></div>' +
+              '<div class="tkb-code">' + barcode(ch.number + "q") + '<span>' + (ch.number || "") + '</span></div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      /* ----- 뒷면: 수배지 (종이 뒷면) ----- */
+      function backWanted(ch) {
+        return '<i class="wb-tape t1"></i><i class="wb-tape t2"></i><i class="wb-tape t3"></i>' +
+          '<div class="wb-note">' + (ch.quote || "") + '</div>' +
+          '<div class="wb-stamp"><span>CASE No.</span><b>' + digits(ch.number, 6) + '</b></div>';
+      }
+
+      /* =====================================================
+         직접 만든 카드 (앞면 · 뒷면 이미지)
+         ===================================================== */
+      function customFace(src, label) {
+        return src
+          ? '<img class="cx-img" src="' + src + '" alt="">'
+          : '<div class="cx-empty"><b>' + label + '</b><span>IMAGE</span></div>';
+      }
+
+      // 이미지 비율에 맞춰 카드 크기 정하기
+      function sizeCustom(ch) {
+        const flipEl = document.getElementById("cdFlip");
+        const apply = function (ratio) {
+          flipEl.style.aspectRatio = String(ratio);
+          if (ratio >= 1) {                       // 가로로 긴 카드
+            flipEl.style.width = "min(760px, 52vw, calc(58vh * " + ratio + "))";
+            flipEl.style.height = "auto";
+          } else {                                // 세로로 긴 카드
+            flipEl.style.height = "min(560px, 60vh)";
+            flipEl.style.width = "auto";
+          }
+          holder.setAttribute("data-type", ratio >= 1.4 ? "custom-wide" : "custom");
+        };
+        if (ch.customRatio) {
+          const part = String(ch.customRatio).split("/");
+          const r = part.length > 1 ? parseFloat(part[0]) / parseFloat(part[1]) : parseFloat(part[0]);
+          apply(r > 0 ? r : 0.7);
+          return;
+        }
+        if (!ch.customFront) { apply(0.7); return; }
+        apply(0.7);
+        const probe = new Image();
+        probe.onload = function () { if (probe.naturalHeight) apply(probe.naturalWidth / probe.naturalHeight); };
+        probe.src = ch.customFront;
+      }
+
+      /* =====================================================
+         상세 프로필 (뒤집으면 오른쪽에 나타남)
+         ===================================================== */
+      const detail = document.getElementById("chDetail");
+      const TABS = P.tabs || { profile: "PROFILE", gallery: "GALLERY", relation: "RELATION" };
+      const num2 = function (n) { return String(n).padStart(2, "0"); };
+
+      function renderDetail(ch, i) {
+        const color = cardColor(ch.color);
+        detail.style.setProperty("--c", color);
+        document.getElementById("chDetailBg").style.setProperty("--c", color);
+
+        /* --- PROFILE --- */
+        const rows = (ch.profile || []).map(function (r) {
+          return '<div class="dt-row"><dt>' + (r.label || "") + '</dt><dd>' + (r.value || "") + '</dd></div>';
+        }).join("");
+        const paneProfile =
+          (ch.intro ? '<p class="dt-intro">' + ch.intro + '</p>' : "") +
+          (rows ? '<dl class="dt-list">' + rows + '</dl>' : "") +
+          (ch.quote ? '<blockquote class="dt-quote">' + ch.quote + '</blockquote>' : "") +
+          (ch.story ? '<div class="dt-story">' + ch.story + '</div>' : "") +
+          ((ch.tags || []).length ? '<div class="cd-tags dt-tags">' + tags(ch) + '</div>' : "");
+
+        /* --- GALLERY --- */
+        const gal = ch.gallery || [];
+        const paneGallery = gal.length
+          ? '<div class="dt-gallery">' + gal.map(function (g, n) {
+              return '<button class="dt-shot' + (g.image ? "" : " empty") + '" data-n="' + n + '">' +
+                (g.image ? '<img src="' + g.image + '" alt="">' : '<span>' + num2(n + 1) + '</span>') +
+                (g.caption ? '<em>' + g.caption + '</em>' : "") +
+              '</button>';
+            }).join("") + '</div>'
+          : '<p class="dt-empty">' + (P.galleryEmpty || "아직 등록된 이미지가 없어요.") + '</p>';
+
+        /* --- RELATION --- */
+        const rel = ch.relations || [];
+        const paneRelation = rel.length
+          ? '<ul class="dt-rel">' + rel.map(function (r) {
+              const linked = r.link && list[r.link - 1];
+              const img = r.image || (linked ? (linked.tile || linked.image) : "");
+              const rc = linked ? cardColor(linked.color) : color;
+              return '<li class="dt-rel-item' + (linked ? " linked" : "") + '"' + (linked ? ' data-link="' + r.link + '"' : "") + ' style="--rc:' + rc + '">' +
+                '<span class="dt-rel-ava">' + (img ? '<img src="' + img + '" alt="">' : '<b>' + String(r.name || "?").charAt(0) + '</b>') + '</span>' +
+                '<div class="dt-rel-body">' +
+                  '<p class="dt-rel-head"><strong>' + (r.name || "") + '</strong>' + (r.label ? '<span>' + r.label + '</span>' : "") + '</p>' +
+                  (r.text ? '<p class="dt-rel-text">' + r.text + '</p>' : "") +
+                '</div>' +
+                (linked ? '<span class="dt-rel-go">VIEW<i></i></span>' : "") +
+              '</li>';
+            }).join("") + '</ul>'
+          : '<p class="dt-empty">' + (P.relationEmpty || "아직 등록된 관계가 없어요.") + '</p>';
+
+        detail.innerHTML =
+          '<header class="dt-head">' +
+            '<div class="dt-top">' +
+              '<nav class="dt-tabs">' +
+                '<button class="on" data-tab="profile">' + TABS.profile + '</button>' +
+                '<button data-tab="gallery">' + TABS.gallery + '</button>' +
+                '<button data-tab="relation">' + TABS.relation + '</button>' +
+              '</nav>' +
+              '<span>No. ' + num2(i + 1) + '</span>' +
+            '</div>' +
+            '<h2 class="dt-name">' + (ch.name || "") + '</h2>' +
+            '<p class="dt-en">' + (ch.nameEn || "") + '</p>' +
+          '</header>' +
+          '<div class="dt-panes">' +
+            '<section class="dt-pane on" data-pane="profile">' + paneProfile + '</section>' +
+            '<section class="dt-pane" data-pane="gallery">' + paneGallery + '</section>' +
+            '<section class="dt-pane" data-pane="relation">' + paneRelation + '</section>' +
+          '</div>';
+
+        // 탭 전환
+        detail.querySelectorAll(".dt-tabs button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const t = btn.getAttribute("data-tab");
+            detail.querySelectorAll(".dt-tabs button").forEach(function (b) { b.classList.toggle("on", b === btn); });
+            detail.querySelectorAll(".dt-pane").forEach(function (p) { p.classList.toggle("on", p.getAttribute("data-pane") === t); });
+            detail.querySelector(".dt-panes").scrollTop = 0;
+          });
+        });
+        // 갤러리 크게 보기
+        detail.querySelectorAll(".dt-shot").forEach(function (b) {
+          b.addEventListener("click", function () { openBox(gal, +b.getAttribute("data-n")); });
+        });
+        // 관계: 연결된 캐릭터로 이동
+        detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
+          li.addEventListener("click", function () {
+            go(+li.getAttribute("data-link") - 1);
+            setTimeout(function () { flip(true); }, 350);
+          });
+        });
+      }
+
+      /* ----- 갤러리 크게 보기 (라이트박스) ----- */
+      const box = document.getElementById("chBox");
+      let boxList = [], boxN = 0;
+      function showBox() {
+        const g = boxList[boxN] || {};
+        box.querySelector(".box-img").innerHTML = g.image ? '<img src="' + g.image + '" alt="">' : '<span class="box-empty">NO IMAGE</span>';
+        box.querySelector(".box-cap").innerHTML = (g.caption || "") + '<small>' + num2(boxN + 1) + ' / ' + num2(boxList.length) + '</small>';
+      }
+      function openBox(arr, n) { boxList = arr; boxN = n; showBox(); box.classList.add("open"); }
+      function closeBox() { box.classList.remove("open"); }
+      function moveBox(d) { if (!boxList.length) return; boxN = (boxN + d + boxList.length) % boxList.length; showBox(); }
+      box.addEventListener("click", function (e) { if (e.target === box || e.target.classList.contains("box-close")) closeBox(); });
+      box.querySelector(".box-prev").addEventListener("click", function () { moveBox(-1); });
+      box.querySelector(".box-next").addEventListener("click", function () { moveBox(1); });
+
+      /* =====================================================
+         카드 그리기 · 선택 · 뒤집기
+         ===================================================== */
+      const holder = document.getElementById("chHolder");
+      const tilesBox = document.getElementById("chTilesIn");
+      const count = document.getElementById("chCount");
+      let current = 0;
+
+      // 뒤집기: true = 뒷면, false = 앞면, 비우면 반대로
+      function flip(on) {
+        const f = document.getElementById("cdFlip");
+        if (!f) return;
+        const next = (on === undefined) ? !f.classList.contains("flipped") : on;
+        f.classList.toggle("flipped", next);
+        document.body.classList.toggle("is-flipped", next);
+      }
+
+      function render(i) {
+        const ch = list[i];
+        if (!ch) return;
+        const type = ["id", "ticket", "wanted", "custom"].indexOf(ch.type) > -1 ? ch.type : "id";
+        const front = type === "custom" ? customFace(ch.customFront, "FRONT") :
+                      type === "ticket" ? frontTicket(ch) : type === "wanted" ? frontWanted(ch) : frontId(ch);
+        const backFace = type === "custom" ? customFace(ch.customBack, "BACK") :
+                      type === "ticket" ? backTicket(ch) : type === "wanted" ? backWanted(ch) : backId(ch);
+
+        document.body.classList.remove("is-flipped");
+        holder.innerHTML =
+          '<div class="cd cd-' + type + '" style="--c:' + cardColor(ch.color) + ';--c2:' + cardSub(ch.subColor, ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + ';--cx-r:' + ((ch.customRadius != null) ? ch.customRadius : 12) + 'px">' +
+            '<div class="cd-flip" id="cdFlip" title="눌러서 뒤집기">' +
+              '<div class="cd-face cd-front">' + front + '</div>' +
+              '<div class="cd-face cd-back">' + backFace + '</div>' +
+            '</div>' +
+            (ch.sd ? '<img class="cd-sd" src="' + ch.sd + '" alt="" style="--sd-w:' + sdW(ch) + '">' : "") +
+          '</div>';
+        holder.setAttribute("data-type", type);
+
+        document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
+        if (type === "custom") sizeCustom(ch);
+        renderDetail(ch, i);
+
+        count.textContent = String(i + 1).padStart(2, "0") + " / " + String(list.length).padStart(2, "0");
+        Array.prototype.forEach.call(tilesBox.children, function (t, n) {
+          t.classList.toggle("on", n === i);
+          if (n === i && t.scrollIntoView) t.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+      }
+
+      function go(i) {
+        if (!list.length) return;
+        current = (i + list.length) % list.length;
+        render(current);
+      }
+
+      // 왼쪽 타일 만들기
+      list.forEach(function (ch, i) {
+        const num = String(i + 1).padStart(2, "0");
+        const img = ch.tile || ch.image;
+        const row = document.createElement("button");
+        row.className = "ch-tile-row " + (i % 2 ? "odd" : "even");
+        row.style.setProperty("--c", cardColor(ch.color));
+        row.innerHTML =
+          '<span class="ch-tile-label"><i></i>: ' + num + '</span>' +
+          '<span class="ch-tile' + (img ? "" : " empty") + '"' +
+            (img ? ' style="background-image:url(\'' + img + '\');background-position:' + (ch.tilePosition || "center 30%") + '"' : "") + '>' +
+            '<span class="ch-tile-name"><b>' + (ch.name || "") + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
+          '</span>';
+        row.addEventListener("click", function () { go(i); });
+        tilesBox.appendChild(row);
+      });
+
+      // 키보드: ↑ ↓ 캐릭터 선택, 스페이스 뒤집기, Esc 앞면으로
+      addKey( function (e) {
+        // 라이트박스가 열려 있으면 그것부터
+        if (box.classList.contains("open")) {
+          if (e.key === "Escape") closeBox();
+          if (e.key === "ArrowLeft") moveBox(-1);
+          if (e.key === "ArrowRight") moveBox(1);
+          return;
+        }
+        if (e.key === "ArrowUp" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); go(current - 1); }
+        if (e.key === "ArrowDown" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); go(current + 1); }
+        if (e.key === " ") { e.preventDefault(); flip(); }
+        if (e.key === "Escape") flip(false);
+      });
+
+      go(0);
+      };
+
+      /* ##################################################### */
+      /* ##### 페이지: pair ##### */
+      /* ##################################################### */
+      PAGES.pair = function () {
+      /* =====================================================
+         페이지 꾸밈
+         ===================================================== */
+      const D = S.deco || {};
+      const P = S.pairPage || {};
+      document.getElementById("decoTopLeft").innerHTML =
+        (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
+        '<span class="top-label">' + (P.label || "PAIR FILE") + '</span>' +
+        '<span class="top-line"></span>';
+
+      /* =====================================================
+         데이터 준비
+         - 캐릭터 정보는 characters 에서 그대로 가져와요
+         - pairs 한 줄이 두 캐릭터 화면에 서로의 리뷰로 달려요
+         ===================================================== */
+      const chars = S.characters || [];
+      const pairs = S.pairs || [];
+      const num2 = function (n) { return String(n).padStart(2, "0"); };
+      const silhouette =
+        '<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMax meet">' +
+          '<circle cx="50" cy="48" r="22" fill="currentColor"/>' +
+          '<path d="M8 130 C8 92 26 76 50 76 C74 76 92 92 92 130 Z" fill="currentColor"/>' +
+        '</svg>';
+      const pic = function (ch) {
+        const src = ch && (ch.pairImage || ch.image || ch.tile);
+        return src ? '<img src="' + src + '" alt="">' : silhouette;
+      };
+      const stars = function (n) {
+        n = Math.max(0, Math.min(5, Math.round(+n || 0)));
+        let s = "";
+        for (let i = 0; i < 5; i++) s += '<i class="' + (i < n ? "on" : "") + '">★</i>';
+        return '<span class="rv-stars">' + s + '</span>';
+      };
+
+      // 가운데 캐릭터(번호 c, 1부터)에게 달린 리뷰 목록
+      /* 페어 데이터 정리 (2~4명)
+         members : 캐릭터 번호 목록, sides : 각자 칸 정보, reviews : 리뷰 목록
+         예전 형식(a, b, aSide, aToB …)도 그대로 읽어요 */
+      pairs.forEach(function (p) {
+        if (!p.members) p.members = [p.a, p.b].filter(Boolean);
+        p.members = p.members.slice(0, 4);
+        if (!p.sides) p.sides = [p.aSide || {}, p.bSide || {}];
+        if (!p.reviews) {
+          p.reviews = [];
+          if (p.aToB) p.reviews.push(Object.assign({ from: p.a, to: p.b }, p.aToB));
+          if (p.bToA) p.reviews.push(Object.assign({ from: p.b, to: p.a }, p.bToA));
+        }
+      });
+
+      // 캐릭터(번호 c, 1부터)가 받은 리뷰 목록
+      function reviewsOf(c) {
+        const out = [];
+        pairs.forEach(function (p, pi) {
+          p.reviews.forEach(function (r) {
+            if (r.to === c && chars[r.from - 1]) out.push({ pair: pi, from: r.from, msg: r });
+          });
+        });
+        return out;
+      }
+
+      /* =====================================================
+         오른쪽 포스터 + 왼쪽 리뷰 목록 그리기
+         ===================================================== */
+      const center = document.getElementById("prCenter");
+      const reviewsBox = document.getElementById("prReviews");
+      const count = document.getElementById("prCount");
+      let current = 0;
+
+      function render(dir) {
+        const ch = chars[current];
+        if (!ch) return;
+        const c = current + 1;
+        const list = reviewsOf(c);
+        document.body.style.setProperty("--c", cardColor(ch.color));
+
+        /* --- 오른쪽 포스터 --- */
+        center.className = "pr-center " + (dir > 0 ? "from-right" : dir < 0 ? "from-left" : "");
+        void center.offsetWidth;
+        center.classList.add("in");
+        center.innerHTML =
+          '<div class="pr-frame">' +
+            '<div class="pr-photo">' + pic(ch) + '</div>' +
+            '<span class="pr-no">No. ' + num2(c) + '</span>' +
+          '</div>' +
+          '<div class="pr-info">' +
+            '<h2 class="pr-name">' + (ch.name || "") + '</h2>' +
+            '<p class="pr-en">' + (ch.nameEn || "") + '</p>' +
+            (ch.intro ? '<p class="pr-intro">' + ch.intro + '</p>' : "") +
+          '</div>' +
+          '<nav class="pr-nav">' +
+            '<button class="pr-arrow prev" id="prPrev" aria-label="이전"><i></i><i></i><i></i></button>' +
+            '<span class="pr-idx">' + num2(c) + ' / ' + num2(chars.length) + '</span>' +
+            '<button class="pr-arrow next" id="prNext" aria-label="다음"><i></i><i></i><i></i></button>' +
+          '</nav>';
+        document.getElementById("prPrev").addEventListener("click", function () { go(current - 1, -1); });
+        document.getElementById("prNext").addEventListener("click", function () { go(current + 1, 1); });
+        count.textContent = num2(c) + " / " + num2(chars.length);
+
+        /* --- 왼쪽 리뷰 (댓글 스타일) --- */
+        const ICON_LIKE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0l4-8c1.7 0 3 1.3 3 3v4h5.2c1.2 0 2.1 1.1 1.9 2.3l-1.4 8A2 2 0 0 1 17.7 21H7"/></svg>';
+        const ICON_TALK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>';
+        const fmt = function (n) { return (+n || 0).toLocaleString("en-US"); };
+        const sorted = list.slice().sort(function (x, y) { return (+y.msg.likes || 0) - (+x.msg.likes || 0); });
+        const bestN = (P.bestCount != null) ? P.bestCount : 2;
+        const rows = sorted.map(function (r, n) {
+          const who = chars[r.from - 1];
+          const p = pairs[r.pair];
+          const meta = [p.label, r.msg.call ? "“" + r.msg.call + "”" : "", r.msg.date].filter(Boolean).join(" · ");
+          // 대화: 첫 답은 가운데(메인) 캐릭터, 다음은 리뷰 캐릭터… 번갈아
+          const me = chars[c - 1];
+          const reps = r.msg.replies || [];
+          const thread = reps.map(function (t, k) {
+            const speaker = (k % 2 === 0) ? me : who;
+            const depth = Math.min(k + 1, 3);
+            return '<div class="rp" style="--depth:' + depth + ';--rc:' + cardColor(speaker.color) + '">' +
+              '<span class="rp-arrow">ㄴ</span>' +
+              '<span class="rv-ava sm">' + pic(speaker) + '</span>' +
+              '<div class="rp-body"><b class="rv-name">' + (speaker.name || "") + '</b><p class="rp-text">' + t + '</p></div>' +
+            '</div>';
+          }).join("");
+          return '<div class="rv" data-pair="' + r.pair + '" style="--rc:' + cardColor(who.color) + ';--d:' + (n * 0.07 + 0.1) + 's">' +
+            '<div class="rv-top">' +
+              '<span class="rv-ava">' + pic(who) + '</span>' +
+              '<div class="rv-main">' +
+                '<p class="rv-head">' +
+                  (n < bestN && (+r.msg.likes || 0) > 0 ? '<span class="rv-best">BEST</span>' : "") +
+                  '<b class="rv-name">' + (who.name || "") + '</b>' +
+                '</p>' +
+                '<p class="rv-text">' + (r.msg.review || "") + '</p>' +
+                (meta ? '<p class="rv-meta">' + meta + '</p>' : "") +
+                '<div class="rv-btns">' +
+                  '<span class="rv-btn">' + ICON_LIKE + fmt(r.msg.likes) + '</span>' +
+                  '<button class="rv-btn talk"' + (reps.length ? "" : " disabled") + '>' + ICON_TALK + (P.replyButton || "답글") + ' ' + reps.length + '</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            (reps.length ? '<div class="rv-thread"><div class="rv-thread-in">' + thread + '</div></div>' : "") +
+          '</div>';
+        }).join("");
+
+        reviewsBox.innerHTML =
+          '<header class="rvs-head">' +
+            '<p class="rvs-title">' + (P.reviewTitle || "전체") + ' <b>' + fmt(list.length) + '</b></p>' +
+            '<p class="rvs-sort">' + (P.sortText || "좋아요 순") + '</p>' +
+          '</header>' +
+          '<div class="rvs-list">' +
+            (rows || '<p class="pr-empty">' + (P.emptyText || "아직 남겨진 리뷰가 없어요.") + '</p>') +
+          '</div>';
+        reviewsBox.className = "pr-reviews " + (dir > 0 ? "from-right" : dir < 0 ? "from-left" : "");
+        void reviewsBox.offsetWidth;
+        reviewsBox.classList.add("in");
+        // 리뷰 누르면 관계 화면, 답글 버튼 누르면 대화 펼치기
+        reviewsBox.querySelectorAll(".rv").forEach(function (card) {
+          card.addEventListener("click", function (e) {
+            if (e.target.closest(".rv-btn") || e.target.closest(".rv-thread")) return;
+            openRelation(+card.getAttribute("data-pair"));
+          });
+          const talk = card.querySelector(".rv-btn.talk");
+          if (talk) talk.addEventListener("click", function () { card.classList.toggle("open"); });
+        });
+      }
+
+      function go(i, dir) {
+        if (!chars.length) return;
+        current = (i + chars.length) % chars.length;
+        render(dir || 0);
+      }
+
+      /* =====================================================
+         관계 화면
+         ===================================================== */
+      const rl = document.getElementById("rl");
+      const RT = P.relationTabs || { gallery: "GALLERY", timeline: "TIMELINE", trpg: "TRPG BACKUP" };
+
+      // 캐릭터 캡슐 한 줄 (side: "a" = 이미지 왼쪽, "b" = 이미지 오른쪽)
+      function capsuleRow(ch, info, side) {
+        info = info || {};
+        const rc = cardColor(ch.color);
+        const img = info.image || ch.pairImage || ch.image;
+        const capsule =
+          '<div class="rc-wrap">' +
+            '<div class="rc" style="--rc:' + rc + '">' +
+              '<div class="rc-img">' + (img ? '<img src="' + img + '" alt="">' : silhouette) + '</div>' +
+              ((info.catchphrase || info.title) ? '<span class="rc-tag">' + (info.catchphrase || info.title) + '</span>' : "") +
+              '<div class="rc-text">' +
+                '<h3 class="rc-name"><b>' + (ch.name || "") + '</b><small>' + (ch.nameEn || "") + '</small></h3>' +
+                (info.desc ? '<p class="rc-desc">' + info.desc + '</p>' : "") +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        return '<div class="rr rr-' + side + '">' + capsule + '</div>';
+      }
+
+      function tabGallery(p) {
+        const g = p.gallery || [];
+        if (!g.length) return '<p class="rt-empty">' + (P.galleryEmpty || "아직 등록된 이미지가 없어요.") + '</p>';
+        return '<div class="rt-gallery">' + g.map(function (x, n) {
+          return '<button class="rt-shot' + (x.image ? "" : " empty") + '" data-n="' + n + '">' +
+            (x.image ? '<img src="' + x.image + '" alt="">' : '<span>' + num2(n + 1) + '</span>') +
+            (x.caption ? '<em>' + x.caption + '</em>' : "") + '</button>';
+        }).join("") + '</div>';
+      }
+      function tabTimeline(p) {
+        const t = p.timeline || [];
+        if (!t.length) return '<p class="rt-empty">' + (P.timelineEmpty || "아직 등록된 기록이 없어요.") + '</p>';
+        return '<ol class="rt-line">' + t.map(function (x) {
+          return '<li>' +
+            '<span class="rt-date">' + (x.date || "") + '</span>' +
+            '<div class="rt-card">' +
+              (x.title ? '<h4>' + x.title + '</h4>' : "") +
+              (x.text ? '<p>' + x.text + '</p>' : "") +
+              (x.image ? '<img src="' + x.image + '" alt="">' : "") +
+            '</div>' +
+          '</li>';
+        }).join("") + '</ol>';
+      }
+      function tabTrpg(p) {
+        const t = p.trpg || [];
+        if (!t.length) return '<p class="rt-empty">' + (P.trpgEmpty || "아직 등록된 백업이 없어요.") + '</p>';
+        return '<div class="rt-trpg">' + t.map(function (x, n) {
+          return '<article class="rt-log" data-n="' + n + '">' +
+            '<span class="rt-no">' + num2(n + 1) + '</span>' +
+            '<div class="rt-log-main">' +
+              '<p class="rt-log-meta">' + [x.system, x.date].filter(Boolean).join(" · ") + '</p>' +
+              '<h4>' + (x.title || "") + '</h4>' +
+              (x.role ? '<p class="rt-log-role">' + x.role + '</p>' : "") +
+              (x.text ? '<p class="rt-log-text">' + x.text + '</p>' : "") +
+            '</div>' +
+            '<span class="rt-log-go">' + (P.logButton || "LOG") + '<i></i></span>' +
+          '</article>';
+        }).join("") + '</div>';
+      }
+
+      /* =====================================================
+         TRPG 로그 보기
+         - file : 로그 파일 주소 (코코포리아 html 로그, txt 로그)
+                  → 파일을 읽어서 채팅처럼 자동으로 보여줘요
+         - link : 파일 대신 외부 링크 (새 창으로 열려요)
+         ===================================================== */
+      const lv = document.getElementById("logView");
+      const esc = function (t) {
+        return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      };
+
+      // html 조각 → 줄바꿈이 살아있는 안전한 글자
+      function cleanHTML(html) {
+        const d = document.createElement("div");
+        d.innerHTML = String(html).replace(/<br\s*\/?>/gi, "\n");
+        return esc(d.textContent.replace(/^\s+|\s+$/g, "")).replace(/\n\s*/g, "<br>");
+      }
+
+      // 로그 글자 → [{ tab, name, color, text }]
+      function parseLog(raw, fileName) {
+        const out = [];
+        const isHTML = /\.html?$/i.test(fileName || "") || /<\s*(p|div|span|html|body)[\s>]/i.test(raw);
+        if (isHTML) {
+          const doc = new DOMParser().parseFromString(raw, "text/html");
+          let rows = doc.querySelectorAll("body > p, body > div > p");
+          if (!rows.length) rows = doc.querySelectorAll("p");
+          rows.forEach(function (row) {
+            const sp = row.querySelectorAll(":scope > span");
+            if (sp.length >= 3) {                       // 코코포리아 형식
+              out.push({
+                tab: sp[0].textContent.replace(/[\[\]\s]/g, ""),
+                name: sp[1].textContent.trim(),
+                color: row.style.color || "",
+                text: cleanHTML(sp[2].innerHTML)
+              });
+            } else if (row.textContent.trim()) {
+              out.push(lineFromText(row.innerHTML.replace(/<br\s*\/?>/gi, "\n"), row.style.color));
+            }
+          });
+          if (!out.length) {
+            (doc.body.textContent || "").split(/\n/).forEach(function (l) { if (l.trim()) out.push(lineFromText(l)); });
+          }
+        } else {
+          raw.split(/\r?\n/).forEach(function (l) { if (l.trim()) out.push(lineFromText(l)); });
+        }
+        return out;
+      }
+      // "[main] 이름 : 내용" 또는 "이름 : 내용"
+      function lineFromText(l, color) {
+        const d = document.createElement("div");
+        d.innerHTML = l;
+        const t = d.textContent;
+        const m = t.match(/^\s*(?:\[([^\]]{1,20})\]\s*)?([^:：\n]{1,40}?)\s*[:：]\s*([\s\S]*)$/);
+        if (m) return { tab: (m[1] || "").trim(), name: m[2].trim(), color: color || "", text: esc(m[3]).replace(/\n/g, "<br>") };
+        return { tab: "", name: "", color: color || "", text: esc(t).replace(/\n/g, "<br>") };
+      }
+
+      function renderLog(lines, x) {
+        const tabs = [];
+        lines.forEach(function (l) { if (l.tab && tabs.indexOf(l.tab) < 0) tabs.push(l.tab); });
+        lv.querySelector(".lv-tabs").innerHTML = tabs.length > 1
+          ? '<button class="on" data-tab="">ALL</button>' + tabs.map(function (t) { return '<button data-tab="' + esc(t) + '">' + esc(t) + '</button>'; }).join("")
+          : "";
+        lv.querySelector(".lv-body").innerHTML = lines.map(function (l) {
+          return '<div class="lv-line' + (l.name ? "" : " sys") + '" data-tab="' + esc(l.tab) + '"' + (l.color ? ' style="--lc:' + l.color + '"' : "") + '>' +
+            (l.name ? '<b class="lv-name">' + esc(l.name) + '</b>' : "") +
+            '<p class="lv-text">' + l.text + '</p>' +
+            (l.tab && tabs.length > 1 ? '<span class="lv-tab">' + esc(l.tab) + '</span>' : "") +
+          '</div>';
+        }).join("") || '<p class="lv-msg">로그가 비어 있어요.</p>';
+        lv.querySelectorAll(".lv-tabs button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            const t = b.getAttribute("data-tab");
+            lv.querySelectorAll(".lv-tabs button").forEach(function (o) { o.classList.toggle("on", o === b); });
+            lv.querySelectorAll(".lv-line").forEach(function (o) {
+              o.style.display = (!t || o.getAttribute("data-tab") === t) ? "" : "none";
+            });
+          });
+        });
+        lv.querySelector(".lv-count").textContent = lines.length + " LINES";
+      }
+
+      function openLog(x) {
+        if (!x.file && x.link) { window.open(x.link, "_blank", "noopener"); return; }
+        lv.querySelector(".lv-meta").textContent = [x.system, x.date, x.role].filter(Boolean).join(" · ");
+        lv.querySelector(".lv-title").textContent = x.title || "";
+        lv.querySelector(".lv-tabs").innerHTML = "";
+        lv.querySelector(".lv-count").textContent = "";
+        const raw = lv.querySelector(".lv-raw");
+        raw.style.display = (x.file || x.link) ? "" : "none";
+        raw.href = x.file || x.link || "#";
+        const body = lv.querySelector(".lv-body");
+        lv.classList.add("open");
+        body.scrollTop = 0;
+        if (!x.file) {
+          body.innerHTML = '<p class="lv-msg">' + (P.logEmpty || "등록된 로그 파일이 없어요.<br>data.js 의 trpg 에 file: \"로그파일.html\" 을 적어주세요.") + '</p>';
+          return;
+        }
+        body.innerHTML = '<p class="lv-msg">불러오는 중…</p>';
+        fetch(x.file)
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+          .then(function (t) { renderLog(parseLog(t, x.file), x); })
+          .catch(function () {
+            body.innerHTML = '<p class="lv-msg">로그 파일을 불러오지 못했어요.<br>파일 이름과 위치를 확인해 주세요.<br><small>' + esc(x.file) + '</small></p>';
+          });
+      }
+      function closeLog() { lv.classList.remove("open"); }
+      lv.addEventListener("click", function (e) { if (e.target === lv || e.target.closest(".lv-close")) closeLog(); });
+
+      function openRelation(pi) {
+        const p = pairs[pi];
+        const rows = p.members.map(function (m, k) {
+          const ch = chars[m - 1];
+          return ch ? capsuleRow(ch, p.sides[k], k % 2 === 0 ? "a" : "b") : "";
+        }).join("");
+        rl.innerHTML =
+          '<button class="rl-close" aria-label="닫기">×</button>' +
+          '<div class="rl-in">' +
+            '<header class="rl-title">' +
+              (p.titleImage
+                ? '<img src="' + p.titleImage + '" alt="' + (p.pairName || "") + '">'
+                : '<h2>' + (p.pairName || "") + '</h2>') +
+              (p.pairNameSub ? '<p>' + p.pairNameSub + '</p>' : "") +
+            '</header>' +
+            '<section class="rl-hero n' + p.members.length + '">' +
+              rows +
+              '<p class="rl-scroll">SCROLL<i></i></p>' +
+            '</section>' +
+            '<section class="rl-tabs-wrap">' +
+              '<nav class="rl-tabs">' +
+                '<button class="on" data-t="timeline">' + RT.timeline + '</button>' +
+                '<button data-t="gallery">' + RT.gallery + '</button>' +
+                '<button data-t="trpg">' + RT.trpg + '</button>' +
+              '</nav>' +
+              '<div class="rl-pane on" data-p="timeline">' + tabTimeline(p) + '</div>' +
+              '<div class="rl-pane" data-p="gallery">' + tabGallery(p) + '</div>' +
+              '<div class="rl-pane" data-p="trpg">' + tabTrpg(p) + '</div>' +
+            '</section>' +
+          '</div>';
+        rl.querySelector(".rl-close").addEventListener("click", closeRelation);
+        rl.querySelectorAll(".rl-tabs button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            const t = b.getAttribute("data-t");
+            rl.querySelectorAll(".rl-tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
+            rl.querySelectorAll(".rl-pane").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-p") === t); });
+          });
+        });
+        rl.querySelector(".rl-scroll").addEventListener("click", function () {
+          rl.querySelector(".rl-tabs-wrap").scrollIntoView({ behavior: "smooth" });
+        });
+        rl.querySelectorAll(".rt-log").forEach(function (a) {
+          a.addEventListener("click", function () { openLog((p.trpg || [])[+a.getAttribute("data-n")] || {}); });
+        });
+        rl.querySelectorAll(".rt-shot").forEach(function (b) {
+          b.addEventListener("click", function () { openBox(p.gallery || [], +b.getAttribute("data-n")); });
+        });
+        rl.scrollTop = 0;
+        rl.classList.add("open");
+      }
+
+      /* ----- 갤러리 크게 보기 ----- */
+      const box = document.getElementById("prBox");
+      let boxList = [], boxN = 0;
+      function showBox() {
+        const g = boxList[boxN] || {};
+        box.querySelector(".box-img").innerHTML = g.image ? '<img src="' + g.image + '" alt="">' : '<span class="box-empty">NO IMAGE</span>';
+        box.querySelector(".box-cap").innerHTML = (g.caption || "") + '<small>' + num2(boxN + 1) + ' / ' + num2(boxList.length) + '</small>';
+      }
+      function openBox(arr, n) { boxList = arr; boxN = n; showBox(); box.classList.add("open"); }
+      function closeBox() { box.classList.remove("open"); }
+      function moveBox(d) { if (!boxList.length) return; boxN = (boxN + d + boxList.length) % boxList.length; showBox(); }
+      box.addEventListener("click", function (e) { if (e.target === box || e.target.classList.contains("box-close")) closeBox(); });
+      box.querySelector(".box-prev").addEventListener("click", function () { moveBox(-1); });
+      box.querySelector(".box-next").addEventListener("click", function () { moveBox(1); });
+      function closeRelation() { rl.classList.remove("open"); }
+
+      addKey( function (e) {
+        if (box.classList.contains("open")) {
+          if (e.key === "Escape") closeBox();
+          if (e.key === "ArrowLeft") moveBox(-1);
+          if (e.key === "ArrowRight") moveBox(1);
+          return;
+        }
+        if (lv.classList.contains("open")) { if (e.key === "Escape") closeLog(); return; }
+        if (rl.classList.contains("open")) { if (e.key === "Escape") closeRelation(); return; }
+        if (e.key === "ArrowLeft") go(current - 1, -1);
+        if (e.key === "ArrowRight") go(current + 1, 1);
+      });
+
+      go(0);
+      };
+
+      /* ##################################################### */
+      /* ##### 페이지: owner ##### */
+      /* ##################################################### */
+      PAGES.owner = function () {
+      /* =====================================================
+         페이지 꾸밈
+         ===================================================== */
+      const D = S.deco || {};
+      const O = S.owner || {};
+      document.getElementById("decoTopLeft").innerHTML =
+        (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
+        '<span class="top-label">' + (O.label || "OWNER FILE") + '</span>' +
+        '<span class="top-line"></span>';
+      document.getElementById("owHint").textContent = O.hint || "";
+      root.setProperty("--panel-mix", Math.round(((O.panelStrength != null) ? O.panelStrength : 0.18) * 100) + "%");
+
+      /* =====================================================
+         카드 부품
+         ===================================================== */
+      const silhouette =
+        '<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMax meet">' +
+          '<circle cx="50" cy="48" r="22" fill="currentColor"/>' +
+          '<path d="M8 130 C8 92 26 76 50 76 C74 76 92 92 92 130 Z" fill="currentColor"/>' +
+        '</svg>';
+
+      function photo(ch) {
+        return '<div class="cd-photo' + (ch.image ? " has-img" : "") + '">' +
+          (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) +
+        '</div>';
+      }
+
+      // 번호에 따라 늘 같은 모양이 나오는 바코드
+      function barcode(seed) {
+        let h = 0;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+        let bars = "";
+        for (let i = 0; i < 46; i++) {
+          h = (h * 1103515245 + 12345) >>> 0;
+          const w = 1 + (h >>> 16) % 3;
+          const gap = 1 + (h >>> 20) % 2;
+          bars += '<i style="width:' + w + 'px;margin-right:' + gap + 'px"></i>';
+        }
+        return '<div class="cd-barcode">' + bars + '</div>';
+      }
+
+
+      /* ---- 카드 종류별 그리기 (캐릭터 페이지와 같은 코드) ----
+         P : 카드 뒷면 문구 등은 owner 에 적은 값이 먼저, 없으면 characterPage 값 */
+      const P = Object.assign({}, S.characterPage || {}, O);
+      if (P.imageTint === false) document.body.classList.add("no-tint");
+      root.setProperty("--tint", (P.tintStrength != null) ? P.tintStrength : 0.85);
+      if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
+
+      function tags(ch) {
+        return (ch.tags || []).map(function (t) {
+          return '<span class="cd-tag"><b>#</b>' + t + '</span>';
+        }).join("");
+      }
+
+      /* ----- 앞면: 사원증 / 학생증 ----- */
+      function frontId(ch) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="cd-head"><strong>' + (ch.cardTitle || "") + '</strong><span>' + (ch.cardSub || "") + '</span></div>' +
+          photo(ch) +
+          '<h3 class="cd-name">' + (ch.name || "") + '</h3>' +
+          '<p class="cd-en">' + (ch.nameEn || "") + '</p>' +
+          '<p class="cd-intro">' + (ch.intro || "") + '</p>' +
+          '<div class="cd-tags">' + tags(ch) + '</div>' +
+          '<div class="cd-foot"><span>ID No. ' + (ch.number || "") + '</span>' + barcode(ch.number) + '</div>';
+      }
+
+      // 번호에 따라 늘 같은 숫자열
+      function digits(seed, n) {
+        let h = 7;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 131 + str.charCodeAt(i)) >>> 0;
+        let out = "";
+        for (let i = 0; i < n; i++) { h = (h * 1103515245 + 12345) >>> 0; out += (h >>> 16) % 10; }
+        return out;
+      }
+
+      // 번호에 따라 늘 같은 QR 모양 (장식용)
+      function qr(seed) {
+        const N = 21;
+        let h = 3;
+        const str = String(seed || "0");
+        for (let i = 0; i < str.length; i++) h = (h * 33 + str.charCodeAt(i)) >>> 0;
+        let r = "";
+        const finder = function (x, y) {
+          return '<rect x="' + x + '" y="' + y + '" width="7" height="7"/>' +
+                 '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="5" height="5" fill="var(--paper)"/>' +
+                 '<rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"/>';
+        };
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+          const inF = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+          if (inF) continue;
+          h = (h * 1103515245 + 12345) >>> 0;
+          if ((h >>> 16) % 2) r += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>';
+        }
+        return '<svg class="wt-qr" viewBox="0 0 21 21" shape-rendering="crispEdges">' +
+          r + finder(0, 0) + finder(14, 0) + finder(0, 14) + '</svg>';
+      }
+
+      /* ----- 앞면: 티켓 ----- */
+      function frontTicket(ch) {
+        const name = String(ch.name || "");
+        const d = digits(ch.number, 15);
+
+        return '<div class="tk-body">' +
+            '<div class="tk-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
+            '<div class="tk-text">' +
+              '<h3 class="tk-name">' + name + '</h3>' +
+              '<p class="tk-intro">' + (ch.intro || "") + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="tk-stub">' +
+            '<div class="tk-stub-head"><strong>ADMIT ONE</strong><span>' + (ch.cardSub || "") + '</span></div>' +
+            '<p class="tk-stub-label">' + name + '</p>' +
+            seatGrid(ch) +
+            '<div class="tk-code">' + (ch.number || "") + '</div>' +
+            '<p class="tk-digits">' + d.replace(/(\d{3})/g, "$1.").replace(/\.$/, "") + '</p>' +
+            barcode(ch.number + "x") +
+            '<p class="tk-digits2">' + digits(ch.number + "y", 16) + '</p>' +
+          '</div>';
+      }
+
+      // 좌석 정보 (GATE / ROW / SEAT)
+      function seatGrid(ch) {
+        const st = ch.seat || {};
+        const cell = function (k, v) { return '<div><span>' + k + '</span><b>' + (v || "-") + '</b></div>'; };
+        return '<div class="tk-seat">' + cell("GATE", st.gate) + cell("ROW", st.row) + cell("SEAT", st.seat) + '</div>';
+      }
+
+      /* ----- 앞면: 수배지 ----- */
+      function frontWanted(ch) {
+        const pr = (ch.profile || []).slice(0, 6);
+        const half = Math.ceil(pr.length / 2);
+        const col = function (arr) {
+          return arr.map(function (r) {
+            return '<p><b>' + (r.label || "") + ':</b> ' + (r.value || "") + '</p>';
+          }).join("");
+        };
+        return '<div class="wt-inner">' +
+          '<div class="wt-banner">' + (ch.cardTitle || "WANTED") + '</div>' +
+          '<h3 class="wt-name">' + (ch.name || "") + '</h3>' +
+          (ch.cardSub ? '<p class="wt-sub">' + ch.cardSub + '</p>' : "") +
+          '<div class="wt-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
+          '<h4 class="wt-desc-title">DESCRIPTION</h4>' +
+          '<div class="wt-desc"><div>' + col(pr.slice(0, half)) + '</div><div>' + col(pr.slice(half)) + '</div></div>' +
+          '<div class="wt-rule"></div>' +
+          '<div class="wt-bottom">' +
+            '<span class="wt-sign">' + (ch.nameEn || "") + '</span>' +
+            '<div class="wt-reward"><span>REWARD</span><strong>' + (ch.number || "") + '</strong></div>' +
+            qr(ch.number) +
+          '</div>' +
+        '</div>';
+      }
+
+      /* =====================================================
+         뒷면 (실제 카드 뒷면처럼)
+         ===================================================== */
+      const TERMS = P.ticketTerms || [
+        "본 티켓은 1인 1매 입장권이며, 재입장이 불가합니다.",
+        "공연 시작 후에는 입장이 제한될 수 있습니다.",
+        "티켓 분실 · 훼손 시 재발행되지 않습니다.",
+        "무단 촬영 · 녹음 · 녹화를 금지합니다.",
+        "부정 거래된 티켓은 사전 통보 없이 취소될 수 있습니다.",
+        "공연 일정은 주최 측 사정에 따라 변경될 수 있습니다."
+      ];
+
+      /* ----- 뒷면: 사원증 / 학생증 ----- */
+      function backId(ch) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="ib-stripe"></div>' +
+          '<div class="ib-body">' +
+            '<p class="ib-notice">' + (P.idNotice || "본 카드는 아래 소유자 본인만 사용할 수 있으며, 타인에게 양도할 수 없습니다.<br>습득하신 분은 아래 기관으로 돌려주세요.") + '</p>' +
+            '<p class="ib-org">' + (ch.cardSub || "") + '</p>' +
+            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (ch.nameEn || ch.name || "") + '</b></div>' +
+            '<div class="ib-rows">' +
+              '<div><span>ISSUED</span><b>' + (P.idIssued || "2026.03.02") + '</b></div>' +
+              '<div><span>VALID THRU</span><b>' + (P.idValid || "2029.02.28") + '</b></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cd-foot"><span>No. ' + (ch.number || "") + '</span>' + barcode((ch.number || "") + "b") + '</div>';
+      }
+
+      /* ----- 뒷면: 티켓 (조각은 왼쪽, 약관) ----- */
+      function backTicket(ch) {
+        const d = digits(ch.number, 15);
+        return '<div class="tk-stub tkb-stub">' +
+            '<p class="tkb-noentry">NO<br>RE-ENTRY</p>' +
+            seatGrid(ch) +
+            '<p class="tkb-serial">SERIAL<br><b>' + d.slice(0, 10) + '</b></p>' +
+            barcode(ch.number + "z") +
+          '</div>' +
+          '<div class="tk-body tkb-body">' +
+            '<h3 class="tkb-title">TERMS &amp; CONDITIONS</h3>' +
+            '<ol class="tkb-terms">' + TERMS.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ol>' +
+            '<div class="tkb-bottom">' +
+              '<div class="tkb-holo"><span>AUTHENTIC</span></div>' +
+              '<div class="tkb-code">' + barcode(ch.number + "q") + '<span>' + (ch.number || "") + '</span></div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      /* ----- 뒷면: 수배지 (종이 뒷면) ----- */
+      function backWanted(ch) {
+        return '<i class="wb-tape t1"></i><i class="wb-tape t2"></i><i class="wb-tape t3"></i>' +
+          '<div class="wb-note">' + (ch.quote || "") + '</div>' +
+          '<div class="wb-stamp"><span>CASE No.</span><b>' + digits(ch.number, 6) + '</b></div>';
+      }
+
+      /* =====================================================
+         직접 만든 카드 (앞면 · 뒷면 이미지)
+         ===================================================== */
+      function customFace(src, label) {
+        return src
+          ? '<img class="cx-img" src="' + src + '" alt="">'
+          : '<div class="cx-empty"><b>' + label + '</b><span>IMAGE</span></div>';
+      }
+
+      // 이미지 비율에 맞춰 카드 크기 정하기
+      function sizeCustom(ch) {
+        const flipEl = document.getElementById("cdFlip");
+        const apply = function (ratio) {
+          flipEl.style.aspectRatio = String(ratio);
+          if (ratio >= 1) {                       // 가로로 긴 카드
+            flipEl.style.width = "min(760px, 52vw, calc(58vh * " + ratio + "))";
+            flipEl.style.height = "auto";
+          } else {                                // 세로로 긴 카드
+            flipEl.style.height = "min(560px, 60vh)";
+            flipEl.style.width = "auto";
+          }
+          holder.setAttribute("data-type", ratio >= 1.4 ? "custom-wide" : "custom");
+        };
+        if (ch.customRatio) {
+          const part = String(ch.customRatio).split("/");
+          const r = part.length > 1 ? parseFloat(part[0]) / parseFloat(part[1]) : parseFloat(part[0]);
+          apply(r > 0 ? r : 0.7);
+          return;
+        }
+        if (!ch.customFront) { apply(0.7); return; }
+        apply(0.7);
+        const probe = new Image();
+        probe.onload = function () { if (probe.naturalHeight) apply(probe.naturalWidth / probe.naturalHeight); };
+        probe.src = ch.customFront;
+      }
+
+
+      const esc = function (t) {
+        return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      };
+      const ICONS = {
+        X: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>'
+      };
+
+      // 링크 칩 (레퍼런스의 [X] @twitter_id / [POSTYPE] 포스타입 모양)
+      function chips(list) {
+        return (list || []).map(function (l) {
+          const label = String(l.label || "");
+          const inner = '<b>' + (ICONS[label.toUpperCase()] || label) + '</b><span>' + (l.text || "") + '</span>';
+          return l.url
+            ? '<a class="ow-chip" href="' + l.url + '" target="_blank" rel="noopener">' + inner + '</a>'
+            : '<span class="ow-chip">' + inner + '</span>';
+        }).join("");
+      }
+
+      /* ----- 앞면 ----- */
+      function front(o) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="cd-head"><strong>' + (o.cardTitle || "OWNER ID") + '</strong><span>' + (o.cardSub || "") + '</span></div>' +
+          photo(o) +
+          '<h3 class="cd-name">' + (o.name || "") + '</h3>' +
+          '<p class="cd-en">' + (o.nameEn || "") + '</p>' +
+          '<p class="cd-intro">' + (o.intro || "") + '</p>' +
+          '<div class="ow-chips">' + chips(o.links) + '</div>' +
+          '<div class="cd-foot"><span>ID No. ' + (o.number || "") + '</span>' + barcode(o.number) + '</div>';
+      }
+
+      /* ----- 뒷면 (실제 사원증 뒷면처럼) ----- */
+      function back(o) {
+        return '<div class="cd-slot"></div>' +
+          '<div class="ib-stripe"></div>' +
+          '<div class="ib-body">' +
+            '<p class="ib-notice">' + (o.backNotice || "본 카드는 오너 본인만 사용할 수 있습니다.<br>습득하신 분은 아래 연락처로 알려주세요.") + '</p>' +
+            '<p class="ib-org">' + (o.cardSub || "") + '</p>' +
+            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (o.sign || o.nameEn || o.name || "") + '</b></div>' +
+            '<div class="ib-rows">' +
+              '<div><span>SINCE</span><b>' + (o.since || "") + '</b></div>' +
+              '<div><span>VALID THRU</span><b>' + (o.valid || "") + '</b></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cd-foot"><span>No. ' + (o.number || "") + '</span>' + barcode((o.number || "") + "b") + '</div>';
+      }
+
+      /* =====================================================
+         상세 소개 (뒤집으면 오른쪽에 나타남)
+         ===================================================== */
+      const detail = document.getElementById("chDetail");
+      function renderDetail(o) {
+        const T = Object.assign({ profile: "PROFILE", taste: "TASTE", notice: "NOTICE", banner: "BANNER" }, o.tabs || {});
+        const BN = o.banner || {};
+        const siteUrl = BN.siteUrl || location.href.replace(/[^/]*$/, "");
+        const mine = (BN.mine || []).map(function (b, n) {
+          const code = '<a href="' + siteUrl + '" target="_blank"><img src="' + (b.image || "") + '" alt="' + (o.name || "") + '"></a>';
+          return '<div class="bn-mine">' +
+            '<div class="bn-img">' + (b.image ? '<img src="' + b.image + '" alt="">' : '<span>' + (b.size || "BANNER") + '</span>') + '</div>' +
+            '<div class="bn-code"><code>' + esc(code) + '</code>' +
+              '<button class="bn-copy" data-code="' + esc(code).replace(/"/g, "&quot;") + '">' + (BN.copyText || "COPY") + '</button>' +
+            '</div>' +
+          '</div>';
+        }).join("");
+        const friends = (BN.friends || []).map(function (b) {
+          const img = b.image ? '<img src="' + b.image + '" alt="' + (b.name || "") + '" title="' + (b.name || "") + '">' : '<span>' + (b.name || "BANNER") + '</span>';
+          return b.url
+            ? '<a class="bn-friend" href="' + b.url + '" target="_blank" rel="noopener">' + img + '</a>'
+            : '<span class="bn-friend">' + img + '</span>';
+        }).join("");
+        const paneBanner =
+          '<h4 class="ow-sub">' + (BN.friendsTitle || "LINK") + '</h4>' +
+          (friends ? '<div class="bn-friends">' + friends + '</div>' : '<p class="dt-empty">-</p>') +
+          '<div class="bn-mine-wrap">' +
+            '<h4 class="ow-sub">' + (BN.mineTitle || "MY BANNER") + '</h4>' +
+            (mine || '<p class="dt-empty">-</p>') +
+            (BN.note ? '<p class="bn-note">' + BN.note + '</p>' : "") +
+          '</div>';
+        const rows = (o.profile || []).map(function (r) {
+          return '<div class="dt-row"><dt>' + (r.label || "") + '</dt><dd>' + (r.value || "") + '</dd></div>';
+        }).join("");
+        const chipList = function (arr, cls) {
+          return (arr || []).length
+            ? '<div class="ow-taste ' + cls + '">' + arr.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>'
+            : '<p class="dt-empty">-</p>';
+        };
+        const paneProfile =
+          (rows ? '<dl class="dt-list">' + rows + '</dl>' : "") +
+          (o.about ? '<div class="dt-story">' + o.about + '</div>' : "") +
+          ((o.links || []).length ? '<div class="ow-links">' + chips(o.links) + '</div>' : "");
+        const paneTaste =
+          '<h4 class="ow-sub">' + (o.likeTitle || "LIKE") + '</h4>' + chipList(o.likes, "like") +
+          '<h4 class="ow-sub">' + (o.dislikeTitle || "DISLIKE") + '</h4>' + chipList(o.dislikes, "dislike");
+        const paneNotice = (o.notice || []).length
+          ? '<ol class="ow-notice">' + o.notice.map(function (n) { return '<li>' + n + '</li>'; }).join("") + '</ol>'
+          : '<p class="dt-empty">-</p>';
+
+        detail.style.setProperty("--c", cardColor(o.color));
+        document.getElementById("chDetailBg").style.setProperty("--c", cardColor(o.color));
+        detail.innerHTML =
+          '<header class="dt-head">' +
+            '<div class="dt-top">' +
+              '<nav class="dt-tabs">' +
+                '<button class="on" data-tab="profile">' + T.profile + '</button>' +
+                '<button data-tab="taste">' + T.taste + '</button>' +
+                '<button data-tab="notice">' + T.notice + '</button>' +
+                '<button data-tab="banner">' + T.banner + '</button>' +
+              '</nav>' +
+              '<span>' + (o.cardTitle || "OWNER") + '</span>' +
+            '</div>' +
+            '<h2 class="dt-name">' + (o.name || "") + '</h2>' +
+            '<p class="dt-en">' + (o.nameEn || "") + '</p>' +
+          '</header>' +
+          '<div class="dt-panes">' +
+            '<section class="dt-pane on" data-pane="profile">' + paneProfile + '</section>' +
+            '<section class="dt-pane" data-pane="taste">' + paneTaste + '</section>' +
+            '<section class="dt-pane" data-pane="notice">' + paneNotice + '</section>' +
+            '<section class="dt-pane" data-pane="banner">' + paneBanner + '</section>' +
+          '</div>';
+        // 배너 코드 복사
+        detail.querySelectorAll(".bn-copy").forEach(function (b) {
+          b.addEventListener("click", function () {
+            const code = b.getAttribute("data-code").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+            const done = function () { b.textContent = BN.copiedText || "COPIED!"; setTimeout(function () { b.textContent = BN.copyText || "COPY"; }, 1500); };
+            if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(code).then(done, fallback);
+            else fallback();
+            function fallback() {
+              const t = document.createElement("textarea");
+              t.value = code; document.body.appendChild(t); t.select();
+              try { document.execCommand("copy"); done(); } catch (e) {}
+              t.remove();
+            }
+          });
+        });
+        detail.querySelectorAll(".dt-tabs button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const t = btn.getAttribute("data-tab");
+            detail.querySelectorAll(".dt-tabs button").forEach(function (b) { b.classList.toggle("on", b === btn); });
+            detail.querySelectorAll(".dt-pane").forEach(function (p) { p.classList.toggle("on", p.getAttribute("data-pane") === t); });
+          });
+        });
+      }
+
+      /* =====================================================
+         카드 그리기 · 뒤집기
+         ===================================================== */
+      const holder = document.getElementById("chHolder");
+      function flip(on) {
+        const f = document.getElementById("cdFlip");
+        if (!f) return;
+        const next = (on === undefined) ? !f.classList.contains("flipped") : on;
+        f.classList.toggle("flipped", next);
+        document.body.classList.toggle("is-flipped", next);
+      }
+
+      const type = ["id", "ticket", "wanted", "custom"].indexOf(O.type) > -1 ? O.type : "id";
+      const faceF = type === "custom" ? customFace(O.customFront, "FRONT") :
+                    type === "ticket" ? frontTicket(O) : type === "wanted" ? frontWanted(O) : front(O);
+      const faceB = type === "custom" ? customFace(O.customBack, "BACK") :
+                    type === "ticket" ? backTicket(O) : type === "wanted" ? backWanted(O) : back(O);
+
+      holder.setAttribute("data-type", type);
+      holder.innerHTML =
+        '<div class="cd cd-' + type + (type === "id" ? " ow-card" : "") + '" style="--c:' + cardColor(O.color) + ';--c2:' + cardSub(O.subColor, O.color) + ';--ct:' + cardText(O.textColor, O.color) + ';--cx-r:' + ((O.customRadius != null) ? O.customRadius : 12) + 'px">' +
+          (type === "id" && O.strap !== false ? '<div class="ow-strap"><span>' + (O.strap || "") + '</span></div><div class="ow-clip"></div>' : "") +
+          '<div class="cd-flip" id="cdFlip" title="눌러서 뒤집기">' +
+            '<div class="cd-face cd-front">' + faceF + '</div>' +
+            '<div class="cd-face cd-back">' + faceB + '</div>' +
+          '</div>' +
+          (O.sd ? '<img class="cd-sd" src="' + O.sd + '" alt="" style="--sd-w:' + sdW(O) + '">' : "") +
+        '</div>';
+      if (type === "custom") sizeCustom(O);
+      document.getElementById("cdFlip").addEventListener("click", function (e) {
+        if (e.target.closest("a")) return;   // 링크 칩은 뒤집지 않고 링크로
+        flip();
+      });
+      renderDetail(O);
+
+      addKey( function (e) {
+        if (e.key === " ") { e.preventDefault(); flip(); }
+        if (e.key === "Escape") flip(false);
+      });
+      };
+
+      /* ##################################################### */
+      /* ##### 페이지: guest ##### */
+      /* ##################################################### */
+      PAGES.guest = function () {
+      /* =====================================================
+         페이지 꾸밈
+         ===================================================== */
+      const D = S.deco || {};
+      const G = S.guest || {};
+      const FM = G.form || {};
+      document.getElementById("decoTopLeft").innerHTML =
+        (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
+        '<span class="top-label">' + (G.label || "GUEST BOOK") + '</span>' +
+        '<span class="top-line"></span>';
+
+      const wrap = document.getElementById("gbWrap");
+      const esc = function (t) {
+        return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      };
+      const nl = function (t) { return esc(t).replace(/\r?\n/g, "<br>"); };
+      const mode = ["form", "widget", "links", "firebase"].indexOf(G.mode) > -1 ? G.mode : "form";
+
+      /* ----- 익명 질문 링크 (모든 방식에서 아래에 함께 나와요) ----- */
+      function linkCards(big) {
+        const L = G.links || [];
+        if (!L.length) return "";
+        return '<div class="gb-links' + (big ? " big" : "") + '">' + L.map(function (l) {
+          const inner =
+            '<b>' + esc(l.label || "") + '</b>' +
+            '<span class="gb-link-text"><strong>' + esc(l.text || "") + '</strong>' +
+            (big && l.desc ? '<small>' + esc(l.desc) + '</small>' : "") + '</span>' +
+            '<i></i>';
+          return l.url
+            ? '<a class="gb-link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + inner + '</a>'
+            : '<span class="gb-link off">' + inner + '</span>';
+        }).join("") + '</div>';
+      }
+
+      const head =
+        '<header class="gb-head">' +
+          '<h2>' + esc(G.title || "GUEST BOOK") + '</h2>' +
+          (G.intro ? '<p>' + G.intro + '</p>' : "") +
+        '</header>';
+
+      /* =====================================================
+         1. 구글 폼 + 구글 시트 방식
+         ===================================================== */
+      function setupForm() {
+        // 미리 채워진 링크에서 폼 주소와 칸 번호 읽기
+        let post = "", eName = "", eMsg = "", eSecret = "", vSecret = "";
+        try {
+          if (FM.formLink) {
+            const u = new URL(FM.formLink);
+            post = u.origin + u.pathname.replace(/\/(viewform|formResponse).*$/, "/formResponse");
+            u.searchParams.forEach(function (v, k) {
+              if (!/^entry\./.test(k)) return;
+              if (v === "NAME") eName = k;
+              else if (v === "MESSAGE") eMsg = k;
+              else { eSecret = k; vSecret = v; }
+            });
+          }
+        } catch (e) {}
+        const ready = post && eName && eMsg;
+
+        wrap.innerHTML = head +
+          '<div class="gb-grid">' +
+            '<section class="gb-write">' +
+              '<h3>' + esc(FM.writeTitle || "WRITE") + '</h3>' +
+              '<label class="gb-field"><span>' + esc(FM.nameLabel || "이름") + '</span>' +
+                '<input id="gbName" maxlength="20" placeholder="' + esc(FM.namePlaceholder || "닉네임") + '"></label>' +
+              '<label class="gb-field"><span>' + esc(FM.messageLabel || "내용") + '</span>' +
+                '<textarea id="gbMsg" rows="7" maxlength="1000" placeholder="' + esc(FM.messagePlaceholder || "남기고 싶은 말을 적어주세요.") + '"></textarea></label>' +
+              '<div class="gb-row">' +
+                (eSecret ? '<label class="gb-check"><input type="checkbox" id="gbSecret"><i></i>' + esc(FM.secretLabel || "비밀글") + '</label>' : '<span></span>') +
+                '<button class="gb-submit" id="gbSubmit">' + esc(FM.submitText || "남기기") + '</button>' +
+              '</div>' +
+              '<p class="gb-status" id="gbStatus">' + (ready ? "" : esc(FM.notReadyText || "아직 방명록이 연결되지 않았어요. (data.js 의 guest 설정을 확인해 주세요)")) + '</p>' +
+              linkCards(false) +
+            '</section>' +
+            '<section class="gb-list">' +
+              '<p class="gb-list-head"><span>' + esc(FM.listTitle || "전체") + ' <b id="gbCount">0</b></span><span>' + esc(FM.sortText || "최신 순") + '</span></p>' +
+              '<div id="gbItems" class="gb-items"><p class="gb-empty">불러오는 중…</p></div>' +
+              '<button class="gb-more" id="gbMore">' + esc(FM.moreText || "더 보기") + '</button>' +
+            '</section>' +
+          '</div>';
+
+        /* --- 글 목록 --- */
+        const items = document.getElementById("gbItems");
+        const more = document.getElementById("gbMore");
+        const per = FM.perPage || 10;
+        let all = [], shown = 0;
+        const col = Object.assign({ time: 1, name: 2, message: 3, secret: 4, reply: 5, hide: 6 }, FM.columns || {});
+
+        function fmtDate(t) {
+          const m = String(t || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+          return m ? m[1] + "." + ("0" + m[2]).slice(-2) + "." + ("0" + m[3]).slice(-2) : String(t || "");
+        }
+        function card(e, n) {
+          const secret = !!e.secret;
+          const initial = String(e.name || "?").trim().charAt(0) || "?";
+          return '<article class="gb-item' + (secret ? " secret" : "") + (e.pending ? " pending" : "") + '" style="--d:' + (n % per * 0.05) + 's">' +
+            '<span class="gb-ava">' + esc(initial) + '</span>' +
+            '<div class="gb-main">' +
+              '<p class="gb-meta"><b>' + esc(e.name || "익명") + '</b>' +
+                (secret ? '<span class="gb-lock">' + esc(FM.secretLabel || "비밀글") + '</span>' : "") +
+                '<small>' + esc(e.pending ? (FM.pendingText || "반영 대기 중") : fmtDate(e.time)) + '</small></p>' +
+              '<p class="gb-text">' + (secret ? esc(FM.secretText || "비밀글이에요. 오너만 볼 수 있어요.") : nl(e.message)) + '</p>' +
+              (e.reply ? '<div class="gb-reply"><span class="gb-reply-arrow">ㄴ</span>' +
+                (G.ownerImage ? '<span class="gb-ava sm img"><img src="' + esc(G.ownerImage) + '" alt=""></span>' : '<span class="gb-ava sm owner">' + esc(String(G.ownerName || "O").charAt(0)) + '</span>') +
+                '<div><b>' + esc(G.ownerName || "오너") + '</b><p>' + (secret && !FM.showSecretReply ? esc(FM.secretText || "비밀글이에요. 오너만 볼 수 있어요.") : nl(e.reply)) + '</p></div></div>' : "") +
+            '</div>' +
+          '</article>';
+        }
+        function draw() {
+          document.getElementById("gbCount").textContent = all.length;
+          if (!all.length) { items.innerHTML = '<p class="gb-empty">' + esc(FM.emptyText || "아직 남겨진 글이 없어요. 첫 글을 남겨주세요!") + '</p>'; more.style.display = "none"; return; }
+          shown = Math.min(Math.max(shown, per), all.length);
+          items.innerHTML = all.slice(0, shown).map(card).join("");
+          more.style.display = shown < all.length ? "" : "none";
+        }
+        more.addEventListener("click", function () { shown += per; draw(); });
+
+        // CSV 읽기 (따옴표 · 줄바꿈 포함)
+        function parseCSV(t) {
+          const rows = []; let row = [], cur = "", q = false;
+          for (let i = 0; i < t.length; i++) {
+            const c = t[i];
+            if (q) {
+              if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+              else cur += c;
+            } else if (c === '"') q = true;
+            else if (c === ",") { row.push(cur); cur = ""; }
+            else if (c === "\n" || c === "\r") {
+              if (c === "\r" && t[i + 1] === "\n") i++;
+              row.push(cur); rows.push(row); row = []; cur = "";
+            } else cur += c;
+          }
+          if (cur || row.length) { row.push(cur); rows.push(row); }
+          return rows;
+        }
+        const pick = function (r, k) { return (r[col[k] - 1] || "").trim(); };
+
+        if (FM.sheetCsv) {
+          fetch(FM.sheetCsv + (FM.sheetCsv.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+            .then(function (t) {
+              all = parseCSV(t).slice(1)
+                .filter(function (r) { return pick(r, "message") && !pick(r, "hide"); })
+                .map(function (r) {
+                  return { time: pick(r, "time"), name: pick(r, "name"), message: pick(r, "message"),
+                           secret: pick(r, "secret"), reply: pick(r, "reply") };
+                }).reverse();
+              draw();
+            })
+            .catch(function () {
+              items.innerHTML = '<p class="gb-empty">' + esc(FM.loadErrorText || "글 목록을 불러오지 못했어요.") + '</p>';
+            });
+        } else {
+          all = (G.sample || []).slice();   // 연결 전 미리보기용 예시 글
+          draw();
+        }
+
+        /* --- 글쓰기 --- */
+        const st = document.getElementById("gbStatus");
+        const btn = document.getElementById("gbSubmit");
+        btn.addEventListener("click", function () {
+          const name = document.getElementById("gbName").value.trim();
+          const msg = document.getElementById("gbMsg").value.trim();
+          const sec = document.getElementById("gbSecret");
+          if (!name || !msg) { st.textContent = FM.emptyInputText || "이름과 내용을 모두 적어주세요."; st.className = "gb-status warn"; return; }
+          if (!ready) { st.textContent = FM.notReadyText || "아직 방명록이 연결되지 않았어요."; st.className = "gb-status warn"; return; }
+          const body = new URLSearchParams();
+          body.append(eName, name);
+          body.append(eMsg, msg);
+          if (sec && sec.checked) body.append(eSecret, vSecret);
+          btn.disabled = true;
+          st.textContent = "보내는 중…"; st.className = "gb-status";
+          fetch(post, { method: "POST", mode: "no-cors", body: body })
+            .then(function () {
+              all.unshift({ name: name, message: msg, secret: sec && sec.checked, pending: true });
+              shown++;
+              draw();
+              document.getElementById("gbName").value = "";
+              document.getElementById("gbMsg").value = "";
+              if (sec) sec.checked = false;
+              st.textContent = FM.doneText || "남겨주셔서 고마워요! 목록에 뜨기까지 몇 분 걸릴 수 있어요.";
+              st.className = "gb-status ok";
+            })
+            .catch(function () { st.textContent = "보내지 못했어요. 잠시 후 다시 시도해 주세요."; st.className = "gb-status warn"; })
+            .then(function () { btn.disabled = false; });
+        });
+      }
+
+      /* =====================================================
+         2. 외부 방명록 위젯 방식
+         ===================================================== */
+      function setupWidget() {
+        const W = G.widget || {};
+        wrap.innerHTML = head +
+          '<section class="gb-widget" id="gbWidget">' +
+            (W.url ? '<iframe src="' + esc(W.url) + '" style="height:' + (W.height || 640) + 'px" loading="lazy"></iframe>' : "") +
+          '</section>' + linkCards(false);
+        const box = document.getElementById("gbWidget");
+        if (!W.url && W.code) {
+          box.innerHTML = W.code;
+          // innerHTML 로 넣은 <script> 는 실행이 안 돼서 새로 만들어 붙여요
+          box.querySelectorAll("script").forEach(function (old) {
+            const s = document.createElement("script");
+            Array.prototype.forEach.call(old.attributes, function (a) { s.setAttribute(a.name, a.value); });
+            s.text = old.textContent;
+            old.parentNode.replaceChild(s, old);
+          });
+        }
+        if (!W.url && !W.code) box.innerHTML = '<p class="gb-empty">' + esc(W.emptyText || "방명록 위젯 코드가 아직 없어요. (data.js 의 guest.widget 을 확인해 주세요)") + '</p>';
+      }
+
+      /* =====================================================
+         3. 익명 질문 링크 방식
+         ===================================================== */
+      function setupLinks() {
+        wrap.innerHTML = head + (linkCards(true) || '<p class="gb-empty">등록된 링크가 없어요.</p>');
+      }
+
+      /* =====================================================
+         4. Firebase 방식 (비밀글은 오너만 읽어요)
+         ===================================================== */
+      function setupFirebase() {
+        const FB = G.firebase || {}, cfg = FB.config || {};
+        const COL = FB.collection || "guests";
+        const BASE = "https://www.gstatic.com/firebasejs/" + (S.firebaseSdk || "13.0.0") + "/";
+        const ready = !!(cfg.apiKey && cfg.projectId);
+
+        wrap.innerHTML = head +
+          '<div class="gb-grid">' +
+            '<section class="gb-write">' +
+              '<h3>' + esc(FM.writeTitle || "WRITE") + '</h3>' +
+              '<label class="gb-field"><span>' + esc(FM.nameLabel || "이름") + '</span>' +
+                '<input id="gbName" maxlength="20" placeholder="' + esc(FM.namePlaceholder || "닉네임") + '"></label>' +
+              '<label class="gb-field"><span>' + esc(FM.messageLabel || "내용") + '</span>' +
+                '<textarea id="gbMsg" rows="7" maxlength="1000" placeholder="' + esc(FM.messagePlaceholder || "남기고 싶은 말을 적어주세요.") + '"></textarea></label>' +
+              '<div class="gb-row">' +
+                '<label class="gb-check"><input type="checkbox" id="gbSecret"><i></i>' + esc(FM.secretLabel || "비밀글") + '</label>' +
+                '<button class="gb-submit" id="gbSubmit">' + esc(FM.submitText || "남기기") + '</button>' +
+              '</div>' +
+              '<p class="gb-status" id="gbStatus">' + (ready ? "" : esc(FM.notReadyText || "아직 방명록이 연결되지 않았어요. (설치 화면 #setup 을 확인해 주세요)")) + '</p>' +
+              linkCards(false) +
+            '</section>' +
+            '<section class="gb-list">' +
+              '<p class="gb-list-head"><span>' + esc(FM.listTitle || "전체") + ' <b id="gbCount">0</b></span><span>' + esc(FM.sortText || "최신 순") + '</span></p>' +
+              '<div id="gbItems" class="gb-items"><p class="gb-empty">불러오는 중…</p></div>' +
+              '<button class="gb-more" id="gbMore">' + esc(FM.moreText || "더 보기") + '</button>' +
+            '</section>' +
+          '</div>';
+
+        const items = document.getElementById("gbItems");
+        const more = document.getElementById("gbMore");
+        const per = FM.perPage || 10;
+        let all = [], shown = 0;
+
+        function pad(n) { return ("0" + n).slice(-2); }
+        function fmtTs(ts) {
+          const d = ts && ts.toDate ? ts.toDate() : (ts instanceof Date ? ts : null);
+          return d ? d.getFullYear() + "." + pad(d.getMonth() + 1) + "." + pad(d.getDate()) : "";
+        }
+        function card(e, n) {
+          const initial = String(e.name || "?").trim().charAt(0) || "?";
+          return '<article class="gb-item' + (e.pending ? " pending" : "") + '" style="--d:' + (n % per * 0.05) + 's">' +
+            '<span class="gb-ava">' + esc(initial) + '</span>' +
+            '<div class="gb-main">' +
+              '<p class="gb-meta"><b>' + esc(e.name || "익명") + '</b><small>' + esc(e.pending ? (FM.pendingText || "방금") : (e.time || "")) + '</small></p>' +
+              '<p class="gb-text">' + nl(e.message) + '</p>' +
+              (e.reply ? '<div class="gb-reply"><span class="gb-reply-arrow">ㄴ</span>' +
+                (G.ownerImage ? '<span class="gb-ava sm img"><img src="' + esc(G.ownerImage) + '" alt=""></span>' : '<span class="gb-ava sm owner">' + esc(String(G.ownerName || "O").charAt(0)) + '</span>') +
+                '<div><b>' + esc(G.ownerName || "오너") + '</b><p>' + nl(e.reply) + '</p></div></div>' : "") +
+            '</div>' +
+          '</article>';
+        }
+        function draw() {
+          document.getElementById("gbCount").textContent = all.length;
+          if (!all.length) { items.innerHTML = '<p class="gb-empty">' + esc(FM.emptyText || "아직 남겨진 글이 없어요. 첫 글을 남겨주세요!") + '</p>'; more.style.display = "none"; return; }
+          shown = Math.min(Math.max(shown, per), all.length);
+          items.innerHTML = all.slice(0, shown).map(card).join("");
+          more.style.display = shown < all.length ? "" : "none";
+        }
+        more.addEventListener("click", function () { shown += per; draw(); });
+
+        const st = document.getElementById("gbStatus");
+        const btn = document.getElementById("gbSubmit");
+        let conn = null;
+        function db() {
+          if (!conn) conn = Promise.all([import(BASE + "firebase-app.js"), import(BASE + "firebase-firestore.js")])
+            .then(function (m) { return { fs: m[1], db: m[1].getFirestore(m[0].getApps().length ? m[0].getApps()[0] : m[0].initializeApp(cfg)) }; });
+          return conn;
+        }
+
+        if (!ready) { all = (G.sample || []).slice(); draw(); }
+        else {
+          db().then(function (c) {
+            return c.fs.getDocs(c.fs.query(c.fs.collection(c.db, COL), c.fs.where("secret", "==", false), c.fs.limit(300)));
+          }).then(function (snap) {
+            const rows = [];
+            snap.forEach(function (d) {
+              const v = d.data();
+              rows.push({ ms: v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : 0, time: fmtTs(v.createdAt),
+                          name: v.name, message: v.message, reply: v.reply });
+            });
+            rows.sort(function (a, b) { return b.ms - a.ms; });
+            all = rows; draw();
+          }).catch(function (err) {
+            if (window.console) console.error(err);
+            items.innerHTML = '<p class="gb-empty">' + esc(FM.loadErrorText || "글 목록을 불러오지 못했어요.") + '</p>';
+          });
+        }
+
+        btn.addEventListener("click", function () {
+          const name = document.getElementById("gbName").value.trim();
+          const msg = document.getElementById("gbMsg").value.trim();
+          const sec = document.getElementById("gbSecret");
+          if (!name || !msg) { st.textContent = FM.emptyInputText || "이름과 내용을 모두 적어주세요."; st.className = "gb-status warn"; return; }
+          if (!ready) { st.textContent = FM.notReadyText || "아직 방명록이 연결되지 않았어요."; st.className = "gb-status warn"; return; }
+          const secret = !!(sec && sec.checked);
+          btn.disabled = true;
+          st.textContent = "보내는 중…"; st.className = "gb-status";
+          db().then(function (c) {
+            return c.fs.addDoc(c.fs.collection(c.db, COL), { name: name, message: msg, secret: secret, createdAt: c.fs.serverTimestamp() });
+          }).then(function () {
+            document.getElementById("gbName").value = "";
+            document.getElementById("gbMsg").value = "";
+            if (sec) sec.checked = false;
+            if (secret) {
+              st.textContent = FM.secretText || "비밀글이에요. 오너만 볼 수 있어요.";
+            } else {
+              all.unshift({ name: name, message: msg, pending: true });
+              shown++; draw();
+              st.textContent = FM.doneText2 || "남겨주셔서 고마워요!";
+            }
+            st.className = "gb-status ok";
+          }).catch(function (err) {
+            if (window.console) console.error(err);
+            st.textContent = "보내지 못했어요. 잠시 후 다시 시도해 주세요."; st.className = "gb-status warn";
+          }).then(function () { btn.disabled = false; });
+        });
+      }
+      if (mode === "firebase") setupFirebase();
+      else if (mode === "widget") setupWidget();
+      else if (mode === "links") setupLinks();
+      else setupForm();
+      wrap.classList.add("mode-" + mode);
+      };
+
+      const app = document.getElementById("app");
+      function show(route) {
+        if (ROUTES.indexOf(route) < 0) route = "home";
+        keyHandlers = [];
+        document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
+        document.body.setAttribute("data-page", route);
+        app.innerHTML = document.getElementById("tpl-" + route).innerHTML;
+        app.classList.remove("page-in");
+        void app.offsetWidth;
+        app.classList.add("page-in");
+        window.scrollTo(0, 0);
+        document.title = TITLES[route] ? TITLES[route] + (S.pageTitle ? " | " + S.pageTitle : "") : (S.pageTitle || "Home");
+        PAGES[route]();
+      }
+      window.addEventListener("hashchange", function () { show(location.hash.slice(1)); });
+      show(location.hash.slice(1));
+    })();
+  </script>
+  <!-- 관리자 편집기 (#admin) / 설치 화면 (#setup) : 필요할 때만 admin.js 를 불러와요 -->
+  <script>
+  (function () {
+    function view() { var m = location.hash.match(/^#\/?(admin|setup)/); return m && m[1]; }
+    function open() {
+      var v = view(); if (!v) return;
+      if (window.OHAdmin) return window.OHAdmin.mount(v);
+      var s = document.createElement('script');
+      s.src = 'admin.js?v=1';
+      s.onload = function () { window.OHAdmin.mount(v); };
+      document.body.appendChild(s);
+    }
+    window.addEventListener('hashchange', open);
+    open();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 편집기에서 올린 이미지 / 음악 : 읽기는 누구나, 올리기는 관리자만 (10MB 이하)
+    match /uploads/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.email == 'ADMIN_EMAIL_HERE'
+        && request.auth.token.email_verified == true
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|audio/.*');
+    }
+  }
+}

@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 관리자 : 아래 이메일을 내 구글 이메일로 바꾸세요 (설치 화면 #setup 에서 자동으로 만들어 줘요)
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'ADMIN_EMAIL_HERE'
+        && request.auth.token.email_verified == true;
+    }
+
+    // 방명록 (컬렉션 이름 : guests)
+    match /guests/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'message', 'secret', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 20
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 1000
+        && request.resource.data.secret is bool
+        && request.resource.data.createdAt == request.time;
+      allow read: if resource.data.secret == false || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // 사이트 설정 (편집기가 저장하는 곳)
+    match /site/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
