@@ -319,7 +319,7 @@
   }
 
   function valueEd(val, set, key, pkey) {
-    if (Array.isArray(val)) return arrayEd(val, key, pkey);
+    if (Array.isArray(val) || key === 'owner') return arrayEd(Array.isArray(val) ? val : [val], key, pkey);
     if (val && typeof val === 'object') return objectEd(val, key);
     if (typeof val === 'boolean') {
       var c = h('input', { type: 'checkbox' }); c.checked = val;
@@ -377,6 +377,10 @@
   };
 
   function templatesFor(key, pkey) {
+    if (key === 'owner') return [
+      { name: '오너 카드 (학생증)', desc: '사원증 / 학생증 형태의 오너 카드', value: cardTpl('id') }
+    ];
+     
     if (key === 'characters' && !pkey) return [
       { name: '학생증 / 사원증 카드', desc: '목걸이 줄 + 링크 칩이 있는 카드', value: cardTpl('id') },
       { name: '공연 티켓 카드', desc: '가로형 티켓 (좌석 정보 포함)', value: cardTpl('ticket') },
