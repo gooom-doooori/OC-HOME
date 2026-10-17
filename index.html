@@ -376,6 +376,7 @@
       loadFont(F.mono, "400;700");
       loadFont(F.sign || "Caveat", "700");
       loadFont(F.hand || "Nanum Pen Script");
+      loadFont(F.MU, "400;700;900");
       if (F.titleWeight) root.setProperty("--title-weight", F.titleWeight);
       root.setProperty("--font-title", "'" + (F.title || "serif") + "'");
       root.setProperty("--font-menu", "'" + (F.menu || "sans-serif") + "'");
@@ -383,6 +384,8 @@
       root.setProperty("--font-mono", "'" + (F.mono || "monospace") + "'");
       root.setProperty("--font-sign", "'" + (F.sign || "Caveat") + "'");
       root.setProperty("--font-hand", "'" + (F.hand || "Nanum Pen Script") + "'");
+      root.setProperty("--font-jet", "'" + (F.jet || "monospace") + "'");
+      root.setProperty("--font-mu", "'" + (F.MU || "sans-serif") + "'");
 
       /* =====================================================
          페이지 이동 (주소 뒤 #이름)
