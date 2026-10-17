@@ -3060,3 +3060,29 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
 .story-2col { display: flex; gap: 5px; align-items: flex-start; }
 .story-2col > div { flex: 1; min-width: 0; }
 .story-2col > img { width: 60%; height: auto; flex-shrink: 0; }
+
+/* 목록: 점 / 대시 */
+.dot-list, .dash-list { margin: 6px 0; padding-left: 1.2em; }
+.dot-list  { list-style: disc; }
+.dash-list { list-style: none; }
+.dot-list > li, .dash-list > li { margin: 2px 0; }
+.dash-list > li { position: relative; }
+.dash-list > li::before { content: "-"; position: absolute; left: -1.1em; }
+
+/* 토글 (눌러서 펼치기) */
+.tg {
+  margin: 6px 0;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+}
+.tg > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.tg > summary::-webkit-details-marker { display: none; }
+.tg > summary::after { content: "+"; font-weight: 400; opacity: .6; }
+.tg[open] > summary::after { content: "−"; }
+.tg > div { padding: 2px 12px 10px; }
