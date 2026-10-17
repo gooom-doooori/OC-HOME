@@ -3014,7 +3014,7 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
   margin-left: 2px;
   font-size: .75em;
   font-weight: 700;
-  color: var(--c, #888);
+  color: #888;
   cursor: help;
   outline: none;
 }
