@@ -3004,3 +3004,6 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
 .cd-name .cd-head {
    font-family: var(--font-MU);
 }
+
+.spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
+.spoil.open { filter: none; user-select: auto; }
