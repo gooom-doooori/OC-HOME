@@ -154,7 +154,7 @@ const SITE = {
   menus: [
     {
       num: "01",
-      title: "Character",
+      title: "PARTICIPANT",
       desc: "캐릭터 소개",
       link: "#character",
       icon: "",
@@ -162,6 +162,14 @@ const SITE = {
     },
     {
       num: "02",
+      title: "Floormaster",
+      desc: "플로어마스터 소개",
+      link: "#floormaster",
+      icon: "",
+      newTab: false
+    },
+    {
+      num: "03",
       title: "Pair",
       desc: "페어 소개",
       link: "#pair",
@@ -169,7 +177,7 @@ const SITE = {
       newTab: false
     },
     {
-      num: "03",
+      num: "04",
       title: "Owner",
       desc: "오너 소개",
       link: "#owner",
@@ -177,7 +185,7 @@ const SITE = {
       newTab: false
     },
     {
-      num: "04",
+      num: "05",
       title: "Guest",
       desc: "방명록",
       link: "#guest",
@@ -359,7 +367,7 @@ const SITE = {
                        사진을 비워두면 그 캐릭터의 사진이 자동으로 들어가요.
                        상대가 다른 사람 캐릭터면 link 줄을 지우세요.
   */
-  characters: [
+  character: [
     {
       type: "id",
       color: "",
@@ -492,7 +500,147 @@ const SITE = {
       relations: []
     }
   ],
+  
+  /* =============================================
+     [6-2] 플로어마스터 페이지 설정  (#floormaster)
+     ---------------------------------------------*/
+  floormasterPage: {
+    label: "FLOORMASTER"
+  },
+  floormasters: [
+    {
+      type: "id",
+      color: "",
+      subColor: "",
+      textColor: "",
+      cardTitle: "STUDENT ID",
+      cardSub: "BLUE HOUR HIGH",
+      image: "",
+      sd: "images/sd.png",
+      tile: "",
+      tilePosition: "center 30%",
+      name: "캐릭터 이름",
+      nameEn: "CHARACTER",
+      intro: "한 줄 소개를 적어주세요.",
+      tags: ["태그", "키워드"],
+      number: "0001",
 
+      profile: [
+        { label: "나이", value: "17세" },
+        { label: "키", value: "170cm" },
+        { label: "생일", value: "1월 1일" },
+        { label: "좋아하는 것", value: "적어주세요" },
+        { label: "싫어하는 것", value: "적어주세요" }
+      ],
+      quote: "대표 대사를 적어주세요.",
+      story: "캐릭터 설정을 자유롭게 적어주세요.<br>줄을 바꾸려면 이렇게 쓰면 돼요.",
+
+      gallery: [
+        { image: "", caption: "이미지 설명" },
+        { image: "", caption: "이미지 설명" },
+        { image: "", caption: "이미지 설명" }
+      ],
+      relations: [
+        { name: "2번 캐릭터", label: "친구", text: "관계 설명을 적어주세요.", image: "", link: 2 },
+        { name: "3번 캐릭터", label: "라이벌", text: "관계 설명을 적어주세요.", image: "", link: 3 }
+      ]
+    },
+    {
+      type: "ticket",
+      color: "",
+      subColor: "",
+      textColor: "",
+      cardTitle: "LIVE CONCERT",
+      cardSub: "WORLD TOUR 2026",
+      image: "",
+      sd: "",
+      tile: "",
+      tilePosition: "center 30%",
+      name: "캐릭터 이름",
+      nameEn: "STAGE NAME",
+      intro: "한 줄 소개를 적어주세요.",
+      tags: ["태그", "키워드"],
+      seat: { gate: "A", row: "07", seat: "12" },
+      number: "FDAS561A16DA3",
+
+      profile: [
+        { label: "공연일", value: "2026년 10월 11일" },
+        { label: "공연장", value: "적어주세요" },
+        { label: "나이", value: "24세" },
+        { label: "키", value: "182cm" }
+      ],
+      quote: "대표 대사를 적어주세요.",
+      story: "캐릭터 설정을 자유롭게 적어주세요.",
+
+      gallery: [],
+      relations: [
+        { name: "1번 캐릭터", label: "친구", text: "관계 설명을 적어주세요.", image: "", link: 1 }
+      ]
+    },
+    {
+      type: "wanted",
+      color: "",
+      subColor: "",
+      textColor: "",
+      cardTitle: "WANTED",
+      cardSub: "DEAD OR ALIVE",
+      image: "",
+      sd: "",
+      tile: "",
+      tilePosition: "center 30%",
+      name: "캐릭터 이름",
+      nameEn: "Outlaw",
+      intro: "한 줄 소개를 적어주세요.",
+      tags: ["태그", "키워드"],
+      number: "$7,000.00",
+
+      profile: [
+        { label: "나이", value: "??세" },
+        { label: "출신", value: "적어주세요" },
+        { label: "최근 목격", value: "적어주세요" },
+        { label: "별명", value: "적어주세요" },
+        { label: "죄목", value: "적어주세요" },
+        { label: "직업", value: "적어주세요" }
+      ],
+      quote: "대표 대사를 적어주세요.",
+      story: "캐릭터 설정을 자유롭게 적어주세요.",
+
+      gallery: [],
+      relations: []
+    },
+    {
+      type: "custom",
+      color: "",
+      subColor: "",
+      textColor: "",
+      customFront: "",
+      customBack: "",
+      customRatio: "",
+      customRadius: 12,
+      cardTitle: "MY CARD",
+      cardSub: "",
+      image: "",
+      sd: "",
+      tile: "",
+      tilePosition: "center 30%",
+      name: "캐릭터 이름",
+      nameEn: "CUSTOM",
+      intro: "한 줄 소개를 적어주세요.",
+      tags: ["태그", "키워드"],
+      number: "0004",
+
+      profile: [
+        { label: "나이", value: "적어주세요" },
+        { label: "키", value: "적어주세요" }
+      ],
+      quote: "대표 대사를 적어주세요.",
+      story: "캐릭터 설정을 자유롭게 적어주세요.",
+
+      gallery: [],
+      relations: []
+    }
+  ],
+  
 
   /* =============================================
      [7] 페어 페이지 설정  (#pair)
