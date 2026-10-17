@@ -597,6 +597,8 @@
         code: '<i>내용</i>' },
       { name: '취소선',
         code: '<s>내용</s>' },
+      { name: '프로필 내용|이미지 2단 배치 코드',
+        code: '<div class="story-2col"><div>설정 글 내용</div><img src="이미지 주소" alt="캐릭터 이름"></div>' },
       { name: '스포일러',
         code: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>' },
       { name: '각주',
