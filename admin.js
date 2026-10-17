@@ -586,8 +586,8 @@
     return keys;
   }
 
-  /* 참고용 코드 모음 (복사 버튼 포함) */
-  function snippetBox() {
+ /* 참고용 코드 모음 (복사 버튼 포함) */
+ function snippetBox() {
     var items = [
       { name: '줄바꿈',
         code: '<br>' },
@@ -599,7 +599,7 @@
         code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' }
     ];
     var box = h('details', { class: 'oha-box' });
-    box.appendChild(h('summary', { text: 자주 쓰는 코드 참고' }));
+    box.appendChild(h('summary', { text: '자주 쓰는 코드 참고' }));
     items.forEach(function (it) {
       box.appendChild(h('p', { class: 'oha-note', text: it.name }));
       box.appendChild(h('pre', {
