@@ -667,92 +667,81 @@ const SITE = {
      가운데에 오너 카드가 걸려 있고, 누르면 뒤집히면서
      왼쪽에 자세한 소개가 나와요. (PROFILE / TASTE / NOTICE / BANNER 탭)
      ============================================= */
-  owner: {
-    label: "OWNER FILE",              // 왼쪽 위 뱃지 옆 글자
-    hint: "카드를 누르면 자세한 소개를 볼 수 있어요.",   // 화면 아래 안내
+  owner: [
+    {
+      label: "OWNER FILE",              // 왼쪽 위 뱃지 옆 글자
+      hint: "카드를 누르면 자세한 소개를 볼 수 있어요.",   // 화면 아래 안내
 
-    // ▼ 카드 종류 (캐릭터 카드와 같아요)
-    // "id"     → 사원증/학생증 (목걸이 줄 + 링크 칩)
-    // "ticket" → 공연 티켓   "wanted" → 수배지
-    // "custom" → 직접 디자인한 앞면 · 뒷면 이미지
-    type: "id",
+      type: "id",
 
-    // ▼ 카드 앞면
-    color: "",                        // 카드 색 ("" 로 비우면 [0] 대표 색을 따라가요)
-    subColor: "",                     // 보조색 ("" 면 자동)
-    textColor: "",                    // 티켓 위 글자 색 ("" 면 자동)
-    strap: "Blue Hour",               // 목걸이 줄 글자 (false 로 하면 줄 없음)
-    cardTitle: "OWNER ID",            // 색 띠 큰 글자
-    cardSub: "BLUE HOUR",             // 색 띠 오른쪽 작은 글자
-    image: "",                        // 프로필 사진 주소 (비우면 실루엣)
-    sd: "",                           // 뒤집었을 때 카드 모서리에 붙는 SD 이미지
-    name: "오너 닉네임",
-    nameEn: "OWNER",
-    intro: "한 줄 소개를 적어주세요.",
-    number: "0001",                   // 카드 번호 (티켓은 코드, 수배지는 현상금)
-    seat: { gate: "A", row: "01", seat: "01" },   // 티켓일 때 좌석
-    tags: [],                         // 사원증 외 카드에서 쓰는 태그 (비워도 됨)
+      color: "",                        // 카드 색 ("" 로 비우면 [0] 대표 색을 따라가요)
+      subColor: "",                     // 보조색 ("" 면 자동)
+      textColor: "",                    // 티켓 위 글자 색 ("" 면 자동)
+      strap: "Blue Hour",               // 목걸이 줄 글자 (false 로 하면 줄 없음)
+      cardTitle: "OWNER ID",            // 색 띠 큰 글자
+      cardSub: "BLUE HOUR",             // 색 띠 오른쪽 작은 글자
+      image: "",                        // 프로필 사진 주소 (비우면 실루엣)
+      sd: "",                           // 뒤집었을 때 카드 모서리에 붙는 SD 이미지
+      name: "오너 닉네임",
+      nameEn: "OWNER",
+      intro: "한 줄 소개를 적어주세요.",
+      number: "0001",                   // 카드 번호 (티켓은 코드, 수배지는 현상금)
+      seat: { gate: "A", row: "01", seat: "01" },   // 티켓일 때 좌석
+      tags: [],                         // 사원증 외 카드에서 쓰는 태그 (비워도 됨)
 
-    // ▼ type 이 "custom" 일 때
-    customFront: "",                  // 앞면 이미지 주소
-    customBack: "",                   // 뒷면 이미지 주소
-    customRatio: "",                  // 비율 "가로 / 세로" (비우면 자동)
-    customRadius: 12,                 // 모서리 둥글기
+      customFront: "",                  // 앞면 이미지 주소
+      customBack: "",                   // 뒷면 이미지 주소
+      customRatio: "",                  // 비율 "가로 / 세로" (비우면 자동)
+      customRadius: 12,                 // 모서리 둥글기
 
-    // 링크 칩 (카드 앞면 · 상세 소개에 나와요)
-    // label 에 "X" 라고 쓰면 X 로고가 나와요. url 을 넣으면 누를 때 그 주소로 이동해요.
-    links: [
-      { label: "X", text: "@twitter_id", url: "" },
-      { label: "POSTYPE", text: "포스타입", url: "" }
-    ],
-
-    // ▼ 카드 뒷면 (사원증일 때. 티켓 · 수배지 뒷면은 characterPage 설정을 따라요)
-    backNotice: "본 카드는 오너 본인만 사용할 수 있습니다.<br>습득하신 분은 아래 연락처로 알려주세요.",
-    sign: "Owner",                    // 서명란 글씨 (비우면 nameEn)
-    since: "2026.01.01",              // 활동 시작일
-    valid: "∞",                       // 유효기간
-
-    // ▼ 상세 소개 (뒤집으면 왼쪽에 나와요)
-    tabs: { profile: "PROFILE", taste: "TASTE", notice: "NOTICE", banner: "BANNER" },
-    profile: [                        // 프로필 항목 (원하는 만큼)
-      { label: "활동명", value: "오너 닉네임" },
-      { label: "생일", value: "1월 1일" },
-      { label: "주 장르", value: "적어주세요" },
-      { label: "연락", value: "DM 환영" }
-    ],
-    about: "자기소개를 자유롭게 적어주세요.<br>줄을 바꾸려면 이렇게 쓰면 돼요.",
-    likeTitle: "LIKE",
-    likes: ["좋아하는 것", "좋아하는 것", "좋아하는 것"],
-    dislikeTitle: "DISLIKE",
-    dislikes: ["싫어하는 것", "지뢰"],
-    notice: [                         // 주의사항 (한 줄씩)
-      "주의사항을 적어주세요.",
-      "무단 도용 · 트레이싱 · 2차 가공을 금지합니다.",
-      "AI 학습에 사용하는 것을 금지합니다."
-    ],
-    panelStrength: 0.18,              // 상세 소개 뒤 대각선 배경 진하기 (0 ~ 1)
-
-    // ▼ 배너 (BANNER 탭)
-    banner: {
-      // 내 배너: 다른 사람이 가져갈 수 있게 이미지와 코드를 보여줘요.
-      //          COPY 버튼을 누르면 링크 코드가 복사돼요.
-      mineTitle: "MY BANNER",
-      siteUrl: "",                    // 배너를 눌렀을 때 갈 내 홈페이지 주소 (비우면 지금 주소)
-      mine: [
-        { image: "", size: "200 × 40" }   // image 에 배너 이미지 주소, size 는 이미지 없을 때 표시
+      links: [
+        { label: "X", text: "@twitter_id", url: "" },
+        { label: "POSTYPE", text: "포스타입", url: "" }
       ],
-      note: "배너는 자유롭게 가져가 주세요. 직접 링크로 사용해 주세요.",   // 내 배너 아래 안내 (비워도 됨)
-      copyText: "COPY",
-      copiedText: "COPIED!",
 
-      // 링크: 다른 사람들의 배너 (상호 링크)
-      friendsTitle: "LINK",
-      friends: [
-        { name: "친구 이름", image: "", url: "" },
-        { name: "친구 이름", image: "", url: "" }
-      ]
+      backNotice: "본 카드는 오너 본인만 사용할 수 있습니다.<br>습득하신 분은 아래 연락처로 알려주세요.",
+      sign: "Owner",                    // 서명란 글씨 (비우면 nameEn)
+      since: "2026.01.01",              // 활동 시작일
+      valid: "∞",                       // 유효기간
+
+      tabs: { profile: "PROFILE", taste: "TASTE", notice: "NOTICE", banner: "BANNER" },
+      profile: [                        // 프로필 항목 (원하는 만큼)
+        { label: "활동명", value: "오너 닉네임" },
+        { label: "생일", value: "1월 1일" },
+        { label: "주 장르", value: "적어주세요" },
+        { label: "연락", value: "DM 환영" }
+      ],
+      about: "자기소개를 자유롭게 적어주세요.<br>줄을 바꾸려면 이렇게 쓰면 돼요.",
+      likeTitle: "LIKE",
+      likes: ["좋아하는 것", "좋아하는 것", "좋아하는 것"],
+      dislikeTitle: "DISLIKE",
+      dislikes: ["싫어하는 것", "지뢰"],
+      notice: [                         // 주의사항 (한 줄씩)
+        "주의사항을 적어주세요.",
+        "무단 도용 · 트레이싱 · 2차 가공을 금지합니다.",
+        "AI 학습에 사용하는 것을 금지합니다."
+      ],
+      panelStrength: 0.18,              // 상세 소개 뒤 대각선 배경 진하기 (0 ~ 1)
+
+      banner: {
+        mineTitle: "MY BANNER",
+        siteUrl: "",                    
+        mine: [
+          { image: "", size: "200 × 40" }   
+        ],
+        note: "배너는 자유롭게 가져가 주세요.",   
+        copyText: "COPY",
+        copiedText: "COPIED!",
+
+        friendsTitle: "LINK",
+        friends: [
+          { name: "친구 이름", image: "", url: "" },
+          { name: "친구 이름", image: "", url: "" }
+        ]
+      }
     }
-  },
+    // 오너를 더 추가하려면 위 { ... } 덩어리를 복사해서 쉼표(,) 뒤에 붙여넣으세요.
+  ],
 
 
   /* =============================================
