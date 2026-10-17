@@ -154,7 +154,7 @@ const SITE = {
   menus: [
     {
       num: "01",
-      title: "PARTICIPANT",
+      title: "Participant",
       desc: "캐릭터 소개",
       link: "#character",
       icon: "",
