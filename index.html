@@ -210,7 +210,6 @@
   </template>
 
   <!-- ===== 페이지: owner ===== -->
-  <!-- ===== 페이지: owner ===== -->
   <template id="tpl-owner">
   <main class="home ch-page ow-page">
     <!-- 뒤집으면 오른쪽에서 들어오는 대각선 색 배경 -->
@@ -222,17 +221,16 @@
     <!-- 오른쪽 위: 홈 버튼 -->
     <div class="deco-top-right ch-top-right">
       <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
-      <span class="ch-count" id="owCount"></span>
     </div>
 
     <!-- 뒤집으면 나타나는 상세 소개 -->
     <section class="ch-detail" id="chDetail"></section>
 
     <!-- 가운데: 오너 카드 -->
-    <div class="ch-stage" style="position:relative;">
-      <button class="pr-arrow prev" id="owPrev" aria-label="이전" style="position:absolute;left:20px;z-index:10;background:var(--btn);color:var(--btn-text);border:0;border-radius:50%;width:40px;height:40px;cursor:pointer;display:grid;place-items:center;"><i></i><i></i><i></i></button>
+    <div class="ch-stage">
       <div class="ch-holder" id="chHolder"></div>
-      <button class="pr-arrow next" id="owNext" aria-label="다음" style="position:absolute;right:20px;z-index:10;background:var(--btn);color:var(--btn-text);border:0;border-radius:50%;width:40px;height:40px;cursor:pointer;display:grid;place-items:center;"><i></i><i></i><i></i></button>
+      <!-- 오너가 2명 이상일 때만 채워져요 -->
+    <div class="ow-switch" id="owSwitch"></div>
     </div>
 
     <p class="ow-hint" id="owHint"></p>
@@ -1375,25 +1373,18 @@
       /* ##### 페이지: owner ##### */
       /* ##################################################### */
       PAGES.owner = function () {
-      const D = S.deco || {};
-      const ownersList = Array.isArray(S.owner) ? S.owner : (S.owner ? [S.owner] : []);
-      let current = 0;
-
-      function renderOwner(i) {
-        const O = ownersList[i] || {};
       /* =====================================================
          페이지 꾸밈
          ===================================================== */
-      const P = Object.assign({}, S.characterPage || {}, O);
+      const D = S.deco || {};
+      const OWNERS = Array.isArray(S.owner) ? S.owner.filter(Boolean) : [S.owner || {}];
+      if (!OWNERS.length) OWNERS.push({});
+      const O = OWNERS[0];   // label, hint 는 1번 오너 것을 써요
       document.getElementById("decoTopLeft").innerHTML =
         (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
         '<span class="top-label">' + (O.label || "OWNER FILE") + '</span>' +
         '<span class="top-line"></span>';
       document.getElementById("owHint").textContent = O.hint || "";
-      root.setProperty("--panel-mix", Math.round(((O.panelStrength != null) ? O.panelStrength : 0.18) * 100) + "%");
-
-      const countEl = document.getElementById("owCount");
-      if (countEl) countEl.textContent = String(i + 1).padStart(2, "0") + " / " + String(ownersList.length).padStart(2, "0");
 
       /* =====================================================
          카드 부품
@@ -1428,9 +1419,15 @@
 
       /* ---- 카드 종류별 그리기 (캐릭터 페이지와 같은 코드) ----
          P : 카드 뒷면 문구 등은 owner 에 적은 값이 먼저, 없으면 characterPage 값 */
-      if (P.imageTint === false) document.body.classList.add("no-tint");
-      root.setProperty("--tint", (P.tintStrength != null) ? P.tintStrength : 0.85);
-      if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
+      let P = {};
+      function usePrefs(o) {
+        P = Object.assign({}, S.characterPage || {}, o);
+        document.body.classList.toggle("no-tint", P.imageTint === false);
+        root.setProperty("--tint", (P.tintStrength != null) ? P.tintStrength : 0.85);
+        if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
+        else root.removeProperty("--wanted-paper");
+        root.setProperty("--panel-mix", Math.round(((o.panelStrength != null) ? o.panelStrength : 0.18) * 100) + "%");
+      }
 
       function tags(ch) {
         return (ch.tags || []).map(function (t) {
@@ -1540,7 +1537,7 @@
       /* =====================================================
          뒷면 (실제 카드 뒷면처럼)
          ===================================================== */
-      const TERMS = P.ticketTerms || [
+      const DEFAULT_TERMS = [
         "본 티켓은 1인 1매 입장권이며, 재입장이 불가합니다.",
         "공연 시작 후에는 입장이 제한될 수 있습니다.",
         "티켓 분실 · 훼손 시 재발행되지 않습니다.",
@@ -1576,7 +1573,7 @@
           '</div>' +
           '<div class="tk-body tkb-body">' +
             '<h3 class="tkb-title">TERMS &amp; CONDITIONS</h3>' +
-            '<ol class="tkb-terms">' + TERMS.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ol>' +
+            '<ol class="tkb-terms">' + (P.ticketTerms || DEFAULT_TERMS).map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ol>' +
             '<div class="tkb-bottom">' +
               '<div class="tkb-holo"><span>AUTHENTIC</span></div>' +
               '<div class="tkb-code">' + barcode(ch.number + "q") + '<span>' + (ch.number || "") + '</span></div>' +
@@ -1773,7 +1770,7 @@
       /* =====================================================
          카드 그리기 · 뒤집기
          ===================================================== */
-      const holder = document.getElementById("chHolder");
+            const holder = document.getElementById("chHolder");
       function flip(on) {
         const f = document.getElementById("cdFlip");
         if (!f) return;
@@ -1782,52 +1779,77 @@
         document.body.classList.toggle("is-flipped", next);
       }
 
-      const type = ["id", "ticket", "wanted", "custom"].indexOf(O.type) > -1 ? O.type : "id";
-      const faceF = type === "custom" ? customFace(O.customFront, "FRONT") :
-                    type === "ticket" ? frontTicket(O) : type === "wanted" ? frontWanted(O) : front(O);
-      const faceB = type === "custom" ? customFace(O.customBack, "BACK") :
-                    type === "ticket" ? backTicket(O) : type === "wanted" ? backWanted(O) : back(O);
+      function draw(o) {
+        usePrefs(o);
+        const type = ["id", "ticket", "wanted", "custom"].indexOf(o.type) > -1 ? o.type : "id";
+        const faceF = type === "custom" ? customFace(o.customFront, "FRONT") :
+                      type === "ticket" ? frontTicket(o) : type === "wanted" ? frontWanted(o) : front(o);
+        const faceB = type === "custom" ? customFace(o.customBack, "BACK") :
+                      type === "ticket" ? backTicket(o) : type === "wanted" ? backWanted(o) : back(o);
 
-      holder.setAttribute("data-type", type);
-      holder.innerHTML =
-        '<div class="cd cd-' + type + (type === "id" ? " ow-card" : "") + '" style="--c:' + cardColor(O.color) + ';--c2:' + cardSub(O.subColor, O.color) + ';--ct:' + cardText(O.textColor, O.color) + ';--cx-r:' + ((O.customRadius != null) ? O.customRadius : 12) + 'px">' +
-          (type === "id" && O.strap !== false ? '<div class="ow-strap"><span>' + (O.strap || "") + '</span></div><div class="ow-clip"></div>' : "") +
-          '<div class="cd-flip" id="cdFlip" title="눌러서 뒤집기">' +
-            '<div class="cd-face cd-front">' + faceF + '</div>' +
-            '<div class="cd-face cd-back">' + faceB + '</div>' +
-          '</div>' +
-          (O.sd ? '<img class="cd-sd" src="' + O.sd + '" alt="" style="--sd-w:' + sdW(O) + '">' : "") +
-        '</div>';
-      if (type === "custom") sizeCustom(O);
-      document.getElementById("cdFlip").addEventListener("click", function (e) {
-        if (e.target.closest("a")) return;   // 링크 칩은 뒤집지 않고 링크로
-        flip();
-      });
-      renderDetail(O);
+        holder.setAttribute("data-type", type);
+        holder.innerHTML =
+          '<div class="cd cd-' + type + (type === "id" ? " ow-card" : "") + '" style="--c:' + cardColor(o.color) + ';--c2:' + cardSub(o.subColor, o.color) + ';--ct:' + cardText(o.textColor, o.color) + ';--cx-r:' + ((o.customRadius != null) ? o.customRadius : 12) + 'px">' +
+            (type === "id" && o.strap !== false ? '<div class="ow-strap"><span>' + (o.strap || "") + '</span></div><div class="ow-clip"></div>' : "") +
+            '<div class="cd-flip" id="cdFlip" title="눌러서 뒤집기">' +
+              '<div class="cd-face cd-front">' + faceF + '</div>' +
+              '<div class="cd-face cd-back">' + faceB + '</div>' +
+            '</div>' +
+            (o.sd ? '<img class="cd-sd" src="' + o.sd + '" alt="" style="--sd-w:' + sdW(o) + '">' : "") +
+          '</div>';
+        if (type === "custom") sizeCustom(o);
+        const fl = document.getElementById("cdFlip");
+        fl.addEventListener("click", function (e) {
+          if (e.target.closest("a")) return;
+          flip();
+        });
+        if (document.body.classList.contains("is-flipped")) fl.classList.add("flipped");
+        renderDetail(o);
       }
 
+      const many = OWNERS.length > 1;
+      const sw = document.getElementById("owSwitch");
+      let current = 0, busy = false;
+
+      function mark() {
+        sw.querySelectorAll(".ow-sw").forEach(function (b, n) { b.classList.toggle("on", n === current); });
+      }
       function go(i) {
-        if (!ownersList.length) return;
-        current = (i + ownersList.length) % ownersList.length;
-        renderOwner(current);
+        if (!many || busy) return;
+        const n = (i + OWNERS.length) % OWNERS.length;
+        if (n === current) return;
+        busy = true;
+        current = n;
+        mark();
+        holder.classList.add("ow-out");
+        setTimeout(function () {
+          draw(OWNERS[current]);
+          holder.classList.remove("ow-out");
+          busy = false;
+        }, 200);
       }
 
-      const prevBtn = document.getElementById("owPrev");
-      const nextBtn = document.getElementById("owNext");
-      if (ownersList.length <= 1) {
-        if (prevBtn) prevBtn.style.display = "none";
-        if (nextBtn) nextBtn.style.display = "none";
-      } else {
-        if (prevBtn) prevBtn.onclick = function () { go(current - 1); };
-        if (nextBtn) nextBtn.onclick = function () { go(current + 1); };
+      if (many) {
+        document.querySelector(".ow-page").classList.add("ow-multi");
+        sw.innerHTML = OWNERS.map(function (o, i) {
+          return '<button type="button" class="ow-sw" data-i="' + i + '">' +
+            '<i>' + String(i + 1).padStart(2, "0") + '</i>' +
+            '<span>' + esc(o.name || ("OWNER " + (i + 1))) + '</span></button>';
+        }).join("");
+        sw.addEventListener("click", function (e) {
+          const b = e.target.closest(".ow-sw");
+          if (b) go(Number(b.getAttribute("data-i")));
+        });
       }
 
-      go(0);
+      draw(OWNERS[0]);
+      mark();
+
       addKey( function (e) {
+        if (e.key === " ") { e.preventDefault(); flip(); }
+        if (e.key === "Escape") flip(false);
         if (e.key === "ArrowLeft") go(current - 1);
         if (e.key === "ArrowRight") go(current + 1);
-        if (e.key === " ") { e.preventDefault(); const f = document.getElementById("cdFlip"); if (f) f.classList.toggle("flipped"); }
-        if (e.key === "Escape") { const f = document.getElementById("cdFlip"); if (f) f.classList.remove("flipped"); }
       });
       };
 
