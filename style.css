@@ -161,7 +161,8 @@ a { text-decoration: none; color: inherit; }
   font-weight: 700;
   font-size: 20px;
   letter-spacing: 8px;
-  color: var(--sub-text);
+  color: #fff;
+  text-shadow: 0 0 4px var(--sub-text), 0 0 15px var(--sub-text), 0 0 30px var(--sub-text);
 }
 
 /* ---------- 메뉴 ---------- */
@@ -171,7 +172,8 @@ a { text-decoration: none; color: inherit; }
   content: "";
   width: 48px;
   height: 2px;
-  background: var(--deco);
+  background: #fff;
+  box-shadow: 0 0 15px var(--deco), 0 0 40px var(--deco), 0 0 70px var(--deco);
 }
 
 /* ---------- 꾸밈 요소 ---------- */
