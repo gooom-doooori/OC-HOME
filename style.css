@@ -3055,3 +3055,8 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
 /* 팝업이 오른쪽에서 잘릴 때: 왼쪽으로 펼치기 */
 .fn.left > span { left: auto; right: -8px; transform: translateY(4px); }
 .fn.left:hover > span, .fn.left:focus > span { transform: none; }
+
+/* 상세 프로필 2단 설정글 (왼쪽 글 / 오른쪽 이미지) */
+.story-2col { display: flex; gap: 5px; align-items: flex-start; }
+.story-2col > div { flex: 1; min-width: 0; }
+.story-2col > img { width: 60%; height: auto; flex-shrink: 0; }
