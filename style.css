@@ -528,7 +528,7 @@ a { text-decoration: none; color: inherit; }
   row-gap: 4px;
   column-gap: 8px;
   white-space: nowrap;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   font-weight: 700;
   opacity: .7;
@@ -585,7 +585,7 @@ a { text-decoration: none; color: inherit; }
   white-space: nowrap;
 }
 .ch-tile-name small {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 8px;
   letter-spacing: 2px;
   opacity: .8;
@@ -660,7 +660,7 @@ a { text-decoration: none; color: inherit; }
 
 .cd-hint {
   margin-top: 20px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   letter-spacing: 4px;
   color: var(--deco);
@@ -692,7 +692,7 @@ a { text-decoration: none; color: inherit; }
 }
 .cd-en {
   margin-top: 3px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   letter-spacing: 4px;
   color: #999;
@@ -728,7 +728,7 @@ a { text-decoration: none; color: inherit; }
   padding: 0 7px;
   background: #111;
   color: #fff;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
 }
 
 /* 바코드 */
@@ -785,7 +785,7 @@ a { text-decoration: none; color: inherit; }
 }
 .cd-head span {
   text-align: right;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -799,7 +799,7 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -958,7 +958,7 @@ a { text-decoration: none; color: inherit; }
   padding: 1.2cqw .4cqw;
   background: #fff;
   border: 2px solid color-mix(in srgb, var(--c) 60%, #000);
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1.9cqw;
   font-weight: 700;
   color: #111;
@@ -973,7 +973,7 @@ a { text-decoration: none; color: inherit; }
 .tk-receipt small { font-weight: 700; }
 .tk-digits {
   margin-top: .6cqw;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1.1cqw;
   color: rgba(255,255,255,.7);
 }
@@ -986,7 +986,7 @@ a { text-decoration: none; color: inherit; }
 }
 .tk-digits2 {
   margin-top: .4cqw;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1.1cqw;
   letter-spacing: .2cqw;
   color: var(--ct, #fff);
@@ -1004,7 +1004,7 @@ a { text-decoration: none; color: inherit; }
 .tk-seat div + div { border-left: 2px solid color-mix(in srgb, var(--c) 60%, #000); }
 .tk-seat span {
   display: block;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: .95cqw;
   font-weight: 700;
   letter-spacing: .15cqw;
@@ -1038,7 +1038,7 @@ a { text-decoration: none; color: inherit; }
 }
 .tkb-serial {
   margin-top: 1.4cqw;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1cqw;
   letter-spacing: .2cqw;
   opacity: .85;
@@ -1094,7 +1094,7 @@ a { text-decoration: none; color: inherit; }
   box-shadow: inset 0 0 0 .4cqw rgba(255,255,255,.5);
 }
 .tkb-holo span {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: .9cqw;
   font-weight: 700;
   letter-spacing: .15cqw;
@@ -1105,7 +1105,7 @@ a { text-decoration: none; color: inherit; }
 .tkb-code .cd-barcode { height: 4.6cqw; }
 .tkb-code .cd-barcode i { background: var(--ct, #fff); }
 .tkb-code span {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1.1cqw;
   letter-spacing: .3cqw;
 }
@@ -1157,7 +1157,7 @@ a { text-decoration: none; color: inherit; }
 }
 .wt-sub {
   margin-top: .6cqw;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 1.9cqw;
   font-weight: 700;
   letter-spacing: .8cqw;
@@ -1267,7 +1267,7 @@ a { text-decoration: none; color: inherit; }
 .ib-sign span,
 .ib-rows span {
   display: block;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -1293,7 +1293,7 @@ a { text-decoration: none; color: inherit; }
   margin-top: 12px;
 }
 .ib-rows b {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 12px;
   font-weight: 700;
 }
@@ -1330,7 +1330,7 @@ a { text-decoration: none; color: inherit; }
   border: .8cqw double var(--c);
   color: var(--c);
   transform: rotate(-12deg);
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   text-align: center;
   opacity: .8;
 }
@@ -1603,7 +1603,7 @@ a { text-decoration: none; color: inherit; }
 .box-cap small {
   display: block;
   margin-top: 4px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   letter-spacing: 3px;
   opacity: .6;
@@ -1723,7 +1723,7 @@ a { text-decoration: none; color: inherit; }
 }
 .dt-en {
   margin-top: 4px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 5px;
@@ -1749,7 +1749,7 @@ a { text-decoration: none; color: inherit; }
 }
 .dt-row dt {
   padding-right: 18px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   font-weight: 700;
   color: #888;
@@ -1853,7 +1853,7 @@ a { text-decoration: none; color: inherit; }
 }
 .pr-en {
   margin-top: 2px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 4px;
@@ -2093,7 +2093,7 @@ a { text-decoration: none; color: inherit; }
 .rl-title img { display: block; max-width: min(640px, 70vw); max-height: 160px; margin: 0 auto; }
 .rl-title p {
   margin-top: 8px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 5px;
@@ -2175,7 +2175,7 @@ a { text-decoration: none; color: inherit; }
 .rr-b .rc-name { flex-direction: row-reverse; }
 .rc-name b { font-size: 26px; font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
 .rc-name small {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -2314,7 +2314,7 @@ a { text-decoration: none; color: inherit; }
   top: 2px;
   width: 100px;
   text-align: right;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   font-weight: 700;
   color: #777;
@@ -2349,7 +2349,7 @@ a { text-decoration: none; color: inherit; }
   color: #c9c9c9;
 }
 .rt-log-main { flex: 1; min-width: 0; }
-.rt-log-meta { font-family: "Sukmyung" font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #999; }
+.rt-log-meta { font-family: 'Sukmyung'; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #999; }
 .rt-log h4 { margin-top: 3px; font-size: 16px; font-weight: 900; }
 .rt-log-role { margin-top: 2px; font-size: 12px; color: #777; }
 .rt-log-text { margin-top: 8px; font-size: 13px; line-height: 1.65; }
@@ -2407,7 +2407,7 @@ a { text-decoration: none; color: inherit; }
   padding: 22px 26px 14px;
   border-bottom: 2px solid var(--deco, #222);
 }
-.lv-meta { font-family: "Sukmyung" font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #999; }
+.lv-meta { font-family: 'Sukmyung'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #999; }
 .lv-title { margin-top: 4px; font-size: 22px; font-weight: 900; }
 .lv-close { border: 0; background: none; font-size: 34px; line-height: 1; cursor: pointer; color: #222; }
 .lv-bar {
@@ -2432,7 +2432,7 @@ a { text-decoration: none; color: inherit; }
   color: #555;
 }
 .lv-tabs button.on { background: var(--btn, #222); border-color: var(--btn, #222); color: var(--btn-text, #fff); }
-.lv-count { font-family: "Sukmyung" font-size: 10px; color: #aaa; margin-left: auto; }
+.lv-count { font-family: 'Sukmyung'; font-size: 10px; color: #aaa; margin-left: auto; }
 .lv-raw { font-size: 11px; color: #777; text-decoration: underline; }
 .lv-body {
   flex: 1;
@@ -2442,7 +2442,7 @@ a { text-decoration: none; color: inherit; }
   scrollbar-width: thin;
 }
 .lv-msg { padding: 60px 0; text-align: center; font-size: 13px; line-height: 1.8; color: #888; }
-.lv-msg small { font-family: "Sukmyung" font-size: 11px; color: #bbb; }
+.lv-msg small { font-family: 'Sukmyung'; font-size: 11px; color: #bbb; }
 .lv-line {
   position: relative;
   display: flex;
@@ -2470,7 +2470,7 @@ a { text-decoration: none; color: inherit; }
   padding: 0 6px;
   border-radius: 3px;
   background: #f2f2f2;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   color: #999;
 }
@@ -2520,7 +2520,7 @@ a { text-decoration: none; color: inherit; }
 .ow-sw i {
   display: flex; align-items: center; height: 100%; margin-right: 9px; padding: 0 8px;
   background: var(--btn, #111); color: var(--btn-text, #fff); font-style: normal;
-  font-family: "Sukmyung" font-size: 10px; letter-spacing: .5px;
+  font-family: 'Sukmyung'; font-size: 10px; letter-spacing: .5px;
 }
 .ow-sw:hover, .ow-sw.on { background: var(--btn, #111); color: var(--btn-text, #fff); }
 .ow-sw.on i, .ow-sw:hover i { background: #fff; color: var(--btn, #111); }
@@ -2541,7 +2541,7 @@ a { text-decoration: none; color: inherit; }
 .ow-strap span {
   writing-mode: vertical-rl;
   white-space: nowrap;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -2597,7 +2597,7 @@ a { text-decoration: none; color: inherit; }
   padding: 0 7px;
   background: var(--btn, #111);
   color: var(--btn-text, #fff);
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   letter-spacing: .5px;
 }
@@ -2659,7 +2659,7 @@ a.ow-chip:hover { background: var(--btn, #111); color: var(--btn-text, #fff); }
 .bn-img img { display: block; max-width: 100%; }
 .bn-img:has(img) { border: 0; background: none; min-width: 0; min-height: 0; }
 .bn-img span, .bn-friend span {
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   letter-spacing: 2px;
   color: #999;
@@ -2674,7 +2674,7 @@ a.ow-chip:hover { background: var(--btn, #111); color: var(--btn-text, #fff); }
   flex: 1;
   min-width: 0;
   padding: 8px 10px;
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10.5px;
   color: #666;
   white-space: nowrap;
@@ -2857,7 +2857,7 @@ a.bn-friend:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0
 .gb-main { flex: 1; min-width: 0; }
 .gb-meta { display: flex; align-items: center; gap: 7px; }
 .gb-meta b { font-size: 13px; }
-.gb-meta small { margin-left: auto; font-family: "Sukmyung" font-size: 10px; color: #aaa; }
+.gb-meta small { margin-left: auto; font-family: 'Sukmyung'; font-size: 10px; color: #aaa; }
 .gb-lock {
   padding: 1px 6px;
   border-radius: 3px;
@@ -2922,7 +2922,7 @@ a.bn-friend:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0
   border-radius: 3px;
   background: var(--btn, #222);
   color: var(--btn-text, #fff);
-  font-family: "Sukmyung"
+  font-family: 'Sukmyung';
   font-size: 10px;
   letter-spacing: 1px;
 }
