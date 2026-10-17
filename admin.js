@@ -13,11 +13,11 @@
   var VER = (typeof SITE !== 'undefined' && SITE.firebaseSdk) || '13.0.0';
   var BASE = 'https://www.gstatic.com/firebasejs/' + VER + '/';
   var SKIP = { firebase: 1, admin: 1, firebaseSdk: 1 };      /* 편집기에서 건드리지 않는 항목 */
-  var ORDER = ['themeColor', 'pageTitle', 'title', 'menus', 'deco', 'characterPage', 'characters',
+  var ORDER = ['themeColor', 'pageTitle', 'title', 'menus', 'deco', 'characterPage', 'characters', 'floormasterPage', 'floormasters',
                'pairPage', 'pairs', 'owner', 'guest', 'colors', 'background', 'fonts'];
   var TAB_NAME = {
     themeColor: '대표 색', pageTitle: '사이트 이름', title: '메인 타이틀', menus: '메인 메뉴', deco: '메인 꾸밈 글자',
-    characterPage: '캐릭터 페이지 설정', characters: '캐릭터 목록', pairPage: '페어 페이지 설정', pairs: '페어 목록',
+    characterPage: '캐릭터 페이지 설정', characters: '캐릭터 목록', pairPage: '페어 페이지 설정', floormasterPage: '플로어마스터 페이지 설정', floormasters: '플로어마스터 목록', pairs: '페어 목록',
     owner: '오너 페이지', guest: '방명록 안내', colors: '색상', background: '배경', fonts: '글꼴'
   };
   var LABEL = {
@@ -71,6 +71,7 @@
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
     'owner.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
+    'floormasters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
     'title.type': [['text', '글자'], ['image', '로고 이미지']],
     'characterPage.sdShow': [['back', '카드를 뒤집었을 때만'], ['always', '항상']],
     'guest.mode': [['firebase', 'Firebase (비밀글 / 답글 / 삭제)'], ['form', '구글 폼 + 시트'], ['widget', '외부 위젯'], ['links', '익명 질문 링크만']]
@@ -81,7 +82,7 @@
              preview: window.innerWidth >= 1000, pvMobile: false, pvFrame: null, pvBody: null, pvRoute: '', pvTimer: null, pvN: 0 };
   /* 편집 탭 → 미리보기에서 보여줄 화면 */
   var TAB_ROUTE = { themeColor: '', pageTitle: '', title: '', menus: '', deco: '', colors: '', background: '', fonts: '',
-                    characterPage: 'character', characters: 'character', pairPage: 'pair', pairs: 'pair',
+                    characterPage: 'character', characters: 'character', floormasterPage: 'floormaster', floormasters: 'floormaster', pairPage: 'pair', pairs: 'pair',
                     owner: 'owner', guest: 'guest', __gb: 'guest' };
 
   function $(sel, el) { return (el || document).querySelector(sel); }
@@ -151,7 +152,7 @@
   function previewPane() {
     var base = location.href.split('#')[0].split('?')[0];
     var pane = h('div', { class: 'oha-pv' });
-    var routes = [['', '메인'], ['character', 'Character'], ['pair', 'Pair'], ['owner', 'Owner'], ['guest', 'Guest']];
+    var routes = [['', '메인'], ['character', 'Character'], ['floormaster', 'Floormaster'], ['pair', 'Pair'], ['owner', 'Owner'], ['guest', 'Guest']];
     var sel = h('select', { id: 'oha-route', class: 'oha-in', style: 'width:auto;flex:1;min-width:0' },
       routes.map(function (r) { return h('option', { value: r[0], text: r[1] }); }));
     sel.value = st.pvRoute;
@@ -326,14 +327,17 @@
       c.onchange = function () { set(c.checked); touch(); };
       return h('label', null, [c, ' 사용']);
     }
-    if (typeof val === 'number' && (key === 'from' || key === 'to' || key === 'link' || key === 'members')) {
+    if ((typeof val === 'number' || isFRef(val)) && (key === 'from' || key === 'to' || key === 'link' || key === 'members')) {
       /* 캐릭터 번호 칸 : 이름을 보며 고르기 */
-      var cs = chars();
-      var rs = h('select', { class: 'oha-in' }, (key === 'link' ? [h('option', { value: '0', text: '연결 안 함' })] : [])
-        .concat(cs.map(function (c, i) { return h('option', { value: String(i + 1), text: (i + 1) + '번 · ' + (c.name || '(이름 없음)') }); })));
-      if (!rs.querySelector('option[value="' + val + '"]')) rs.appendChild(h('option', { value: String(val), text: val + '번 (없는 캐릭터)' }));
-      rs.value = String(val);
-      rs.onchange = function () { set(Number(rs.value)); touch(); };
+      var cs = chars(), fs = key === 'link' ? [] : floors();
+      var opts = (key === 'link' ? [h('option', { value: '0', text: '연결 안 함' })] : [])
+        .concat(cs.map(function (c, i) { return h('option', { value: String(i + 1), text: (i + 1) + '번 · ' + (c.name || '(이름 없음)') }); }))
+        .concat(fs.map(function (c, i) { return h('option', { value: 'F' + (i + 1), text: 'F' + (i + 1) + ' · ' + (c.name || '(이름 없음)') }); }));
+      var rs = h('select', { class: 'oha-in' }, opts);
+      var cur = isFRef(val) ? String(val).toUpperCase() : String(val);
+      if (!rs.querySelector('option[value="' + cur + '"]')) rs.appendChild(h('option', { value: cur, text: cur + ' (없는 캐릭터)' }));
+      rs.value = cur;
+      rs.onchange = function () { set(/^F/.test(rs.value) ? rs.value : Number(rs.value)); touch(); };
       return rs;
     }
     if (typeof val === 'number') {
@@ -348,7 +352,10 @@
      "+ 추가" 메뉴의 틀(템플릿) + 캐릭터 번호(순서) 자동 정리
      ========================================================== */
   function chars() { return (st.draft && st.draft.characters) || []; }
-  function charName(n) { var c = chars()[n - 1]; return c ? (c.name || '(이름 없음)') : ''; }
+  function allChars() { return ((st.draft && st.draft.characters) || []).concat((st.draft && st.draft.floormasters) || []); }
+  function floors() { return (st.draft && st.draft.floormasters) || []; }
+  function isFRef(v) { return typeof v === 'string' && /^F\d+$/i.test(v); }
+  function charName(n) { var c = allChars()[n - 1]; return c ? (c.name || '(이름 없음)') : ''; }
 
   function profileRows(labels) { return labels.map(function (l) { return { label: l, value: '' }; }); }
   function cardTpl(type) {
@@ -378,7 +385,7 @@
     return o;
   }
   function pairTpl(n) {
-    var m = []; for (var i = 1; i <= n && i <= chars().length; i++) m.push(i);
+    var m = []; for (var i = 1; i <= n && i <= allChars().length; i++) m.push(i);
     var sides = m.map(function () { return { catchphrase: '', desc: '', image: '' }; });
     return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
   }
@@ -391,7 +398,7 @@
   };
 
   function templatesFor(key, pkey) {
-    if (key === 'characters' && !pkey) return [
+    if ((key === 'characters' || key === 'floormasters') && !pkey) return [
       { name: '학생증 / 사원증 카드', desc: '목걸이 줄 + 링크 칩이 있는 카드', value: cardTpl('id') },
       { name: '공연 티켓 카드', desc: '가로형 티켓 (좌석 정보 포함)', value: cardTpl('ticket') },
       { name: '수배지 카드', desc: '수배지 + 현상금', value: cardTpl('wanted') },
@@ -443,6 +450,28 @@
     });
     chars().forEach(function (c) { (c.relations || []).forEach(function (x) { if (x.link === R) x.link = 0; }); });
     eachRef(function (n) { return n > R ? n - 1 : n; });
+  }
+
+    function swapFRefs(a, b) {
+    eachRef(function (v) {
+      if (!isFRef(v)) return v;
+      var k = +String(v).slice(1);
+      return k === a + 1 ? 'F' + (b + 1) : (k === b + 1 ? 'F' + (a + 1) : v);
+    });
+  }
+  function removeFRefs(i) {
+    var R = 'F' + (i + 1);
+    var is = function (v) { return String(v).toUpperCase() === R; };
+    (st.draft.pairs || []).forEach(function (p) {
+      var idx = -1;
+      (p.members || []).forEach(function (m, k) { if (idx < 0 && is(m)) idx = k; });
+      if (idx >= 0) { p.members.splice(idx, 1); if (p.sides && p.sides.length > idx) p.sides.splice(idx, 1); }
+      if (p.reviews) p.reviews = p.reviews.filter(function (x) { return !is(x.from) && !is(x.to); });
+    });
+    eachRef(function (v) {
+      if (isFRef(v)) { var k = +String(v).slice(1); if (k > i + 1) return 'F' + (k - 1); }
+      return v;
+    });
   }
 
   /* 칸이 없는 항목을 나중에 다시 꺼내 쓰는 "+ 항목 추가" 목록 */
@@ -498,9 +527,9 @@
           var up = h('button', { class: 'oha-mini', type: 'button', text: '↑' });
           var dn = h('button', { class: 'oha-mini', type: 'button', text: '↓' });
           var rm = h('button', { class: 'oha-mini', type: 'button', text: '✕' });
-          up.onclick = function (e) { e.preventDefault(); if (i > 0) { var isC = arr === chars(); arr.splice(i - 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i - 1); touch(); draw(); } };
-          dn.onclick = function (e) { e.preventDefault(); if (i < arr.length - 1) { var isC = arr === chars(); arr.splice(i + 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i + 1); touch(); draw(); } };
-          rm.onclick = function (e) { e.preventDefault(); var isC = arr === chars(); if (confirm(isC ? '이 캐릭터를 지울까요? 이 캐릭터가 들어간 페어 멤버 · 리뷰 · 관계 링크도 같이 정리돼요.' : '이 항목을 지울까요?')) { arr.splice(i, 1); if (isC) removeRefs(i); touch(); draw(); } };
+          up.onclick = function (e) { e.preventDefault(); if (i > 0) { var isC = arr === chars(), isF = arr === floors(); arr.splice(i - 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i - 1); if (isF) swapFRefs(i, i - 1); touch(); draw(); } };
+          dn.onclick = function (e) { e.preventDefault(); if (i < arr.length - 1) { var isC = arr === chars(), isF = arr === floors(); arr.splice(i + 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i + 1); if (isF) swapFRefs(i, i + 1); touch(); draw(); } };
+          rm.onclick = function (e) { e.preventDefault(); var isC = arr === chars(), isF = arr === floors(); if (confirm((isC || isF) ? '이 캐릭터를 지울까요? 이 캐릭터가 들어간 페어 멤버 · 리뷰' + (isC ? ' · 관계 링크' : '') + '도 같이 정리돼요.' : '이 항목을 지울까요?')) { arr.splice(i, 1); if (isC) removeRefs(i); if (isF) removeFRefs(i); touch(); draw(); } };
           return [up, dn, rm];
         };
         if (simple) {                                   /* 문자열 / 숫자 목록 : 한 줄 */
