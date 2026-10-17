@@ -387,8 +387,8 @@
       /* =====================================================
          페이지 이동 (주소 뒤 #이름)
          ===================================================== */
-      const ROUTES = ["home", "character", "pair", "owner", "guest"];
-      const TITLES = { home: "", character: "Character", pair: "Pair", owner: "Owner", guest: "Guest" };
+      const ROUTES = ["home", "character", "floormaster", "pair", "owner", "guest"];
+const TITLES = { home: "", character: "Character", floormaster: "Floormaster", pair: "Pair", owner: "Owner", guest: "Guest" };
 
       // "character.html" 처럼 적힌 링크도 "#character" 로 바꿔줘요
       function routeLink(l) {
@@ -491,12 +491,14 @@
       /* ##################################################### */
       /* ##### 페이지: character ##### */
       /* ##################################################### */
-      PAGES.character = function () {
+      PAGES.floormaster = function () { PAGES.character("floormaster"); };
+      PAGES.character = function (route) {
+      const FM = route === "floormaster";
       /* =====================================================
          페이지 꾸밈
          ===================================================== */
       const D = S.deco || {};
-      const P = S.characterPage || {};
+            const P = FM ? Object.assign({}, S.characterPage || {}, S.floormasterPage || {}) : (S.characterPage || {});
       document.getElementById("decoTopLeft").innerHTML =
         (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
         '<span class="top-label">' + (P.label || "CHARACTER") + '</span>' +
@@ -505,7 +507,7 @@
       /* =====================================================
          카드 부품
          ===================================================== */
-      const list = S.characters || [];
+        const list = (FM ? S.floormasters : S.characters) || [];
 
       // 수배지 종이 질감을 다른 이미지로 바꿀 때
       if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
@@ -959,8 +961,10 @@
          - 캐릭터 정보는 characters 에서 그대로 가져와요
          - pairs 한 줄이 두 캐릭터 화면에 서로의 리뷰로 달려요
          ===================================================== */
-      const chars = S.characters || [];
-      const pairs = S.pairs || [];
+      const chars = (S.characters || []).concat(S.floormasters || []);
+      const CH_N = (S.characters || []).length;
+      const norm = function (v) { const m = /^F(\d+)$/i.exec(String(v)); return m ? CH_N + (+m[1]) : v; };
+      const pairs = (S.pairs || []).map(function (p) { return Object.assign({}, p); });
       const num2 = function (n) { return String(n).padStart(2, "0"); };
       const silhouette =
         '<svg viewBox="0 0 100 130" preserveAspectRatio="xMidYMax meet">' +
@@ -991,6 +995,8 @@
           if (p.aToB) p.reviews.push(Object.assign({ from: p.a, to: p.b }, p.aToB));
           if (p.bToA) p.reviews.push(Object.assign({ from: p.b, to: p.a }, p.bToA));
         }
+        p.members = p.members.map(norm);
+        p.reviews = p.reviews.map(function (r) { return Object.assign({}, r, { from: norm(r.from), to: norm(r.to) }); });
       });
 
       // 캐릭터(번호 c, 1부터)가 받은 리뷰 목록
@@ -2209,7 +2215,7 @@
         keyHandlers = [];
         document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
         document.body.setAttribute("data-page", route);
-        app.innerHTML = document.getElementById("tpl-" + route).innerHTML;
+        app.innerHTML = document.getElementById("tpl-" + (route === "floormaster" ? "character" : route)).innerHTML;
         app.classList.remove("page-in");
         void app.offsetWidth;
         app.classList.add("page-in");
