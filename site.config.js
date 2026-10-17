@@ -9,5 +9,5 @@ window.SITE_CONFIG = {
     appId: "1:894197604861:web:145a78954d90630c287994",
     measurementId: "G-VNNW9V0TTR"
   },
-  admin: { email: "wlgh07295@gmail.com" }
+  admin: { email: "real.ransara@gmail.com" }
 };
