@@ -905,6 +905,7 @@ const SITE = {
   background: {
     image: "",
     position: "center",
+    width: "auto",
     overlay: true,
     overlayColor: "",
     overlayStrength: 0.5,
