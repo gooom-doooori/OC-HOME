@@ -578,12 +578,12 @@ a { text-decoration: none; color: inherit; }
 .ch-tile-row:hover .ch-tile-name,
 .ch-tile-row:focus-visible .ch-tile-name { opacity: 1; transform: none; }
 
-.ch-tile-row:hover .ch-tile { transform: translateX(5px); box-shadow: 0 5px 12px rgba(0,0,0,.18); }
+.ch-tile-row:hover .ch-tile { transform: translateX(5px); filter: grayscale(1) contrast(1.05); box-shadow: 0 5px 12px rgba(0,0,0,.18); }
 .ch-tile-row:hover .ch-tile-label { opacity: 1; }
 
 /* ★ 선택된 캐릭터: 흑백 */
 .ch-tile-row.on .ch-tile {
-  filter: grayscale(1) contrast(1.05);
+  filter: grayscale(0) contrast(1);
   box-shadow: 0 0 0 2px var(--deco), 0 5px 12px rgba(0,0,0,.2);
 }
 .ch-tile-row.on .ch-tile-label { opacity: 1; }
