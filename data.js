@@ -367,7 +367,7 @@ const SITE = {
                        사진을 비워두면 그 캐릭터의 사진이 자동으로 들어가요.
                        상대가 다른 사람 캐릭터면 link 줄을 지우세요.
   */
-  character: [
+  characters: [
     {
       type: "id",
       color: "",
