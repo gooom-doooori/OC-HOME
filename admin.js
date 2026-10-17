@@ -319,7 +319,7 @@
   }
 
   function valueEd(val, set, key, pkey) {
-    if (Array.isArray(val) || key === 'owner') return arrayEd(Array.isArray(val) ? val : [val], key, pkey);
+    if (Array.isArray(val)) return arrayEd(val, key, pkey);
     if (val && typeof val === 'object') return objectEd(val, key);
     if (typeof val === 'boolean') {
       var c = h('input', { type: 'checkbox' }); c.checked = val;
@@ -363,6 +363,20 @@
     var o = {}; [base, x, tail].forEach(function (src) { Object.keys(src).forEach(function (k) { o[k] = src[k]; }); });
     return o;
   }
+    function ownerTpl(type) {
+    var o = { type: type, color: '', subColor: '', textColor: '', strap: 'Blue Hour', cardTitle: 'OWNER ID', cardSub: '', image: '', sd: '',
+              name: '', nameEn: 'OWNER', intro: '', number: '0001', seat: { gate: 'A', row: '01', seat: '01' }, tags: [],
+              customFront: '', customBack: '', customRatio: '', customRadius: 12,
+              links: [{ label: 'X', text: '', url: '' }],
+              backNotice: '', sign: '', since: '', valid: '',
+              profile: profileRows(['활동명', '생일', '주 장르', '연락']), about: '',
+              likeTitle: 'LIKE', likes: [], dislikeTitle: 'DISLIKE', dislikes: [], notice: [], panelStrength: 0.18,
+              banner: { mineTitle: 'MY BANNER', siteUrl: '', mine: [{ image: '', size: '200 × 40' }], note: '', copyText: 'COPY', copiedText: 'COPIED!', friendsTitle: 'LINK', friends: [] } };
+    if (type === 'ticket') { o.cardTitle = 'OWNER TICKET'; o.strap = false; }
+    if (type === 'wanted') { o.cardTitle = 'WANTED'; o.strap = false; o.number = '$0.00'; }
+    if (type === 'custom') { o.cardTitle = 'MY CARD'; o.strap = false; }
+    return o;
+  }
   function pairTpl(n) {
     var m = []; for (var i = 1; i <= n && i <= chars().length; i++) m.push(i);
     var sides = m.map(function () { return { catchphrase: '', desc: '', image: '' }; });
@@ -377,9 +391,6 @@
   };
 
   function templatesFor(key, pkey) {
-    if (key === 'owner') return [
-      { name: '오너 카드 (학생증)', desc: '사원증 / 학생증 형태의 오너 카드', value: cardTpl('id') }
-    ];
     if (key === 'characters' && !pkey) return [
       { name: '학생증 / 사원증 카드', desc: '목걸이 줄 + 링크 칩이 있는 카드', value: cardTpl('id') },
       { name: '공연 티켓 카드', desc: '가로형 티켓 (좌석 정보 포함)', value: cardTpl('ticket') },
@@ -390,6 +401,12 @@
       { name: '2인 페어', desc: '캐릭터 2명', value: pairTpl(2) },
       { name: '3인 관계', desc: '캐릭터 3명', value: pairTpl(3) },
       { name: '4인 관계', desc: '캐릭터 4명', value: pairTpl(4) }
+    ];
+        if (key === 'owner' && !pkey) return [
+      { name: '학생증 / 사원증 카드', desc: '목걸이 줄 + 링크 칩이 있는 카드', value: ownerTpl('id') },
+      { name: '공연 티켓 카드', desc: '가로형 티켓 (좌석 정보 포함)', value: ownerTpl('ticket') },
+      { name: '수배지 카드', desc: '수배지 + 현상금', value: ownerTpl('wanted') },
+      { name: '직접 만든 카드', desc: '앞면 · 뒷면 이미지를 직접 넣어요', value: ownerTpl('custom') }
     ];
     if (key === 'menus') return [
       { name: '캐릭터 메뉴', desc: '#character', value: { num: '', title: 'Character', desc: '캐릭터 소개', link: '#character', icon: '', newTab: false } },
@@ -690,6 +707,7 @@
     } else {
       if (!st.draft) {
         st.draft = clone(S);
+        if (st.draft.owner && !Array.isArray(st.draft.owner)) st.draft.owner = [st.draft.owner];
         Object.keys(SKIP).forEach(function (k) { delete st.draft[k]; });
       }
       if (st.preview) {
