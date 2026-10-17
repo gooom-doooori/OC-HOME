@@ -586,26 +586,28 @@
     return keys;
   }
 
- /* 참고용 코드 모음 (복사 버튼 포함) */
- function snippetBox() {
+   /* 참고용 코드 모음 (편집기 맨 아래에 항상 보여요) */
+  function snippetBox() {
     var items = [
       { name: '줄바꿈',
         code: '<br>' },
-       { name: '볼드체',
+      { name: '볼드체',
         code: '<b>내용</b>' },
       { name: '스포일러',
         code: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>' },
       { name: '각주',
         code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' }
     ];
-    var box = h('details', { class: 'oha-box' });
-    box.appendChild(h('summary', { text: '자주 쓰는 코드 참고' }));
+    var box = h('div', { class: 'oha-box' });
+    box.appendChild(h('b', { text: '자주 쓰는 코드 참고' }));
     items.forEach(function (it) {
-      box.appendChild(h('p', { class: 'oha-note', text: it.name }));
-      box.appendChild(h('pre', {
-        style: 'white-space:pre-wrap;word-break:break-all;background:#f3f3f3;border-radius:8px;padding:8px 10px;font-size:12px;margin:4px 0',
-        text: it.code }));
-      box.appendChild(copyBtn('복사', function () { return it.code; }));
+      box.appendChild(h('div', { style: 'display:flex;gap:8px;align-items:center;margin-top:8px' }, [
+        h('span', { class: 'oha-note', style: 'width:56px;flex-shrink:0;margin:0', text: it.name }),
+        h('pre', {
+          style: 'flex:1;min-width:0;margin:0;white-space:pre-wrap;word-break:break-all;background:#f3f3f3;border-radius:8px;padding:8px 10px;font-size:12px',
+          text: it.code }),
+        copyBtn('복사', function () { return it.code; })
+      ]));
     });
     return box;
   }
@@ -627,7 +629,6 @@
         ed.querySelectorAll(':scope > details.oha-box').forEach(function (d, i) { if (i < 1) d.open = true; });
       }
       panel.appendChild(ed);
-      if (['characters', 'floormasters', 'owner'].indexOf(st.tab) > -1) panel.appendChild(snippetBox());
     }
     keys.concat(['__gb']).forEach(function (k) {
       var b = h('button', { type: 'button', text: k === '__gb' ? '방명록 관리' : (TAB_NAME[k] || k) });
@@ -638,6 +639,7 @@
       nav.appendChild(b);
     });
     body.appendChild(h('div', { class: 'oha-main' }, [nav, panel]));
+    body.appendChild(h('div', { class: 'oha-main' }, [h('div'), snippetBox()]));
     show();
   }
 
