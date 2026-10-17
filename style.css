@@ -1659,7 +1659,7 @@ a { text-decoration: none; color: inherit; }
   bottom: 40px;
   display: flex;
   flex-direction: column;
-  color: var(--dt, var(--deco));
+  color: var(--ct, var(--deco));
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
