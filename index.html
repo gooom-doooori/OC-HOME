@@ -763,6 +763,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       function renderDetail(ch, i) {
         const color = cardColor(ch.color);
         detail.style.setProperty("--c", color);
+        detail.style.setProperty("--ct", ch.textColor || "");
         document.getElementById("chDetailBg").style.setProperty("--c", color);
 
         /* --- PROFILE --- */
@@ -1701,6 +1702,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
          ===================================================== */
       const detail = document.getElementById("chDetail");
       function renderDetail(o) {
+        detail.style.setProperty("--ct", o.textColor || "");
         const T = Object.assign({ profile: "PROFILE", taste: "TASTE", notice: "NOTICE", banner: "BANNER" }, o.tabs || {});
         const BN = o.banner || {};
         const siteUrl = BN.siteUrl || location.href.replace(/[^/]*$/, "");
