@@ -1100,7 +1100,9 @@ const SITE = {
     titleWeight: "800",
     menu: "Bebas Neue",
     body: "Noto Sans KR",
-    mono: "Space Mono",    // 카드 번호 · 라벨용 타자기 느낌 글꼴
+    mono: "Space Mono",    // 카드 번호 · 라벨용 타자기 느낌 영문 글꼴
+    jet: "JetbatangNf",    // 카드 번호 · 라벨용 타자기 느낌 한글 글꼴
+    MU: "Murecho",         // 카드 제목용 일본어 글꼴
     sign: "Caveat",        // 영어 서명 손글씨 글꼴 (수배지 · 학생증 서명란)
     hand: "Nanum Pen Script" // 한글 손글씨 글꼴 (수배지 뒷면 메모)
   }
