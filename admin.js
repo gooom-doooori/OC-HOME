@@ -586,6 +586,30 @@
     return keys;
   }
 
+  /* 참고용 코드 모음 (복사 버튼 포함) */
+  function snippetBox() {
+    var items = [
+      { name: '줄바꿈',
+        code: '<br>' },
+       { name: '볼드체',
+        code: '<b>내용</b>' },
+      { name: '스포일러',
+        code: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>' },
+      { name: '각주',
+        code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' }
+    ];
+    var box = h('details', { class: 'oha-box' });
+    box.appendChild(h('summary', { text: 자주 쓰는 코드 참고' }));
+    items.forEach(function (it) {
+      box.appendChild(h('p', { class: 'oha-note', text: it.name }));
+      box.appendChild(h('pre', {
+        style: 'white-space:pre-wrap;word-break:break-all;background:#f3f3f3;border-radius:8px;padding:8px 10px;font-size:12px;margin:4px 0',
+        text: it.code }));
+      box.appendChild(copyBtn('복사', function () { return it.code; }));
+    });
+    return box;
+  }
+
   function renderEditor(body) {
     var nav = h('div', { class: 'oha-nav' });
     var panel = h('div', { class: 'oha-panel' });
