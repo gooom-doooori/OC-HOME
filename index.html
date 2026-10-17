@@ -2268,5 +2268,55 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
     open();
   })();
   </script>
+
+  <script>
+(function () {
+  var bar = document.createElement("div");
+  bar.className = "dt-bar";
+  bar.innerHTML = "<i></i>";
+  document.body.appendChild(bar);
+  var thumb = bar.firstChild;
+  var pane = null, maxTop = 0, dragging = false, startY = 0, startScroll = 0;
+
+  function update() {
+    pane = document.querySelector(".dt-panes");
+    var det = pane && pane.closest(".ch-detail");
+    var on = pane && det && pane.offsetParent &&
+             pane.scrollHeight > pane.clientHeight + 1 &&
+             getComputedStyle(det).visibility === "visible";
+    if (!on) { bar.classList.remove("show"); return; }
+
+    var r = pane.getBoundingClientRect();
+    var trackH = r.height - 16;
+    var thumbH = Math.max(36, trackH * pane.clientHeight / pane.scrollHeight);
+    var range = pane.scrollHeight - pane.clientHeight;
+    maxTop = trackH - thumbH;
+
+    bar.style.left = (r.right + 10) + "px";
+    bar.style.top = (r.top + 8) + "px";
+    bar.style.height = trackH + "px";
+    thumb.style.height = thumbH + "px";
+    thumb.style.top = (maxTop * pane.scrollTop / range) + "px";
+
+    var c = getComputedStyle(pane).getPropertyValue("--c").trim();
+    if (c) bar.style.setProperty("--c", c);
+    bar.classList.add("show");
+  }
+
+  thumb.addEventListener("pointerdown", function (e) {
+    dragging = true; startY = e.clientY; startScroll = pane.scrollTop;
+    thumb.setPointerCapture(e.pointerId);
+    bar.classList.add("drag");
+    e.preventDefault();
+  });
+  thumb.addEventListener("pointermove", function (e) {
+    if (!dragging || !maxTop) return;
+    pane.scrollTop = startScroll + (e.clientY - startY) * (pane.scrollHeight - pane.clientHeight) / maxTop;
+  });
+  thumb.addEventListener("pointerup", function () { dragging = false; bar.classList.remove("drag"); });
+
+  (function tick() { update(); requestAnimationFrame(tick); })();
+})();
+</script>
 </body>
 </html>
