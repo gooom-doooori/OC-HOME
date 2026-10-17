@@ -1471,14 +1471,40 @@ a { text-decoration: none; color: inherit; }
   overflow-y: auto;
   margin-top: 6px;
   padding: 14px 6px 10px 0;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
+.dt-panes::-webkit-scrollbar { display: none; }
 .dt-pane { display: none; }
 .dt-pane.on { display: block; animation: paneIn .45s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes paneIn {
   from { opacity: 0; transform: translateX(-16px); }
   to   { opacity: 1; transform: none; }
 }
+
+/* 상세 프로필 커스텀 스크롤 */
+.dt-bar {
+  position: fixed;
+  z-index: 5;
+  width: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c, #888) 22%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.dt-bar.show { opacity: 1; pointer-events: auto; }
+.dt-bar i {
+  position: absolute;
+  left: -2px; right: -2px; top: 0;
+  border-radius: 999px;
+  background: var(--c, #888);
+  cursor: grab;
+  transition: left .2s, right .2s;
+}
+.dt-bar i::after { content: ""; position: absolute; inset: 0 -8px; }   /* 잡기 쉽게 터치 영역 넓힘 */
+.dt-bar:hover i, .dt-bar.drag i { left: -3px; right: -3px; }
+.dt-bar.drag i { cursor: grabbing; }
+
 .dt-empty {
   padding: 40px 0;
   font-size: 13px;
