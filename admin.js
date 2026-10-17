@@ -329,7 +329,7 @@
     }
     if ((typeof val === 'number' || isFRef(val)) && (key === 'from' || key === 'to' || key === 'link' || key === 'members')) {
       /* 캐릭터 번호 칸 : 이름을 보며 고르기 */
-      var cs = chars(), fs = key === 'link' ? [] : floors();
+      var cs = chars(), fs = floors();
       var opts = (key === 'link' ? [h('option', { value: '0', text: '연결 안 함' })] : [])
         .concat(cs.map(function (c, i) { return h('option', { value: String(i + 1), text: (i + 1) + '번 · ' + (c.name || '(이름 없음)') }); }))
         .concat(fs.map(function (c, i) { return h('option', { value: 'F' + (i + 1), text: 'F' + (i + 1) + ' · ' + (c.name || '(이름 없음)') }); }));
@@ -436,7 +436,7 @@
       (p.members || []).forEach(function (n, i) { p.members[i] = fn(n); });
       (p.reviews || []).forEach(function (r) { r.from = fn(r.from); r.to = fn(r.to); });
     });
-    chars().forEach(function (c) { (c.relations || []).forEach(function (r) { if (r.link) r.link = fn(r.link); }); });
+    chars().concat(floors()).forEach(function (c) { (c.relations || []).forEach(function (r) { if (r.link) r.link = fn(r.link); }); });
   }
   function swapRefs(a, b) {
     eachRef(function (n) { return n === a + 1 ? b + 1 : (n === b + 1 ? a + 1 : n); });
@@ -448,7 +448,7 @@
       if (idx >= 0) { p.members.splice(idx, 1); if (p.sides && p.sides.length > idx) p.sides.splice(idx, 1); }
       if (p.reviews) p.reviews = p.reviews.filter(function (x) { return x.from !== R && x.to !== R; });
     });
-    chars().forEach(function (c) { (c.relations || []).forEach(function (x) { if (x.link === R) x.link = 0; }); });
+    chars().concat(floors()).forEach(function (c) { (c.relations || []).forEach(function (x) { if (x.link === R) x.link = 0; }); });
     eachRef(function (n) { return n > R ? n - 1 : n; });
   }
 
@@ -468,6 +468,7 @@
       if (idx >= 0) { p.members.splice(idx, 1); if (p.sides && p.sides.length > idx) p.sides.splice(idx, 1); }
       if (p.reviews) p.reviews = p.reviews.filter(function (x) { return !is(x.from) && !is(x.to); });
     });
+    chars().concat(floors()).forEach(function (c) { (c.relations || []).forEach(function (x) { if (is(x.link)) x.link = 0; }); });
     eachRef(function (v) {
       if (isFRef(v)) { var k = +String(v).slice(1); if (k > i + 1) return 'F' + (k - 1); }
       return v;
