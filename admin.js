@@ -597,12 +597,18 @@
         code: '<i>내용</i>' },
       { name: '취소선',
         code: '<s>내용</s>' },
-      { name: '프로필 내용|이미지 2단 배치 코드',
+      { name: '프로필 2단 코드',
         code: '<div class="story-2col"><div>설정 글 내용</div><img src="이미지 주소" alt="캐릭터 이름"></div>' },
       { name: '스포일러',
         code: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>' },
       { name: '각주',
-        code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' }
+        code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' },
+      { name: '토글',
+        code: '<details class="tg"><summary>제목</summary><div>펼쳐질 내용</div></details>' },
+      { name: '- 목록',
+        code: '<ul class="dash-list"><li>내용</li><li>내용</li></ul>' },
+      { name: '• 목록',
+        code: '<ul class="dot-list"><li>내용</li><li>내용</li></ul>' },
     ];
     var box = h('div', { class: 'oha-box' });
     box.appendChild(h('b', { text: '자주 쓰는 코드 참고' }));
