@@ -1759,8 +1759,8 @@ a { text-decoration: none; color: inherit; }
   opacity: .85;
 }
 .dt-tags { justify-content: flex-start; padding: 0; margin-top: 18px; }
-.dt-tags .cd-tag { color: var(--deco); border-color: var(--deco); }
-.dt-tags .cd-tag b { background: var(--c); }
+.dt-tags .cd-tag { color: var(--ct); border-color: var(--c); }
+.dt-tags .cd-tag b { background: var(--cㅅ); }
 
 @keyframes hangIn {
   0%   { opacity: 0; transform: translateY(-40px) rotate(calc(var(--rot) - 8deg)); }
