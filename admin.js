@@ -56,7 +56,7 @@
     secretText: '비밀글 안내', listTitle: '목록 제목', columns: '시트 열 번호', height: '높이', code: '위젯 코드',
     background: '바탕색', menuBar: '메뉴 막대 색', menuText: '메뉴 글자 색', menuDesc: '메뉴 설명 색', accent: '마름모 색',
     accentText: '마름모 글자 색', dots: '점선 색', deco: '꾸밈 글자 색',
-    position: '사진 위치', overlay: '스크린 효과', overlayColor: '덮을 색', overlayStrength: '효과 세기(0~1)', blur: '흐림',
+    position: '사진 위치', width: '배경 사진 가로 크기', overlay: '스크린 효과', overlayColor: '덮을 색', overlayStrength: '효과 세기(0~1)', blur: '흐림',
     fade: '아래 그라데이션', fadeColor: '그라데이션 색', fadeHeight: '그라데이션 높이(%)', fadeStrength: '그라데이션 진하기(0~1)',
     grid: '모눈 무늬', gridColor: '선 색', gridSize: '칸 크기', gridLine: '선 두께', gridStrength: '선 진하기(0~1)',
     titleWeight: '타이틀 굵기', menu: '메뉴 글꼴', body: '본문 글꼴', mono: '번호 글꼴', hand: '손글씨 글꼴'
@@ -428,7 +428,8 @@
   /* 칸이 없는 항목을 나중에 다시 꺼내 쓰는 "+ 항목 추가" 목록 */
   var OPTIONAL = {
     characters: { pairImage: '', sdSize: 230, subColor: '', textColor: '', seat: { gate: 'A', row: '01', seat: '01' },
-                  customFront: '', customBack: '', customRatio: '', customRadius: 12 }
+                  customFront: '', customBack: '', customRatio: '', customRadius: 12 },
+    background: { width: '' }
   };
 
   function objectEd(obj, key) {
