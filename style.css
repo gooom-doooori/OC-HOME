@@ -2488,6 +2488,28 @@ a { text-decoration: none; color: inherit; }
 }
 .is-flipped .ow-hint { opacity: 0; }
 
+.ow-page .ch-holder { transition: transform .7s cubic-bezier(.6,0,.2,1), opacity .2s; }
+.ow-page .ch-holder.ow-out { opacity: 0; }
+.ow-page.ow-multi .ch-stage { bottom: 110px; }
+.ow-switch {
+  position: absolute; left: 40px; right: 40px; bottom: 52px; z-index: 2;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  transition: left .7s cubic-bezier(.6,0,.2,1), right .7s cubic-bezier(.6,0,.2,1);
+}
+.is-flipped .ow-page .ow-switch { left: 54vw; right: 40px; }
+.ow-sw {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 14px 0 0;
+  border: 1.5px solid var(--btn, #222); background: #fff; color: var(--deco, #222);
+  font: inherit; font-size: 12px; cursor: pointer; transition: background .25s, color .25s;
+}
+.ow-sw i {
+  display: flex; align-items: center; height: 100%; margin-right: 9px; padding: 0 8px;
+  background: var(--btn, #111); color: var(--btn-text, #fff); font-style: normal;
+  font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .5px;
+}
+.ow-sw:hover, .ow-sw.on { background: var(--btn, #111); color: var(--btn-text, #fff); }
+.ow-sw.on i, .ow-sw:hover i { background: #fff; color: var(--btn, #111); }
+
 /* 목걸이 줄 + 집게 */
 .ow-strap {
   width: 30px;
