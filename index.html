@@ -218,20 +218,17 @@
     <!-- 왼쪽 위: 뱃지 (누르면 메인홈으로) -->
     <a class="deco-top-left" id="decoTopLeft" href="#"></a>
 
-    <!-- 오른쪽 위: 홈 버튼 + 번호 -->
+    <!-- 오른쪽 위: 홈 버튼 -->
     <div class="deco-top-right ch-top-right">
       <a class="ch-home" href="#"><span class="mini-chev"><i></i><i></i><i></i></span>HOME</a>
-      <span class="ch-count" id="owCount"></span>
     </div>
 
     <!-- 뒤집으면 나타나는 상세 소개 -->
     <section class="ch-detail" id="chDetail"></section>
 
     <!-- 가운데: 오너 카드 -->
-    <div class="ch-stage" style="position:relative;">
-      <button class="pr-arrow prev" id="owPrev" aria-label="이전" style="position:absolute;left:20px;z-index:10;background:var(--btn);color:var(--btn-text);border:0;border-radius:50%;width:40px;height:40px;cursor:pointer;display:grid;place-items:center;"><i></i><i></i><i></i></button>
+    <div class="ch-stage">
       <div class="ch-holder" id="chHolder"></div>
-      <button class="pr-arrow next" id="owNext" aria-label="다음" style="position:absolute;right:20px;z-index:10;background:var(--btn);color:var(--btn-text);border:0;border-radius:50%;width:40px;height:40px;cursor:pointer;display:grid;place-items:center;"><i></i><i></i><i></i></button>
     </div>
 
     <p class="ow-hint" id="owHint"></p>
@@ -1370,26 +1367,21 @@
       go(0);
       };
 
-       PAGES.owner = function () {
-      const D = S.deco || {};
-      const ownersList = Array.isArray(S.owner) ? S.owner : (S.owner ? [S.owner] : []);
-      let current = 0;
-
-      function renderOwner(i) {
-        const O = ownersList[i] || {};
+      /* ##################################################### */
+      /* ##### 페이지: owner ##### */
+      /* ##################################################### */
+      PAGES.owner = function () {
       /* =====================================================
          페이지 꾸밈
          ===================================================== */
-      const P = Object.assign({}, S.characterPage || {}, O);
+      const D = S.deco || {};
+      const O = S.owner || {};
       document.getElementById("decoTopLeft").innerHTML =
         (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
         '<span class="top-label">' + (O.label || "OWNER FILE") + '</span>' +
         '<span class="top-line"></span>';
       document.getElementById("owHint").textContent = O.hint || "";
       root.setProperty("--panel-mix", Math.round(((O.panelStrength != null) ? O.panelStrength : 0.18) * 100) + "%");
-
-      const countEl = document.getElementById("owCount");
-      if (countEl) countEl.textContent = String(i + 1).padStart(2, "0") + " / " + String(ownersList.length).padStart(2, "0");
 
       /* =====================================================
          카드 부품
@@ -1424,6 +1416,7 @@
 
       /* ---- 카드 종류별 그리기 (캐릭터 페이지와 같은 코드) ----
          P : 카드 뒷면 문구 등은 owner 에 적은 값이 먼저, 없으면 characterPage 값 */
+      const P = Object.assign({}, S.characterPage || {}, O);
       if (P.imageTint === false) document.body.classList.add("no-tint");
       root.setProperty("--tint", (P.tintStrength != null) ? P.tintStrength : 0.85);
       if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
@@ -1800,30 +1793,10 @@
         flip();
       });
       renderDetail(O);
-      }
 
-      function go(i) {
-        if (!ownersList.length) return;
-        current = (i + ownersList.length) % ownersList.length;
-        renderOwner(current);
-      }
-
-      const prevBtn = document.getElementById("owPrev");
-      const nextBtn = document.getElementById("owNext");
-      if (ownersList.length <= 1) {
-        if (prevBtn) prevBtn.style.display = "none";
-        if (nextBtn) nextBtn.style.display = "none";
-      } else {
-        if (prevBtn) prevBtn.onclick = function () { go(current - 1); };
-        if (nextBtn) nextBtn.onclick = function () { go(current + 1); };
-      }
-
-      go(0);
       addKey( function (e) {
-        if (e.key === "ArrowLeft") go(current - 1);
-        if (e.key === "ArrowRight") go(current + 1);
-        if (e.key === " ") { e.preventDefault(); const f = document.getElementById("cdFlip"); if (f) f.classList.toggle("flipped"); }
-        if (e.key === "Escape") { const f = document.getElementById("cdFlip"); if (f) f.classList.remove("flipped"); }
+        if (e.key === " ") { e.preventDefault(); flip(); }
+        if (e.key === "Escape") flip(false);
       });
       };
 
