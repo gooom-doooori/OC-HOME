@@ -627,6 +627,7 @@
         ed.querySelectorAll(':scope > details.oha-box').forEach(function (d, i) { if (i < 1) d.open = true; });
       }
       panel.appendChild(ed);
+      if (['characters', 'floormasters', 'owner'].indexOf(st.tab) > -1) panel.appendChild(snippetBox());
     }
     keys.concat(['__gb']).forEach(function (k) {
       var b = h('button', { type: 'button', text: k === '__gb' ? '방명록 관리' : (TAB_NAME[k] || k) });
