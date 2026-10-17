@@ -682,7 +682,7 @@ a { text-decoration: none; color: inherit; }
   justify-content: center;
 }
 .cd-photo svg { width: 100%; height: 90%; }
-.cd-photo img { width: 100%; height: 100%; object-fit: cover; }
+.cd-photo img { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none;}
 
 .cd-name {
   font-size: 26px;
@@ -855,7 +855,7 @@ a { text-decoration: none; color: inherit; }
   -webkit-mask: linear-gradient(to right, transparent, #000 22%);
           mask: linear-gradient(to right, transparent, #000 22%);
 }
-.tk-photo img { width: 100%; height: 100%; object-fit: cover; }
+.tk-photo img { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none;}
 .tk-photo svg { width: 85%; height: 92%; }
 
 /* 왼쪽 글자: 이름 + 한 줄 소개 */
@@ -1177,7 +1177,7 @@ a { text-decoration: none; color: inherit; }
   align-items: flex-end;
   justify-content: center;
 }
-.wt-photo img { width: 100%; height: 100%; object-fit: cover; filter: none; }
+.wt-photo img { width: 100%; height: 100%; object-fit: cover; filter: none; -webkit-user-drag: none; user-select: none;}
 .wt-desc-title {
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
   font-weight: 400;
@@ -1831,7 +1831,7 @@ a { text-decoration: none; color: inherit; }
   align-items: flex-end;
   justify-content: center;
 }
-.pr-photo img { width: 100%; height: 100%; object-fit: cover; }
+.pr-photo img { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none;}
 .pr-photo svg { width: 86%; height: 86%; }
 .pr-no {
   position: absolute;
