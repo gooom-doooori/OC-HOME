@@ -409,6 +409,14 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
 
       const PAGES = {};
 
+      function chRef(v) {
+        const m = /^F(\d+)$/i.exec(String(v));
+        if (m) { const f = (S.floormasters || [])[+m[1] - 1]; return f ? { page: "floormaster", idx: +m[1] - 1, ch: f } : null; }
+        const n = +v, c = n > 0 && (S.characters || [])[n - 1];
+        return c ? { page: "character", idx: n - 1, ch: c } : null;
+      }
+      let CH_START = null;
+
       /* ##################################################### */
       /* ##### 페이지: home ##### */
       /* ##################################################### */
@@ -498,7 +506,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
          페이지 꾸밈
          ===================================================== */
       const D = S.deco || {};
-            const P = FM ? Object.assign({}, S.characterPage || {}, S.floormasterPage || {}) : (S.characterPage || {});
+      const P = FM ? Object.assign({}, S.characterPage || {}, S.floormasterPage || {}) : (S.characterPage || {});
       document.getElementById("decoTopLeft").innerHTML =
         (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
         '<span class="top-label">' + (P.label || "CHARACTER") + '</span>' +
@@ -783,7 +791,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         const rel = ch.relations || [];
         const paneRelation = rel.length
           ? '<ul class="dt-rel">' + rel.map(function (r) {
-              const linked = r.link && list[r.link - 1];
+              const tg = r.link ? chRef(r.link) : null;
+              const linked = tg && tg.ch;
               const img = r.image || (linked ? (linked.tile || linked.image) : "");
               const rc = linked ? cardColor(linked.color) : color;
               return '<li class="dt-rel-item' + (linked ? " linked" : "") + '"' + (linked ? ' data-link="' + r.link + '"' : "") + ' style="--rc:' + rc + '">' +
@@ -832,8 +841,15 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         // 관계: 연결된 캐릭터로 이동
         detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
           li.addEventListener("click", function () {
-            go(+li.getAttribute("data-link") - 1);
-            setTimeout(function () { flip(true); }, 350);
+            const tg = chRef(li.getAttribute("data-link"));
+            if (!tg) return;
+            if (tg.page === (FM ? "floormaster" : "character")) {
+              go(tg.idx);
+              setTimeout(function () { flip(true); }, 350);
+            } else {
+              CH_START = { i: tg.idx, flip: true };
+              location.hash = "#" + tg.page;
+            }
           });
         });
       }
@@ -939,7 +955,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         if (e.key === "Escape") flip(false);
       });
 
-      go(0);
+      const start0 = CH_START;
+      CH_START = null;
+      go(start0 ? start0.i : 0);
+      if (start0 && start0.flip) setTimeout(function () { flip(true); }, 700);
       };
 
       /* ##################################################### */
