@@ -326,6 +326,9 @@
         const photo = document.getElementById("bgPhoto");
         photo.style.backgroundImage = "url('" + B.image + "')";
         photo.style.backgroundPosition = B.position || "center";
+        if (B.width != null && B.width !== "") {
+          photo.style.backgroundSize = (typeof B.width === "number" ? B.width + "px" : B.width) + " auto";
+        }
         if (B.blur) {
           photo.style.filter = "blur(" + B.blur + "px)";
           photo.style.inset = "-" + (B.blur * 3) + "px";
