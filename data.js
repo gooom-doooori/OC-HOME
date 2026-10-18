@@ -240,6 +240,24 @@ const SITE = {
     }
   },
 
+    /* =============================================
+     [4-2] BGM 플레이어
+     ---------------------------------------------
+     왼쪽 위 라벨 선과 오른쪽 위 글자 사이에 나와요.
+     bgm : 곡 주소 (아래 중 하나)
+           - 편집기에서 올린 음악 파일 주소 (10MB 이하)
+           - 사이트 폴더 안 파일  예) "audio/theme.mp3"
+           - 유튜브 링크          예) "https://youtu.be/xxxxxxxxxxx"
+     bgmTitle : 곡 제목 (비우면 파일 이름 / 유튜브 제목을 자동으로 써요)
+     ============================================= */
+  bgmPlayer: {
+    show: true,           // false 면 플레이어를 숨겨요
+    autoplay: false,      // true 면 들어오자마자 재생 시도 (브라우저가 막으면 화면을 처음 누를 때 재생)
+    volume: 40,           // 기본 음량 (0 ~ 100)
+    bgm: "",              // 기본 BGM
+    bgmTitle: ""
+  },
+
 
   /* =============================================
      [5] 캐릭터 페이지 설정  (#character)
@@ -402,6 +420,10 @@ const SITE = {
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
       faction: "진영이름",
+      bgm: "",
+      bgmTitle: "",
+      bgm: "",
+      bgmTitle: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0001",
@@ -442,6 +464,8 @@ const SITE = {
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
       faction: "진영이름",
+      bgm: "",
+      bgmTitle: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       seat: { gate: "A", row: "07", seat: "12" },
@@ -477,6 +501,8 @@ const SITE = {
       name: "캐릭터 이름",
       nameEn: "Outlaw",
       faction: "진영이름",
+      bgm: "",
+      bgmTitle: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "$7,000.00",
@@ -515,6 +541,8 @@ const SITE = {
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
       faction: "진영이름",
+      bgm: "",
+      bgmTitle: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0004",
@@ -535,7 +563,10 @@ const SITE = {
      [6-2] 플로어마스터 페이지 설정  (#floormaster)
      ---------------------------------------------*/
   floormasterPage: {
-    label: "FLOORMASTER"
+    label: "FLOORMASTER",
+    bgm: "",
+    bgmTitle: "",
+    
   },
   floormasters: [
     {
@@ -693,7 +724,9 @@ const SITE = {
                               "F1" = 플로어마스터, "O1" = Other
      ---------------------------------------------*/
   otherPage: {
-    label: "OTHER"
+    label: "OTHER",
+    bgm: "",
+    bgmTitle: "",
   },
   others: [
     {
@@ -812,6 +845,8 @@ const SITE = {
       pairNameSub: "PAIR NAME",
       titleImage: "",
       label: "친구",
+      bgm: "",
+      bgmTitle: "",
       sides: [
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적을 수 있습니다.<br>3줄 반~4줄 정도가 적당해요.", image: "" },
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적을 수 있습니다.<br>3줄 반~4줄 정도가 적당해요.", image: "" }
@@ -843,6 +878,8 @@ const SITE = {
       pairNameSub: "",
       titleImage: "",
       label: "라이벌",
+      bgm: "",
+      bgmTitle: "",
       sides: [
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" },
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" }
@@ -861,6 +898,8 @@ const SITE = {
       pairNameSub: "TRIO",
       titleImage: "",
       label: "동료",
+      bgm: "",
+      bgmTitle: "",
       sides: [
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" },
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" },
@@ -881,6 +920,8 @@ const SITE = {
       pairNameSub: "",
       titleImage: "",
       label: "소꿉친구",
+      bgm: "",
+      bgmTitle: "",
       sides: [
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" },
         { catchphrase: "캐치프레이즈", desc: "캐릭터의 간단한 서사를 적어주세요.", image: "" }
