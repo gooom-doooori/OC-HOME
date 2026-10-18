@@ -1990,6 +1990,19 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         document.body.classList.toggle("is-flipped", next);
       }
 
+      // SD: 카드 밖(홀더)에서 따로 그려요
+      function drawSd(o) {
+        const old = holder.querySelector(".sd-fx");
+        if (old) old.remove();
+        if (!o.sd) return;
+        const el = document.createElement("img");
+        el.className = "sd-fx at-card";
+        el.src = o.sd;
+        el.alt = "";
+        el.style.setProperty("--sd-w", sdW(o));
+        holder.appendChild(el);
+      }
+
       function draw(o) {
         usePrefs(o);
         const type = ["id", "ticket", "wanted", "custom"].indexOf(o.type) > -1 ? o.type : "id";
@@ -2006,9 +2019,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
               '<div class="cd-face cd-front">' + faceF + '</div>' +
               '<div class="cd-face cd-back">' + faceB + '</div>' +
             '</div>' +
-            (o.sd ? '<img class="cd-sd" src="' + o.sd + '" alt="" style="--sd-w:' + sdW(o) + '">' : "") +
           '</div>';
         if (type === "custom") sizeCustom(o);
+        drawSd(o);
         const fl = document.getElementById("cdFlip");
         fl.addEventListener("click", function (e) {
           if (e.target.closest("a")) return;
