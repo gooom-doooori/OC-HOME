@@ -147,6 +147,7 @@ const SITE = {
              비워두면 기본 아이콘이 나와요.
      newTab: true  → 새 탭으로 열기 / false → 지금 창에서 이동
              (홈페이지 안 페이지는 false 로 두세요)
+     left  : true → 왼쪽 위에 표시 / false → 오른쪽에 표시
 
      ※ 메뉴를 늘리려면 { ... }, 덩어리를 통째로 복사해서 붙여넣으세요.
        메뉴가 5개 이상이면 화면이 좁을 때 겹칠 수 있어요. 4~5개를 추천해요.
@@ -158,7 +159,8 @@ const SITE = {
       desc: "캐릭터 소개",
       link: "#character",
       icon: "",
-      newTab: false
+      newTab: false,
+      left: false
     },
     {
       num: "02",
