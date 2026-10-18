@@ -3163,14 +3163,11 @@ input, textarea, select, [contenteditable="true"],
   transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), opacity .2s;
 }
 /* 카드 보기: 오른쪽 아래 (기울기 있음) */
-.sd-fx.at-card {
-  right: calc(var(--sd-w, 230px) * -0.38);
-  bottom: calc(var(--sd-w, 230px) * -0.22);
-}
-/* 전신 보기: 왼쪽 아래 (똑바로) */
 .sd-fx.at-full {
-  left: calc(var(--sd-w, 230px) * 0.2);
-  bottom: calc(var(--sd-w, 230px) * 0.1);
+  right: auto;
+  left: 50%;
+  margin-left: calc(min(420px, 34vw) / -2 - var(--sd-w, 230px) * 0.62);
+  bottom: calc(var(--sd-w, 230px) * -0.1);
 }
 
 /* 나타남: 상세 프로필이 열렸을 때 / 항상 */
