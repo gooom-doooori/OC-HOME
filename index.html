@@ -1010,7 +1010,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         syncView(ch);
         const old = holder.querySelector(".cd");
         const oldSd = holder.querySelector(".sd-fx");
-        if (oldSd) oldSd.classList.add("gone"); 
+        if (old) {
+          old.classList.add("ports-out");
+          old.classList.add("spin-out");
+        }
         if (old) old.classList.add("spin-out");
         setTimeout(function () {
           drawStage(ch, modeOf(ch), document.body.classList.contains("is-flipped"));
@@ -1020,9 +1023,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           if (fresh) {
             fresh.classList.add("spin-in");
             if (fresh.classList.contains("cd-fb") && document.body.classList.contains("is-flipped")) {
-              fresh.classList.add("hold");
-              fresh.style.setProperty("--pd", "0s");
-              setTimeout(function () { fresh.classList.remove("hold"); }, 420);
+              fresh.classList.add("hold");                 // 회전이 끝날 때까지 포트레이트 숨김
             }
           }
 
@@ -1039,6 +1040,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           setTimeout(function () {
             const s = holder.querySelector(".sd-fx");
             if (s) s.classList.remove("gone");
+            const f = holder.querySelector(".cd-fb.hold");
+            if (f) {
+              f.style.setProperty("--pd", "0s");
+              f.classList.remove("hold");
+            }
             spinning = false;
           }, 400);
         }, 300);
