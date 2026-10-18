@@ -410,8 +410,8 @@
       /* =====================================================
          페이지 이동 (주소 뒤 #이름)
          ===================================================== */
-      const ROUTES = ["home", "character", "floormaster", "pair", "owner", "guest"];
-const TITLES = { home: "", character: "Character", floormaster: "Floormaster", pair: "Pair", owner: "Owner", guest: "Guest" };
+      const ROUTES = ["home", "character", "floormaster", "other", "pair", "owner", "guest"];
+const TITLES = { home: "", character: "Character", floormaster: "Floormaster", other: "Other", pair: "Pair", owner: "Owner", guest: "Guest" };
 
       // "character.html" 처럼 적힌 링크도 "#character" 로 바꿔줘요
       function routeLink(l) {
@@ -433,8 +433,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       const PAGES = {};
 
       function chRef(v) {
-        const m = /^F(\d+)$/i.exec(String(v));
-        if (m) { const f = (S.floormasters || [])[+m[1] - 1]; return f ? { page: "floormaster", idx: +m[1] - 1, ch: f } : null; }
+        const mf = /^F(\d+)$/i.exec(String(v));
+        if (mf) { const f = (S.floormasters || [])[+mf[1] - 1]; return f ? { page: "floormaster", idx: +mf[1] - 1, ch: f } : null; }
+        const mo = /^O(\d+)$/i.exec(String(v));
+        if (mo) { const o = (S.others || [])[+mo[1] - 1]; return o ? { page: "other", idx: +mo[1] - 1, ch: o } : null; }
         const n = +v, c = n > 0 && (S.characters || [])[n - 1];
         return c ? { page: "character", idx: n - 1, ch: c } : null;
       }
@@ -531,13 +533,19 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       /* ##### 페이지: character ##### */
       /* ##################################################### */
       PAGES.floormaster = function () { PAGES.character("floormaster"); };
+      PAGES.other = function () { PAGES.character("other"); };
       PAGES.character = function (route) {
       const FM = route === "floormaster";
+      const OT = route === "other";
+      const PAGE = FM ? "floormaster" : OT ? "other" : "character";
+      const OFFSET = OT ? (S.characters || []).length : 0;
       /* =====================================================
          페이지 꾸밈
          ===================================================== */
       const D = S.deco || {};
-      const P = FM ? Object.assign({}, S.characterPage || {}, S.floormasterPage || {}) : (S.characterPage || {});
+      const P = FM ? Object.assign({}, S.characterPage || {}, S.floormasterPage || {})
+        : OT ? Object.assign({}, S.characterPage || {}, S.otherPage || {})
+        : (S.characterPage || {});
       document.getElementById("decoTopLeft").innerHTML =
         (D.badge ? '<span class="badge">' + D.badge + '</span>' : "") +
         '<span class="top-label">' + (P.label || "CHARACTER") + '</span>' +
@@ -546,7 +554,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       /* =====================================================
          카드 부품
          ===================================================== */
-        const list = (FM ? S.floormasters : S.characters) || [];
+      const list = (FM ? S.floormasters : OT ? S.others : S.characters) || [];
 
       // 수배지 종이 질감을 다른 이미지로 바꿀 때
       if (P.wantedPaper) root.setProperty("--wanted-paper", "url('" + P.wantedPaper + "')");
@@ -864,7 +872,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
                 '<button data-tab="gallery">' + TABS.gallery + '</button>' +
                 '<button data-tab="relation">' + TABS.relation + '</button>' +
               '</nav>' +
-              '<span>No. ' + num2(i + 1) + '</span>' +
+              '<span>No. ' + num2(i + 1 + OFFSET) + '</span>' +
             '</div>' +
             '<h2 class="dt-name">' + (ch.name || "") + '</h2>' +
             '<p class="dt-en">' + (ch.nameEn || "") + '</p>' +
@@ -898,7 +906,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           li.addEventListener("click", function () {
             const tg = chRef(li.getAttribute("data-link"));
             if (!tg) return;
-            if (tg.page === (FM ? "floormaster" : "character")) {
+            if (tg.page === PAGE) {
               go(tg.idx);
               setTimeout(function () { flip(true); }, 350);
             } else {
@@ -1089,7 +1097,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         syncView(ch);
         renderDetail(ch, i);
 
-        count.textContent = String(i + 1).padStart(2, "0") + " / " + String(list.length).padStart(2, "0");
+        count.textContent = String(i + 1 + OFFSET).padStart(2, "0") + " / " + String(list.length + OFFSET).padStart(2, "0");
         Array.prototype.forEach.call(tilesBox.querySelectorAll(".ch-tile-row"), function (t) {
           const on = +t.getAttribute("data-i") === i;
           t.classList.toggle("on", on);
@@ -1129,7 +1137,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         }
         g.items.forEach(function (i) {
           const ch = list[i];
-          const num = String(i + 1).padStart(2, "0");
+          const num = String(i + 1 + OFFSET).padStart(2, "0");
           const img = ch.tile || ch.image;
           const row = document.createElement("button");
           row.className = "ch-tile-row " + (k % 2 ? "odd" : "even");
@@ -1187,9 +1195,16 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
          - 캐릭터 정보는 characters 에서 그대로 가져와요
          - pairs 한 줄이 두 캐릭터 화면에 서로의 리뷰로 달려요
          ===================================================== */
-      const chars = (S.characters || []).concat(S.floormasters || []);
-      const CH_N = (S.characters || []).length;
-      const norm = function (v) { const m = /^F(\d+)$/i.exec(String(v)); return m ? CH_N + (+m[1]) : v; };
+        const chars = (S.characters || []).concat(S.floormasters || [], S.others || []);
+        const CH_N = (S.characters || []).length;
+        const FM_N = (S.floormasters || []).length;
+        const norm = function (v) {
+          const f = /^F(\d+)$/i.exec(String(v)); if (f) return CH_N + (+f[1]);
+          const o = /^O(\d+)$/i.exec(String(v)); if (o) return CH_N + FM_N + (+o[1]);
+          return v;
+        };
+        // 포스터에 보이는 No. : Other 는 Other 페이지와 같은 번호(Participant 다음)로 보여줘요
+        const dispNo = function (c) { return c > CH_N + FM_N ? c - FM_N : c; };
       const pairs = (S.pairs || []).map(function (p) { return Object.assign({}, p); });
       const num2 = function (n) { return String(n).padStart(2, "0"); };
       const silhouette =
@@ -1258,7 +1273,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         center.innerHTML =
           '<div class="pr-frame">' +
             '<div class="pr-photo">' + pic(ch) + '</div>' +
-            '<span class="pr-no">No. ' + num2(c) + '</span>' +
+            '<span class="pr-no">No. ' + num2(dispNo(c)) + '</span>' +
           '</div>' +
           '<div class="pr-info">' +
             '<h2 class="pr-name">' + (ch.name || "") + '</h2>' +
@@ -2455,7 +2470,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         keyHandlers = [];
         document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
         document.body.setAttribute("data-page", route);
-        app.innerHTML = document.getElementById("tpl-" + (route === "floormaster" ? "character" : route)).innerHTML;
+                app.innerHTML = document.getElementById("tpl-" + ((route === "floormaster" || route === "other") ? "character" : route)).innerHTML;
         app.classList.remove("page-in");
         void app.offsetWidth;
         app.classList.add("page-in");
