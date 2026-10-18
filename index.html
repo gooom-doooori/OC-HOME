@@ -2288,8 +2288,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         PAGES[route]();
       }
       window.addEventListener("hashchange", function () { show(location.hash.slice(1)); });
+      // 링크 · 이미지 끌기 막기
       document.addEventListener("dragstart", function (e) {
-        if (e.target && e.target.tagName === "IMG" && !e.target.closest(".ch-detail, #oha")) e.preventDefault();
+        const el = e.target && (e.target.nodeType === 1 ? e.target : e.target.parentElement);
+        const t = el && el.closest("a, img");
+        if (t && !t.closest(".ch-detail, #oha")) e.preventDefault();
       });
       show(location.hash.slice(1));
     })();
