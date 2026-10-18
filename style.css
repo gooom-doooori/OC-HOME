@@ -3177,7 +3177,16 @@ input, textarea, select, [contenteditable="true"],
 /* 설정 글 2단 전신 일러스트 */
 .dt-story-art { display: flex; gap: 5px; align-items: flex-start; opacity: 1; }
 .dt-story-art > div { flex: 1; min-width: 0; opacity: .85; }
-.dt-story-art > img { width: 60%; max-width: 500px; height: auto; flex-shrink: 0; }
+.dt-story-art > img {
+  width: 60%; max-width: 500px; height: auto; flex-shrink: 0;
+  cursor: zoom-in;
+  -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none;
+}
+
+/* 크게 보기: 이미지가 1장이면 화살표 · 번호 숨김 */
+.ch-box.single .box-prev,
+.ch-box.single .box-next,
+.ch-box.single .box-cap small { display: none; }
 
 /* 스포일러 */
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
