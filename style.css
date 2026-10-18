@@ -3052,6 +3052,113 @@ input, textarea, select, [contenteditable="true"],
 }
 .ch-detail img, .ch-detail a, #oha img, #oha a { -webkit-user-drag: auto; }
 
+/* =========================================================
+   카드 ↔ 전신 일러스트 전환 (캐릭터 · 플로어마스터 페이지)
+   ========================================================= */
+/* 왼쪽 위 토글 */
+.ch-view {
+  position: absolute;
+  top: 92px;
+  left: 48px;
+  z-index: 3;
+  display: flex;
+  border: 1.5px solid var(--deco);
+  animation: fadeIn 1.2s ease both .3s;
+}
+.ch-view button {
+  padding: 4px 12px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--deco);
+  font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity .25s, background .25s, color .25s;
+}
+.ch-view button:hover { opacity: 1; }
+.ch-view button.on { background: var(--deco); color: var(--bg); opacity: 1; cursor: default; }
+.ch-view button:disabled { opacity: .22; cursor: not-allowed; }
+
+/* 카드가 빙글 돌며 바뀌는 효과 */
+@keyframes fbOut {
+  from { transform: perspective(1600px) rotate(var(--rot)) rotateY(0deg); }
+  to   { transform: perspective(1600px) rotate(var(--rot)) rotateY(90deg); }
+}
+@keyframes fbIn {
+  from { transform: perspective(1600px) rotate(var(--rot)) rotateY(-90deg); }
+  to   { transform: perspective(1600px) rotate(var(--rot)) rotateY(0deg); }
+}
+.cd.spin-out { animation: fbOut .3s cubic-bezier(.5, 0, .9, .6) both; }
+.cd.spin-in  { animation: fbIn  .4s cubic-bezier(.2, .8, .3, 1) both; }
+
+/* 전신 일러스트 보기 */
+.ch-holder[data-type="full"] { width: 100%; height: 100%; }
+.is-flipped .ch-holder[data-type="full"] { transform: none; }   /* 카드처럼 줄이지 않아요 */
+.cd-fb {
+  --rot: 0deg;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  transform-origin: center center;
+}
+.fb-flip {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.fb-art {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+}
+.fb-img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 170px);
+  width: auto;
+  height: auto;
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, .25));
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 포트레이트: 전신 왼쪽 아래에 네모 · 세로 정렬 (상세 프로필이 열렸을 때만) */
+.fb-ports {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity .35s, transform .35s;
+}
+.is-flipped .fb-ports { opacity: 1; transform: none; transition-delay: .55s; }
+.fb-ports span {
+  display: block;
+  width: clamp(56px, 7vw, 92px);
+  aspect-ratio: 1;
+  border: 2px solid var(--c);            /* 모서리는 둥글지 않게, 테두리는 대표색 */
+  background: color-mix(in srgb, var(--c) 12%, #fff);
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .18);
+}
+.fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+
+/* 카드 보기일 때 설정 글 옆에 나오는 전신 일러스트 (2단) */
+.dt-story-art { display: flex; gap: 5px; align-items: flex-start; opacity: 1; }
+.dt-story-art > div { flex: 1; min-width: 0; opacity: .85; }
+.dt-story-art > img { width: 60%; max-width: 500px; height: auto; flex-shrink: 0; }
+
+/* 스포일러 */
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
 .spoil.open { filter: none; user-select: auto; }
 /* 각주 */
@@ -3102,10 +3209,6 @@ input, textarea, select, [contenteditable="true"],
 /* 팝업이 오른쪽에서 잘릴 때: 왼쪽으로 펼치기 */
 .fn.left > span { left: auto; right: -8px; transform: translateY(4px); }
 .fn.left:hover > span, .fn.left:focus > span { transform: none; }
-
-/* 팝업이 왼쪽에서 잘릴 때: 오른쪽으로 펼치기 */
-.fn.right > span { left: -8px; transform: translateY(4px); }
-.fn.right:hover > span, .fn.right:focus > span { transform: none; }
 
 /* 상세 프로필 2단 설정글 (왼쪽 글 / 오른쪽 이미지) */
 .story-2col { display: flex; gap: 5px; align-items: flex-start; }
