@@ -1010,10 +1010,14 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         syncView(ch);
         const old = holder.querySelector(".cd");
         const oldSd = holder.querySelector(".sd-fx");
-        if (old) {
-          old.classList.add("ports-out");
-          old.classList.add("spin-out");
-        }
+        const HIDE = 250;                                  // SD · 포트레이트가 먼저 사라지는 시간(ms)
+        const old = holder.querySelector(".cd");
+        const oldSd = holder.querySelector(".sd-fx");
+        if (oldSd) oldSd.classList.add("gone");            // 1단계: SD 사라짐
+        if (old) old.classList.add("ports-out");           // 1단계: 포트레이트 사라짐
+        setTimeout(function () {
+          if (old) old.classList.add("spin-out");          // 2단계: 그 다음에 카드/전신 회전 시작
+        }, HIDE);
         if (old) old.classList.add("spin-out");
         setTimeout(function () {
           drawStage(ch, modeOf(ch), document.body.classList.contains("is-flipped"));
@@ -1046,8 +1050,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
               f.classList.remove("hold");
             }
             spinning = false;
-          }, 400);
-        }, 300);
+          }, 200);
+        }, HIDE + 200); 
       }
       viewBox.addEventListener("click", function () {
         const ch = list[current];
