@@ -2315,53 +2315,77 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
   </script>
 
   <script>
-(function () {
-  var bar = document.createElement("div");
-  bar.className = "dt-bar";
-  bar.innerHTML = "<i></i>";
-  document.body.appendChild(bar);
-  var thumb = bar.firstChild;
-  var pane = null, maxTop = 0, dragging = false, startY = 0, startScroll = 0;
+    (function () {
+      var bar = document.createElement("div");
+      bar.className = "dt-bar";
+      bar.innerHTML = "<i></i>";
+      document.body.appendChild(bar);
+      var thumb = bar.firstChild;
+      var pane = null, maxTop = 0, dragging = false, startY = 0, startScroll = 0;
+    
+      function update() {
+        pane = document.querySelector(".dt-panes");
+        var det = pane && pane.closest(".ch-detail");
+        var on = pane && det && pane.offsetParent &&
+                 pane.scrollHeight > pane.clientHeight + 1 &&
+                 getComputedStyle(det).visibility === "visible";
+        if (!on) { bar.classList.remove("show"); return; }
+    
+        var r = pane.getBoundingClientRect();
+        var trackH = r.height - 16;
+        var thumbH = Math.max(36, trackH * pane.clientHeight / pane.scrollHeight);
+        var range = pane.scrollHeight - pane.clientHeight;
+        maxTop = trackH - thumbH;
+    
+        bar.style.left = (r.right + 10) + "px";
+        bar.style.top = (r.top + 8) + "px";
+        bar.style.height = trackH + "px";
+        thumb.style.height = thumbH + "px";
+        thumb.style.top = (maxTop * pane.scrollTop / range) + "px";
+    
+        var c = getComputedStyle(pane).getPropertyValue("--c").trim();
+        if (c) bar.style.setProperty("--c", c);
+        bar.classList.add("show");
+      }
+    
+      thumb.addEventListener("pointerdown", function (e) {
+        dragging = true; startY = e.clientY; startScroll = pane.scrollTop;
+        thumb.setPointerCapture(e.pointerId);
+        bar.classList.add("drag");
+        e.preventDefault();
+      });
+      thumb.addEventListener("pointermove", function (e) {
+        if (!dragging || !maxTop) return;
+        pane.scrollTop = startScroll + (e.clientY - startY) * (pane.scrollHeight - pane.clientHeight) / maxTop;
+      });
+      thumb.addEventListener("pointerup", function () { dragging = false; bar.classList.remove("drag"); });
+    
+      (function tick() { update(); requestAnimationFrame(tick); })();
+    })();
 
-  function update() {
-    pane = document.querySelector(".dt-panes");
-    var det = pane && pane.closest(".ch-detail");
-    var on = pane && det && pane.offsetParent &&
-             pane.scrollHeight > pane.clientHeight + 1 &&
-             getComputedStyle(det).visibility === "visible";
-    if (!on) { bar.classList.remove("show"); return; }
-
-    var r = pane.getBoundingClientRect();
-    var trackH = r.height - 16;
-    var thumbH = Math.max(36, trackH * pane.clientHeight / pane.scrollHeight);
-    var range = pane.scrollHeight - pane.clientHeight;
-    maxTop = trackH - thumbH;
-
-    bar.style.left = (r.right + 10) + "px";
-    bar.style.top = (r.top + 8) + "px";
-    bar.style.height = trackH + "px";
-    thumb.style.height = thumbH + "px";
-    thumb.style.top = (maxTop * pane.scrollTop / range) + "px";
-
-    var c = getComputedStyle(pane).getPropertyValue("--c").trim();
-    if (c) bar.style.setProperty("--c", c);
-    bar.classList.add("show");
-  }
-
-  thumb.addEventListener("pointerdown", function (e) {
-    dragging = true; startY = e.clientY; startScroll = pane.scrollTop;
-    thumb.setPointerCapture(e.pointerId);
-    bar.classList.add("drag");
-    e.preventDefault();
-  });
-  thumb.addEventListener("pointermove", function (e) {
-    if (!dragging || !maxTop) return;
-    pane.scrollTop = startScroll + (e.clientY - startY) * (pane.scrollHeight - pane.clientHeight) / maxTop;
-  });
-  thumb.addEventListener("pointerup", function () { dragging = false; bar.classList.remove("drag"); });
-
-  (function tick() { update(); requestAnimationFrame(tick); })();
-})();
+    /* 각주 박스가 상세 프로필 영역 밖으로 잘리지 않게 방향 자동 조정 */
+  (function () {
+    function place(fn) {
+      var pane = fn.closest(".dt-panes");
+      var box = fn.querySelector(":scope > span");
+      if (!pane || !box) return;
+      fn.classList.remove("down", "left", "right");
+      var p = pane.getBoundingClientRect();
+      var f = fn.getBoundingClientRect();
+      var w = Math.min(box.scrollWidth, 200) + 20;   // 박스 폭(max-width 200 + padding)
+      var h = box.offsetHeight + 12;
+      var cx = f.left + f.width / 2;
+      if (f.top - h < p.top) fn.classList.add("down");            // 위가 잘리면 아래로
+      if (cx + w / 2 > p.right) fn.classList.add("left");         // 오른쪽이 잘리면 왼쪽으로 펼침
+      else if (cx - w / 2 < p.left) fn.classList.add("right");    // 왼쪽이 잘리면 오른쪽으로 펼침
+    }
+    function handle(e) {
+      var fn = e.target.closest && e.target.closest(".fn");
+      if (fn) place(fn);
+    }
+    document.addEventListener("mouseover", handle);
+    document.addEventListener("focusin", handle);
+  })();
 </script>
 </body>
 </html>
