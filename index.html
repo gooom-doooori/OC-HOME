@@ -133,7 +133,7 @@
     </div>
 
     <!-- 왼쪽 위: 카드 ↔ 전신 일러스트 전환 -->
-    <div class="ch-view" id="chView"></div>
+        <button type="button" class="ch-view" id="chView" role="switch" aria-checked="false" aria-label="카드 / 전신 전환"></button>
 
     <!-- 왼쪽: 캐릭터 타일 목록 -->
     <div class="ch-tiles" id="chTiles">
@@ -782,7 +782,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       function storyBlock(ch) {
         if (modeOf(ch) === "card" && ch.fullBody) {
           return '<div class="dt-story dt-story-art"><div>' + (ch.story || "") + '</div>' +
-                 '<img src="' + ch.fullBody + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '"></div>';
+                 '<img src="' + ch.fullBody + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '" draggable="false"></div>';
         }
         return ch.story ? '<div class="dt-story">' + ch.story + '</div>' : "";
       }
@@ -866,6 +866,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         detail.querySelectorAll(".dt-shot").forEach(function (b) {
           b.addEventListener("click", function () { openBox(gal, +b.getAttribute("data-n")); });
         });
+        // 설정 글 옆 전신 일러스트: 누르면 크게 보기
+        const art = detail.querySelector(".dt-story-art > img");
+        if (art) art.addEventListener("click", function () {
+          openBox([{ image: ch.fullBody, caption: ch.name || "" }], 0);
+        });
         // 관계: 연결된 캐릭터로 이동
         detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
           li.addEventListener("click", function () {
@@ -887,6 +892,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       let boxList = [], boxN = 0;
       function showBox() {
         const g = boxList[boxN] || {};
+        box.classList.toggle("single", boxList.length < 2);
         box.querySelector(".box-img").innerHTML = g.image ? '<img src="' + g.image + '" alt="">' : '<span class="box-empty">NO IMAGE</span>';
         box.querySelector(".box-cap").innerHTML = (g.caption || "") + '<small>' + num2(boxN + 1) + ' / ' + num2(boxList.length) + '</small>';
       }
@@ -909,25 +915,31 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       function flip(on) {
         const f = document.getElementById("cdFlip");
         if (!f) return;
-        const next = (on === undefined) ? !f.classList.contains("flipped") : on;
+        const was = f.classList.contains("flipped");
+        const next = (on === undefined) ? !was : on;
         f.classList.toggle("flipped", next);
         document.body.classList.toggle("is-flipped", next);
+        // 전신 보기: 카드처럼 한 바퀴 빙글 돌면서 열리고 닫혀요
+        if (f.classList.contains("fb-flip") && next !== was) {
+          f.classList.remove("spin"); void f.offsetWidth; f.classList.add("spin");
+        }
       }
 
       /* ---------- 카드 ↔ 전신 일러스트 전환 ---------- */
       let view = "card";            // 지금 보기: "card" | "full"
       let spinning = false;
       const viewBox = document.getElementById("chView");
-      viewBox.innerHTML = '<button type="button" data-v="card">CARD</button><button type="button" data-v="full">FULL</button>';
+      viewBox.innerHTML = '<span class="vw-thumb"></span><span class="vw-l">CARD</span><span class="vw-l">FULL</span>';
 
       // 전신 일러스트가 있는 캐릭터만 전신 보기가 돼요 (없으면 카드로 보여요)
       function modeOf(ch) { return (view === "full" && ch && ch.fullBody) ? "full" : "card"; }
 
       function syncView(ch) {
-        const m = modeOf(ch), fb = viewBox.querySelector('[data-v="full"]');
-        viewBox.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-v") === m); });
-        fb.disabled = !(ch && ch.fullBody);
-        fb.title = fb.disabled ? "전신 일러스트가 없어요" : "";
+        const full = modeOf(ch) === "full";
+        viewBox.classList.toggle("is-full", full);
+        viewBox.setAttribute("aria-checked", full ? "true" : "false");
+        viewBox.disabled = !(ch && ch.fullBody);
+        viewBox.title = viewBox.disabled ? "전신 일러스트가 없어요" : "카드 ↔ 전신 전환";
       }
 
       // 오른쪽 무대를 그려요. mode: "card" | "full",  open: 상세 프로필이 열려 있는지
@@ -936,7 +948,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         if (mode === "full") {
           const ports = (ch.portraits || []).filter(Boolean).slice(0, 3);
           holder.innerHTML =
-            '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + '">' +
+            '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + '">' +
               '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
                 '<div class="fb-art">' +
                   '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
@@ -995,9 +1007,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           setTimeout(function () { spinning = false; }, 400);
         }, 300);
       }
-      viewBox.addEventListener("click", function (e) {
-        const b = e.target.closest && e.target.closest("button");
-        if (b && !b.disabled) setView(b.getAttribute("data-v"));
+      viewBox.addEventListener("click", function () {
+        const ch = list[current];
+        if (!ch || viewBox.disabled) return;
+        setView(modeOf(ch) === "full" ? "card" : "full");
+        viewBox.blur();             // 스페이스바가 카드 뒤집기로 가도록
       });
 
       function render(i) {
