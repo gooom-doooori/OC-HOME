@@ -474,8 +474,8 @@ a { text-decoration: none; color: inherit; }
    ========================================================= */
 .menu-area.menu-left {
   right: auto;
-  left: 0;
-  top: 150px;                       /* ★ 왼쪽 메뉴 세로 위치 (위쪽에서 얼마나 내릴지) */
+  left: calc(-3% + 35px);
+  top: calc(26% - 85px);
 }
 .menu-left .menu-list { align-items: flex-start; }
 
