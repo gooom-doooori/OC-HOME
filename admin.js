@@ -59,11 +59,12 @@
     position: '사진 위치', width: '배경 사진 가로 크기', overlay: '스크린 효과', overlayColor: '덮을 색', overlayStrength: '효과 세기(0~1)', blur: '흐림',
     fade: '아래 그라데이션', fadeColor: '그라데이션 색', fadeHeight: '그라데이션 높이(%)', fadeStrength: '그라데이션 진하기(0~1)',
     grid: '모눈 무늬', gridColor: '선 색', gridSize: '칸 크기', gridLine: '선 두께', gridStrength: '선 진하기(0~1)',
+    frontImage: '격자 위 이미지', frontPosition: '격자 위 이미지 위치', frontWidth: '격자 위 이미지 가로 크기', frontOpacity: '격자 위 이미지 진하기(0~1)',
     titleWeight: '타이틀 굵기', menu: '메뉴 글꼴', body: '본문 글꼴', mono: '번호 글꼴', hand: '손글씨 글꼴'
   };
   var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1 };
   /* 이미지 칸 : [올리기] 버튼이 붙어요 */
-  var IMAGE_KEYS = { image: 1, sd: 1, tile: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
+  var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
                      wantedPaper: 1, ownerImage: 1 };
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
@@ -777,6 +778,11 @@
       if (!st.draft) {
         st.draft = clone(S);
         if (st.draft.owner && !Array.isArray(st.draft.owner)) st.draft.owner = [st.draft.owner];
+        if (st.draft.background) {
+          [['frontImage', ''], ['frontPosition', 'center'], ['frontWidth', ''], ['frontOpacity', 1]].forEach(function (d) {
+            if (!(d[0] in st.draft.background)) st.draft.background[d[0]] = d[1];
+          });
+        }
         ['characters', 'floormasters'].forEach(function (k) {
           (st.draft[k] || []).forEach(function (c) {
             if (!c || 'faction' in c) return;
