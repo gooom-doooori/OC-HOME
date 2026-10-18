@@ -3186,14 +3186,13 @@ input, textarea, select, [contenteditable="true"],
   pointer-events: none;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .2));
   transform-origin: 50% 100%;
-  transform: scale(0) rotate(-6deg);
+  transform: scale(0);                 /* 회전 제거 */
   opacity: 0;
   transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), opacity .2s;
 }
-/* 상세 프로필이 열리면 톡 튀어나옴 (카드와 같은 방식) */
 .is-flipped .fb-sd,
 .sd-always .fb-sd {
-  transform: scale(1) rotate(-6deg);
+  transform: scale(1);                 /* 똑바로 */
   opacity: 1;
   transition-delay: .55s;
 }
