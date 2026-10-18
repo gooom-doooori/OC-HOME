@@ -3103,6 +3103,10 @@ input, textarea, select, [contenteditable="true"],
 .fn.left > span { left: auto; right: -8px; transform: translateY(4px); }
 .fn.left:hover > span, .fn.left:focus > span { transform: none; }
 
+/* 팝업이 왼쪽에서 잘릴 때: 오른쪽으로 펼치기 */
+.fn.right > span { left: -8px; transform: translateY(4px); }
+.fn.right:hover > span, .fn.right:focus > span { transform: none; }
+
 /* 상세 프로필 2단 설정글 (왼쪽 글 / 오른쪽 이미지) */
 .story-2col { display: flex; gap: 5px; align-items: flex-start; }
 .story-2col > div { flex: 1; min-width: 0; }
