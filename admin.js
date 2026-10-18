@@ -32,7 +32,7 @@
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
-    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책',
+    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책', faction: '진영',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
     relations: '관계', customFront: '앞면 이미지', customBack: '뒷면 이미지', customRatio: '카드 비율',
@@ -360,7 +360,7 @@
   function profileRows(labels) { return labels.map(function (l) { return { label: l, value: '' }; }); }
   function cardTpl(type) {
     var base = { type: type, color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', sd: '', tile: '',
-                 tilePosition: 'center 30%', name: '', nameEn: '', intro: '', tags: [], number: '' };
+                 tilePosition: 'center 30%', name: '', nameEn: '', faction: '', intro: '', tags: [], number: '' };
     var tail = { quote: '', story: '', gallery: [], relations: [] };
     var x;
     if (type === 'id') x = { cardTitle: 'STUDENT ID', cardSub: '', number: '0001', profile: profileRows(['나이', '키', '생일', '좋아하는 것', '싫어하는 것']) };
@@ -777,6 +777,15 @@
       if (!st.draft) {
         st.draft = clone(S);
         if (st.draft.owner && !Array.isArray(st.draft.owner)) st.draft.owner = [st.draft.owner];
+        ['characters', 'floormasters'].forEach(function (k) {
+          (st.draft[k] || []).forEach(function (c) {
+            if (!c || 'faction' in c) return;
+            var keep = {};
+            Object.keys(c).forEach(function (x) { keep[x] = c[x]; delete c[x]; });
+            Object.keys(keep).forEach(function (x) { c[x] = keep[x]; if (x === 'nameEn') c.faction = ''; });
+            if (!('faction' in c)) c.faction = '';
+          });
+        });
         Object.keys(SKIP).forEach(function (k) { delete st.draft[k]; });
       }
       if (st.preview) {
