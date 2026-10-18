@@ -548,7 +548,7 @@ a { text-decoration: none; color: inherit; }
 .ch-tile-row:nth-child(4) { animation-delay: .26s; }
 .ch-tile-row:nth-child(5) { animation-delay: .33s; }
 
-/* 진영 제목 (faction 을 적었을 때만 나와요) */
+/* 진영 제목 */
 .ch-group {
   display: flex;
   align-items: center;
@@ -556,7 +556,7 @@ a { text-decoration: none; color: inherit; }
   width: calc(16vw + 84px);
   margin-top: 8px;
   font-family: 'Sukmyung';
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 2px;
   color: var(--deco);
