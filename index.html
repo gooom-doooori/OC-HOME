@@ -110,7 +110,12 @@
     <!-- 타이틀 -->
     <header class="title-area" id="title"></header>
 
-    <!-- 메뉴 -->
+    <!-- 메뉴 (왼쪽) -->
+    <nav class="menu-area menu-left">
+      <ul class="menu-list" id="menuLeft"></ul>
+    </nav>
+
+    <!-- 메뉴 (오른쪽) -->
     <nav class="menu-area">
       <ul class="menu-list" id="menu"></ul>
     </nav>
@@ -490,16 +495,24 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           '<rect x="25" y="25" width="14" height="14" transform="rotate(45 32 32)"/>' +
         '</svg>';
 
-      /* ----- 메뉴 그리기 ----- */
-      const menuBox = document.getElementById("menu");
+            /* ----- 메뉴 그리기 (오른쪽 / 왼쪽 분리) ----- */
+      const menuBoxR = document.getElementById("menu");
+      const menuBoxL = document.getElementById("menuLeft");
+      const cnt = { r: 0, l: 0 };      // 각 쪽에서 몇 번째인지
+      const total = { r: 0, l: 0 };    // 각 쪽 메뉴 개수
+      (S.menus || []).forEach(function (m) { total[m.left ? "l" : "r"]++; });
+      menuBoxL.style.setProperty("--n", total.l);
+      if (total.l) document.querySelector(".home").classList.add("has-left-menu");
+
       (S.menus || []).forEach(function (m, i) {
+        const side = m.left ? "l" : "r";
         const num = m.num || String(i + 1).padStart(2, "0");
         const icon = m.icon ? '<img src="' + m.icon + '" alt="">' : defaultIcon;
         const target = m.newTab ? ' target="_blank" rel="noopener"' : "";
 
         const li = document.createElement("li");
-        li.className = "menu-item";
-        li.style.setProperty("--i", i);
+        li.className = "menu-item" + (m.left ? " is-left" : "");
+        li.style.setProperty("--i", cnt[side]++);
         li.innerHTML =
           '<a class="menu-link" href="' + routeLink(m.link) + '"' + target + '>' +
             '<div class="menu-num"><span>' + num + '</span></div>' +
@@ -510,7 +523,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
             '</div>' +
             '<div class="menu-icon">' + icon + '</div>' +
           '</a>';
-        menuBox.appendChild(li);
+        (m.left ? menuBoxL : menuBoxR).appendChild(li);
       });
       };
 
