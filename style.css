@@ -3167,8 +3167,8 @@ input, textarea, select, [contenteditable="true"],
   display: block;
   width: clamp(85px, 20vw, 120px);
   aspect-ratio: 1;
-  border: 2px solid var(--ct);
-  background: var(--c);
+  border: 2px solid var(--c);
+  background: var(--ct);
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, .18);
 }
