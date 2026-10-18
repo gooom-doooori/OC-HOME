@@ -3033,6 +3033,24 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
    font-family: var(--font-MU);
 }
 
+/* ---------- 사이트 전체: 글자 선택 · 이미지 끌기 막기 ----------
+   예외: 상세 프로필(.ch-detail), 입력칸, 관리자 편집기(#oha) */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+img { -webkit-user-drag: none; }
+
+.ch-detail, .ch-detail *,
+input, textarea, select, [contenteditable="true"],
+#oha, #oha * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+.ch-detail img, #oha img { -webkit-user-drag: auto; }
+
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
 .spoil.open { filter: none; user-select: auto; }
 /* 각주 */
