@@ -3397,8 +3397,8 @@ input, textarea, select, [contenteditable="true"],
   position: absolute;
   z-index: 6;
   top: 40px;                           /* ★ 세로 위치 */
-  left: calc(52% + 22px);              /* 라벨 선이 끝나는 곳(52%) 바로 뒤 */
-  right: 310px;                        /* ★ 오른쪽 위 글자 자리. 겹치면 숫자를 키우세요 */
+  left: calc(52% + 50px);              /* 라벨 선이 끝나는 곳(52%) 바로 뒤 */
+  right: 245px;                        /* ★ 오른쪽 위 글자 자리. 겹치면 숫자를 키우세요 */
   max-width: 460px;
   font-family: var(--font-body), sans-serif;
   animation: fadeIn 1.2s ease both .3s;
