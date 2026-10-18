@@ -333,6 +333,10 @@ const SITE = {
      tilePosition : 사진의 어느 부분을 보여줄지 "가로 세로"
                     예) "center 30%" (가운데, 위에서 30% 지점)
                         "left top" / "right 50%"
+     fullBody : 전신 일러스트 이미지 주소. 있으면 왼쪽 위 CARD / FULL 버튼으로 전환할 수 있어요.
+                (카드 보기일 땐 설정 글 옆에 같이 나와요)
+     portraits: 포트레이트 이미지 주소 최대 3개. 전신 보기에서 상세 프로필을 열었을 때만
+                전신 왼쪽 아래에 네모로 세로 정렬돼요. 안 쓰면 ["", "", ""] 그대로 두세요.
      name     : 이름
      nameEn   : 이름 아래 작은 영어 글자 (직책, 영문 이름 등)
      faction  : 적으면 왼쪽 타일 목록에서 같은 진영끼리 묶이고 진영 이름이 제목으로 나와요.
@@ -382,6 +386,8 @@ const SITE = {
       sd: "images/sd.png",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
       faction: "진영이름",
@@ -420,6 +426,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
       faction: "진영이름",
@@ -453,6 +461,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
       faction: "진영이름",
@@ -489,6 +499,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
       faction: "진영이름",
@@ -526,6 +538,8 @@ const SITE = {
       sd: "images/sd.png",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
       faction: "진영이름",
@@ -564,6 +578,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
       faction: "진영이름",
@@ -597,6 +613,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
       faction: "진영이름",
@@ -633,6 +651,8 @@ const SITE = {
       sd: "",
       tile: "",
       tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
       faction: "진영이름",
