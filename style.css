@@ -3034,8 +3034,7 @@ a.gb-link:hover b { background: var(--btn-text, #fff); color: var(--btn, #222); 
    font-family: var(--font-MU);
 }
 
-/* ---------- 사이트 전체: 글자 선택 · 이미지 끌기 막기 ----------
-   예외: 상세 프로필(.ch-detail), 입력칸, 관리자 편집기(#oha) */
+/* ---------- 글자 이미지 드래그 막기 ---------- */
 body {
   -webkit-user-select: none;
   user-select: none;
@@ -3053,7 +3052,7 @@ input, textarea, select, [contenteditable="true"],
 .ch-detail img, .ch-detail a, #oha img, #oha a { -webkit-user-drag: auto; }
 
 /* =========================================================
-   카드 ↔ 전신 일러스트 전환 (캐릭터 · 플로어마스터 페이지)
+   카드 ↔ 전신 일러스트 전환
    ========================================================= */
 /* 왼쪽 위 토글 */
 .ch-view {
@@ -3061,25 +3060,41 @@ input, textarea, select, [contenteditable="true"],
   top: 92px;
   left: 48px;
   z-index: 3;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
   border: 1.5px solid var(--deco);
-  animation: fadeIn 1.2s ease both .3s;
-}
-.ch-view button {
-  padding: 4px 12px 3px;
-  border: 0;
+  border-radius: 999px;
   background: transparent;
   color: var(--deco);
+  cursor: pointer;
+  font: inherit;
+  animation: fadeIn 1.2s ease both .3s;
+}
+.ch-view:disabled { opacity: .35; cursor: not-allowed; }
+.vw-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 999px;
+  background: var(--deco);
+  transition: transform .4s cubic-bezier(.4, .2, .2, 1);
+}
+.ch-view.is-full .vw-thumb { transform: translateX(100%); }
+.vw-l {
+  position: relative;
+  z-index: 1;
+  padding: 5px 14px 4px;
+  text-align: center;
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
   font-size: 12px;
   letter-spacing: 3px;
-  cursor: pointer;
-  opacity: .55;
-  transition: opacity .25s, background .25s, color .25s;
+  transition: color .4s;
 }
-.ch-view button:hover { opacity: 1; }
-.ch-view button.on { background: var(--deco); color: var(--bg); opacity: 1; cursor: default; }
-.ch-view button:disabled { opacity: .22; cursor: not-allowed; }
+.ch-view:not(.is-full) .vw-l:nth-child(2),
+.ch-view.is-full .vw-l:nth-child(3) { color: var(--bg); }
 
 /* 카드가 빙글 돌며 바뀌는 효과 */
 @keyframes fbOut {
@@ -3128,7 +3143,13 @@ input, textarea, select, [contenteditable="true"],
   user-select: none;
 }
 
-/* 포트레이트: 전신 왼쪽 아래에 네모 · 세로 정렬 (상세 프로필이 열렸을 때만) */
+@keyframes fbSpin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+.fb-flip.spin { animation: fbSpin .8s cubic-bezier(.4, .2, .2, 1); }
+
+/* 포트레이트 */
 .fb-ports {
   position: absolute;
   left: -70px;
@@ -3146,14 +3167,14 @@ input, textarea, select, [contenteditable="true"],
   display: block;
   width: clamp(85px, 20vw, 120px);
   aspect-ratio: 1;
-  border: 2px solid var(--c);            /* 모서리는 둥글지 않게, 테두리는 대표색 */
+  border: 2px solid var(--ct);
   background: color-mix(in srgb, var(--c) 12%, #fff);
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, .18);
 }
 .fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
 
-/* 카드 보기일 때 설정 글 옆에 나오는 전신 일러스트 (2단) */
+/* 설정 글 2단 전신 일러스트 */
 .dt-story-art { display: flex; gap: 5px; align-items: flex-start; opacity: 1; }
 .dt-story-art > div { flex: 1; min-width: 0; opacity: .85; }
 .dt-story-art > img { width: 60%; max-width: 500px; height: auto; flex-shrink: 0; }
@@ -3161,6 +3182,7 @@ input, textarea, select, [contenteditable="true"],
 /* 스포일러 */
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
 .spoil.open { filter: none; user-select: auto; }
+
 /* 각주 */
 .fn {
   position: relative;
