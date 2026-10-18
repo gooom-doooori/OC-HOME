@@ -781,8 +781,17 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
       // 설정 글: 카드 보기일 때는 전신 일러스트를 글 옆에 2단으로 같이 보여줘요
       function storyBlock(ch) {
         if (modeOf(ch) === "card" && ch.fullBody) {
-          return '<div class="dt-story dt-story-art"><div>' + (ch.story || "") + '</div>' +
-                 '<img src="' + ch.fullBody + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '" draggable="false"></div>';
+          const tmp = document.createElement("div");
+          tmp.innerHTML = ch.story || "";
+          const toggles = [];
+          tmp.querySelectorAll("details.tg").forEach(function (d) {
+            if (d.parentElement && d.parentElement.closest("details.tg")) return;   // 토글 안의 토글은 건너뜀
+            toggles.push(d.outerHTML);
+            d.remove();
+          });
+          return '<div class="dt-story dt-story-art"><div>' + tmp.innerHTML + '</div>' +
+                 '<img src="' + ch.fullBody + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '" draggable="false"></div>' +
+                 (toggles.length ? '<div class="dt-story dt-story-tg">' + toggles.join("") + '</div>' : "");
         }
         return ch.story ? '<div class="dt-story">' + ch.story + '</div>' : "";
       }
