@@ -3143,15 +3143,26 @@ input, textarea, select, [contenteditable="true"],
   user-select: none;
 }
 
+/* 기울림 효과 */
+.cd-fb { perspective: 1600px; }
+
+.fb-art {
+  transform-style: preserve-3d;
+  transition: transform .8s cubic-bezier(.4, .2, .2, 1);
+}
+.fb-flip:hover .fb-art {
+  transform: rotateY(-10deg);
+}
+
 /* 전신 보기: 닫혀 있을 땐 살짝 크게, 열리면 쇽 줄어들기 */
 .fb-flip {
   transform-origin: 50% 100%;
-  transform: scale(1.1);
+  transform: scale(1);
   /* 닫힐 때 */
   transition: transform .75s cubic-bezier(.3, 1.7, .5, 1);
 }
 .fb-flip.flipped {
-  transform: scale(1);
+  transform: scale(0.8);
   /* 열릴 때 */
   transition: transform .4s cubic-bezier(.2, .9, .25, 1);
 }
