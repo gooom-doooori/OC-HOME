@@ -1062,6 +1062,14 @@ const SITE = {
      gridSize : 칸 크기 (px, 숫자가 클수록 칸이 커져요)
      gridLine : 선 두께 (px)
      gridStrength : 선 진하기 0 ~ 1
+          ▼ 모눈 위 이미지 (모눈 무늬보다 "앞에" 올라오는 이미지)
+       위의 image(배경 사진)는 모눈 무늬 "뒤"에 깔려서 선이 사진 위로 지나가요.
+       모눈 선이 이미지를 가리면 안 될 때 여기에 넣으세요. 스크린 효과 · 흐림은 안 걸려요.
+       ※ 아래 그라데이션(fade)은 이 이미지 위에 덮여요.
+     frontImage : 이미지 주소 (비우면 안 나와요)
+     frontPosition : 위치. 예) "center" / "right bottom" / "50% 20%"
+     frontWidth : 가로 크기. 숫자(px) 또는 "60%" (비우면 화면 가득 cover)
+     frontOpacity : 진하기 0 ~ 1 (1 = 그대로)
   */
   background: {
     image: "",
@@ -1081,7 +1089,12 @@ const SITE = {
     gridColor: "",
     gridSize: 46,
     gridLine: 2,
-    gridStrength: 0.18
+    gridStrength: 0.18,
+
+    frontImage: "",
+    frontPosition: "center",
+    frontWidth: "",
+    frontOpacity: 1
   },
 
 
