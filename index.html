@@ -952,7 +952,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
               '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
                 '<div class="fb-art">' +
                   '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
-                  (ports.length ? '<div class="fb-ports">' + ports.map(function (p) { return '<span><img src="' + p + '" alt=""></span>'; }).join("") + '</div>' : "") +
+                  (ports.length ? '<div class="fb-ports">' + ports.map(function (p, n) { return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>'; }) +
                 '</div>' +
               '</div>' +
             '</div>';
@@ -992,7 +992,14 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         setTimeout(function () {
           drawStage(ch, modeOf(ch), document.body.classList.contains("is-flipped"));
           const fresh = holder.querySelector(".cd");
-          if (fresh) fresh.classList.add("spin-in");
+          if (fresh) {
+            fresh.classList.add("spin-in");
+            if (fresh.classList.contains("cd-fb") && document.body.classList.contains("is-flipped")) {
+              fresh.classList.add("hold");
+              fresh.style.setProperty("--pd", "0s");
+              setTimeout(function () { fresh.classList.remove("hold"); }, 420);
+            }
+          }
 
           // 설정 글 모양만 바뀌니까, 보던 탭 · 스크롤은 그대로 두기
           const on = detail.querySelector(".dt-tabs button.on");
