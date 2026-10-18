@@ -3167,6 +3167,38 @@ input, textarea, select, [contenteditable="true"],
   transition: transform .4s cubic-bezier(.2, .9, .25, 1);
 }
 
+/* 이미지 + 포트레이트 + SD 를 묶는 틀 (여기는 기울어지지 않아요) */
+.fb-stack {
+  position: relative;
+  display: flex;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* 전신 SD: 캐릭터 왼쪽 아래, 기울기 없음 */
+.fb-sd {
+  position: absolute;
+  z-index: 5;
+  width: var(--sd-w, 230px);
+  left: calc(var(--sd-w, 230px) * -0.38);
+  bottom: calc(var(--sd-w, 230px) * -0.1);
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .2));
+  transform-origin: 50% 100%;
+  transform: scale(0) rotate(-6deg);
+  opacity: 0;
+  transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), opacity .2s;
+}
+/* 상세 프로필이 열리면 톡 튀어나옴 (카드와 같은 방식) */
+.is-flipped .fb-sd,
+.sd-always .fb-sd {
+  transform: scale(1) rotate(-6deg);
+  opacity: 1;
+  transition-delay: .55s;
+}
+.sd-always .fb-sd { transition-delay: .3s; }
+
 /* 포트레이트 */
 .fb-ports {
   position: absolute;
