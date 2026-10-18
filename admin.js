@@ -32,6 +32,7 @@
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
+    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)',
     sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책', faction: '진영',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
@@ -64,7 +65,7 @@
   };
   var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1 };
   /* 이미지 칸 : [올리기] 버튼이 붙어요 */
-  var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
+  var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, fullBody: 1, portraits: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
                      wantedPaper: 1, ownerImage: 1 };
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
@@ -361,7 +362,7 @@
   function profileRows(labels) { return labels.map(function (l) { return { label: l, value: '' }; }); }
   function cardTpl(type) {
     var base = { type: type, color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', sd: '', tile: '',
-                 tilePosition: 'center 30%', name: '', nameEn: '', faction: '', intro: '', tags: [], number: '' };
+      tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', intro: '', tags: [], number: '' };
     var tail = { quote: '', story: '', gallery: [], relations: [] };
     var x;
     if (type === 'id') x = { cardTitle: 'STUDENT ID', cardSub: '', number: '0001', profile: profileRows(['나이', '키', '생일', '좋아하는 것', '싫어하는 것']) };
@@ -554,6 +555,7 @@
       var menu = h('div', { class: 'oha-menu' }); menu.hidden = true;
       function push(v) { arr.push(v); touch(); menu.hidden = true; draw(); }
       add.onclick = function () {
+        if (key === 'portraits' && arr.length >= 3) { toast('포트레이트는 3개까지 넣을 수 있어요.', true); return; }
         if (!tpls.length) { push(arr.length ? blank(arr[arr.length - 1]) : ''); return; }
         if (tpls.length === 1) { push(clone(tpls[0].value)); return; }
         if (!menu.hidden) { menu.hidden = true; return; }
@@ -790,6 +792,26 @@
             Object.keys(c).forEach(function (x) { keep[x] = c[x]; delete c[x]; });
             Object.keys(keep).forEach(function (x) { c[x] = keep[x]; if (x === 'nameEn') c.faction = ''; });
             if (!('faction' in c)) c.faction = '';
+          });
+        });
+        /* 전신 일러스트 · 포트레이트 칸: 예전 캐릭터에도 기본으로 보이게 */
+        ['characters', 'floormasters'].forEach(function (k) {
+          (st.draft[k] || []).forEach(function (c) {
+            if (!c || ('fullBody' in c && 'portraits' in c)) return;
+            var keep = {}, done = false;
+            Object.keys(c).forEach(function (x) { keep[x] = c[x]; delete c[x]; });
+            var anchor = 'tilePosition' in keep ? 'tilePosition' : ('tile' in keep ? 'tile' : ('sd' in keep ? 'sd' : ''));
+            function put() {
+              if (done) return; done = true;
+              c.fullBody = 'fullBody' in keep ? keep.fullBody : '';
+              c.portraits = 'portraits' in keep ? keep.portraits : ['', '', ''];
+            }
+            Object.keys(keep).forEach(function (x) {
+              if (x === 'fullBody' || x === 'portraits') return;
+              c[x] = keep[x];
+              if (x === anchor) put();
+            });
+            put();
           });
         });
         Object.keys(SKIP).forEach(function (k) { delete st.draft[k]; });
