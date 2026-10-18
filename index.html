@@ -952,7 +952,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
               '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
                 '<div class="fb-art">' +
                   '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
-                  (ports.length ? '<div class="fb-ports">' + ports.map(function (p, n) { return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>'; })) +
+                  (ports.length
+                    ? '<div class="fb-ports">' + ports.map(function (p, n) {
+                        return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>';
+                      }).join("") + '</div>'
+                    : "") +
                 '</div>' +
               '</div>' +
             '</div>';
