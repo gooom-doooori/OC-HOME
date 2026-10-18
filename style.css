@@ -3167,7 +3167,7 @@ input, textarea, select, [contenteditable="true"],
   right: auto;
   left: 50%;
   margin-left: calc(min(420px, 34vw) / -2 - var(--sd-w, 230px) * 0.62);
-  bottom: calc(var(--sd-w, 230px) * -0.1);
+  bottom: calc(var(--sd-w, 230px) * 0.1);
 }
 
 /* 카드 보기: 오른쪽 아래 (기존 위치) */
