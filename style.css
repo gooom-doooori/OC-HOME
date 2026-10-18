@@ -3170,6 +3170,14 @@ input, textarea, select, [contenteditable="true"],
   bottom: calc(var(--sd-w, 230px) * -0.1);
 }
 
+/* 카드 보기: 오른쪽 아래 (기존 위치) */
+.sd-fx.at-card {
+  left: auto;
+  margin-left: 0;
+  right: calc(var(--sd-w, 230px) * -0.38);
+  bottom: calc(var(--sd-w, 230px) * -0.22);
+}
+
 /* 나타남: 상세 프로필이 열렸을 때 / 항상 */
 .is-flipped .sd-fx.at-card,
 .sd-always .sd-fx.at-card { transform: scale(1) rotate(6deg); opacity: 1; transition-delay: .55s; }
