@@ -299,9 +299,10 @@ a { text-decoration: none; color: inherit; }
 }
 .side-text {
   writing-mode: vertical-rl;
-  font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
-  font-size: 14px;
-  letter-spacing: 6px;
+  font-family: 'Sukmyung';
+  font-size: 15px;
+  letter-spacing: 3px;
+  font-weight: 600;
 }
 .side-line {
   flex: 1;
