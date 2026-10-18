@@ -3131,8 +3131,8 @@ input, textarea, select, [contenteditable="true"],
 /* 포트레이트: 전신 왼쪽 아래에 네모 · 세로 정렬 (상세 프로필이 열렸을 때만) */
 .fb-ports {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
+  left: -70px;
+  top: 30px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3144,7 +3144,7 @@ input, textarea, select, [contenteditable="true"],
 .is-flipped .fb-ports { opacity: 1; transform: none; transition-delay: .55s; }
 .fb-ports span {
   display: block;
-  width: clamp(56px, 7vw, 92px);
+  width: clamp(85px, 20vw, 120px);
   aspect-ratio: 1;
   border: 2px solid var(--c);            /* 모서리는 둥글지 않게, 테두리는 대표색 */
   background: color-mix(in srgb, var(--c) 12%, #fff);
