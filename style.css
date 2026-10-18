@@ -3169,8 +3169,8 @@ input, textarea, select, [contenteditable="true"],
 }
 /* 전신 보기: 왼쪽 아래 (똑바로) */
 .sd-fx.at-full {
-  left: calc(var(--sd-w, 230px) * -0.38);
-  bottom: calc(var(--sd-w, 230px) * -0.1);
+  left: calc(var(--sd-w, 230px) * 0.2);
+  bottom: calc(var(--sd-w, 230px) * 0.1);
 }
 
 /* 나타남: 상세 프로필이 열렸을 때 / 항상 */
