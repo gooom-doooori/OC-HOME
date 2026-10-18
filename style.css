@@ -468,6 +468,60 @@ a { text-decoration: none; color: inherit; }
 .menu-icon svg { width: 100%; height: 100%; }
 .menu-link:hover .menu-icon { color: var(--accent); transform: rotate(90deg); }
 
+/* =========================================================
+   왼쪽 메뉴 (오른쪽 메뉴를 좌우 반전한 모양)
+   - 위쪽 막대가 가장 길고, 아래로 갈수록 짧아져요
+   ========================================================= */
+.menu-area.menu-left {
+  right: auto;
+  left: 0;
+  top: 150px;                       /* ★ 왼쪽 메뉴 세로 위치 (위쪽에서 얼마나 내릴지) */
+}
+.menu-left .menu-list { align-items: flex-start; }
+
+.menu-item.is-left {
+  /* 마지막 메뉴가 24vw, 위로 갈수록 3.5vw 씩 길어져요 (--n: 왼쪽 메뉴 개수) */
+  width: calc(24vw + (var(--n, 1) - 1 - var(--i)) * 3.5vw);
+  animation-name: slideInLeft;
+}
+
+.is-left .menu-link {
+  flex-direction: row-reverse;      /* 아이콘이 왼쪽 끝, 마름모가 오른쪽 끝 */
+  padding-left: 20px;
+  padding-right: 40px;
+}
+.is-left .menu-link:hover { transform: translateX(12px); }
+
+/* 막대 왼쪽 연장 (호버로 밀려도 화면 끝에 빈틈 없게) */
+.is-left .menu-link::after { left: auto; right: 100%; }
+
+/* 점선: 막대 오른쪽으로 뻗어요 */
+.is-left .menu-link::before { right: auto; left: calc(100% + 30px); }
+
+/* 마름모: 막대 오른쪽 끝 */
+.is-left .menu-num {
+  left: auto;
+  right: 0;
+  transform: translate(50%, -50%) rotate(45deg);
+}
+.is-left .menu-link:hover .menu-num {
+  transform: translate(50%, -50%) rotate(405deg);
+}
+
+/* 화살표는 화면 끝(왼쪽)을 향하게 */
+.is-left .chevrons { margin-right: 0; margin-left: 16px; transform: scaleX(-1); }
+
+/* 아이콘은 막대 왼쪽 끝으로 */
+.is-left .menu-icon { margin-left: 0; margin-right: auto; }
+
+/* 왼쪽 세로 꾸밈 글자(deco-side)와 겹치므로, 왼쪽 메뉴가 있으면 숨겨요 */
+.has-left-menu .deco-side { display: none; }
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-80px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* ---------- 애니메이션 ---------- */
 @keyframes fadeDown {
   from { opacity: 0; transform: translateY(-20px); }
