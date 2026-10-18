@@ -942,6 +942,19 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         viewBox.title = viewBox.disabled ? "전신 일러스트가 없어요" : "카드 ↔ 전신 전환";
       }
 
+      // SD: 회전하는 카드 밖에서 따로 그려요 (전환 때 같이 돌지 않게)
+      function drawSd(ch, mode) {
+        const old = holder.querySelector(".sd-fx");
+        if (old) old.remove();
+        if (!ch.sd) return;
+        const el = document.createElement("img");
+        el.className = "sd-fx " + (mode === "full" ? "at-full" : "at-card");
+        el.src = ch.sd;
+        el.alt = "";
+        el.style.setProperty("--sd-w", sdW(ch));
+        holder.appendChild(el);
+      }
+
       // 오른쪽 무대를 그려요. mode: "card" | "full",  open: 상세 프로필이 열려 있는지
       function drawStage(ch, mode, open) {
         const cls = open ? " flipped" : "";
@@ -960,12 +973,12 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
                           return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>';
                         }).join("") + '</div>'
                       : "") +
-                    (ch.sd ? '<img class="fb-sd" src="' + ch.sd + '" alt="">' : "") +
                   '</div>' +
                 '</div>' +
               '</div>';
           holder.setAttribute("data-type", "full");
           document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
+          drawSd(ch, mode);
           return;
         }
         const type = ["id", "ticket", "wanted", "custom"].indexOf(ch.type) > -1 ? ch.type : "id";
@@ -980,12 +993,12 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
               '<div class="cd-face cd-front">' + front + '</div>' +
               '<div class="cd-face cd-back">' + backFace + '</div>' +
             '</div>' +
-            (ch.sd ? '<img class="cd-sd" src="' + ch.sd + '" alt="" style="--sd-w:' + sdW(ch) + '">' : "") +
           '</div>';
         holder.setAttribute("data-type", type);
 
         document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
         if (type === "custom") sizeCustom(ch);
+        drawSd(ch, mode);
       }
 
       // 토글을 누르면: 카드가 빙글 돌면서 전신 ↔ 카드로 바뀌어요
@@ -996,9 +1009,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         view = v;
         syncView(ch);
         const old = holder.querySelector(".cd");
+        const oldSd = holder.querySelector(".sd-fx");
+        if (oldSd) oldSd.classList.add("gone"); 
         if (old) old.classList.add("spin-out");
         setTimeout(function () {
           drawStage(ch, modeOf(ch), document.body.classList.contains("is-flipped"));
+          const newSd = holder.querySelector(".sd-fx");
+          if (newSd) newSd.classList.add("gone");
           const fresh = holder.querySelector(".cd");
           if (fresh) {
             fresh.classList.add("spin-in");
@@ -1019,7 +1036,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
           const pane1 = detail.querySelector(".dt-panes");
           if (pane1) pane1.scrollTop = top;
 
-          setTimeout(function () { spinning = false; }, 400);
+          setTimeout(function () {
+            const s = holder.querySelector(".sd-fx");
+            if (s) s.classList.remove("gone");
+            spinning = false;
+          }, 400);
         }, 300);
       }
       viewBox.addEventListener("click", function () {
