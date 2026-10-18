@@ -3040,7 +3040,7 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
 }
-img { -webkit-user-drag: none; }
+img, a { -webkit-user-drag: none; }
 
 .ch-detail, .ch-detail *,
 input, textarea, select, [contenteditable="true"],
@@ -3049,7 +3049,7 @@ input, textarea, select, [contenteditable="true"],
   user-select: text;
   -webkit-touch-callout: default;
 }
-.ch-detail img, #oha img { -webkit-user-drag: auto; }
+.ch-detail img, .ch-detail a, #oha img, #oha a { -webkit-user-drag: auto; }
 
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
 .spoil.open { filter: none; user-select: auto; }
