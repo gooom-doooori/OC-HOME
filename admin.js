@@ -23,7 +23,7 @@
   var LABEL = {
     themeColor: '대표 색 (이 색 하나로 사이트 전체 색이 바뀌어요)', pageTitle: '브라우저 탭 이름',
     type: '종류', text: '글', image: '이미지', imageWidth: '로고 가로 크기', subText: '작은 글씨',
-    num: '숫자', title: '이름 / 제목', desc: '설명', link: '링크', icon: '아이콘 이미지', newTab: '새 탭으로 열기',
+    num: '숫자', title: '이름 / 제목', desc: '설명', link: '링크', icon: '아이콘 이미지', newTab: '새 탭으로 열기', left: '왼쪽에 띄우기',
     badge: '왼쪽 위 동그라미 글자', topLabel: '왼쪽 위 라벨', topRight: '오른쪽 위 글자', sideText: '세로 글자',
     titleTag: '타이틀 위 작은 글자', titleFrame: '타이틀 꺾쇠 테두리', info: '왼쪽 아래 소개', show: '보이기',
     heading: '큰 제목',
@@ -418,11 +418,11 @@
       { name: '직접 만든 카드', desc: '앞면 · 뒷면 이미지를 직접 넣어요', value: ownerTpl('custom') }
     ];
     if (key === 'menus') return [
-      { name: '캐릭터 메뉴', desc: '#character', value: { num: '', title: 'Character', desc: '캐릭터 소개', link: '#character', icon: '', newTab: false } },
-      { name: '페어 메뉴', desc: '#pair', value: { num: '', title: 'Pair', desc: '페어 소개', link: '#pair', icon: '', newTab: false } },
-      { name: '오너 메뉴', desc: '#owner', value: { num: '', title: 'Owner', desc: '오너 소개', link: '#owner', icon: '', newTab: false } },
-      { name: '방명록 메뉴', desc: '#guest', value: { num: '', title: 'Guest', desc: '방명록', link: '#guest', icon: '', newTab: false } },
-      { name: '다른 사이트 링크', desc: '새 탭으로 열려요', value: { num: '', title: '', desc: '', link: 'https://', icon: '', newTab: true } }
+      { name: '캐릭터 메뉴', desc: '#character', value: { num: '', title: 'Character', desc: '캐릭터 소개', link: '#character', icon: '', newTab: false, left: false } },
+      { name: '페어 메뉴', desc: '#pair', value: { num: '', title: 'Pair', desc: '페어 소개', link: '#pair', icon: '', newTab: false, left: false } },
+      { name: '오너 메뉴', desc: '#owner', value: { num: '', title: 'Owner', desc: '오너 소개', link: '#owner', icon: '', newTab: false, left: false } },
+      { name: '방명록 메뉴', desc: '#guest', value: { num: '', title: 'Guest', desc: '방명록', link: '#guest', icon: '', newTab: false, left: false } },
+      { name: '다른 사이트 링크', desc: '새 탭으로 열려요', value: { num: '', title: '', desc: '', link: 'https://', icon: '', newTab: true, left: false } }
     ];
     if (key === 'members') return [{ name: '캐릭터 선택', desc: '', value: 1 }];
     if (key === 'links' && pkey === 'owner') return [{ name: '링크 칩', desc: '', value: { label: 'X', text: '', url: '' } }];
@@ -481,6 +481,7 @@
   var OPTIONAL = {
     characters: { pairImage: '', sdSize: 230, subColor: '', textColor: '', seat: { gate: 'A', row: '01', seat: '01' },
                   customFront: '', customBack: '', customRatio: '', customRadius: 12 },
+    menus: { left: false },
     background: { width: '' }
   };
 
