@@ -89,6 +89,7 @@
   <div class="bg-photo" id="bgPhoto"></div>
   <div class="bg-overlay" id="bgOverlay"></div>
   <div class="bg-grid" id="bgGrid"></div>
+  <div class="bg-front" id="bgFront"></div>
   <div class="bg-fade" id="bgFade"></div>
 
   <!-- 지금 보고 있는 페이지가 여기에 들어가요 -->
@@ -351,6 +352,16 @@
         gd.style.setProperty("--grid-line", (B.gridLine || 2) + "px");
         gd.style.opacity = (B.gridStrength != null) ? B.gridStrength : 1;
         gd.style.display = "block";
+      }
+      if (B.frontImage) {                     // 격자무늬 위에 올라오는 이미지
+        const fr = document.getElementById("bgFront");
+        fr.style.backgroundImage = "url('" + B.frontImage + "')";
+        fr.style.backgroundPosition = B.frontPosition || "center";
+        if (B.frontWidth != null && B.frontWidth !== "") {
+          fr.style.backgroundSize = (typeof B.frontWidth === "number" ? B.frontWidth + "px" : B.frontWidth) + " auto";
+        }
+        fr.style.opacity = (B.frontOpacity != null && B.frontOpacity !== "") ? B.frontOpacity : 1;
+        fr.style.display = "block";
       }
       if (B.fade) {
         const fd = document.getElementById("bgFade");
