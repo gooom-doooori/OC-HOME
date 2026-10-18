@@ -3170,7 +3170,7 @@ input, textarea, select, [contenteditable="true"],
 /* 포트레이트 */
 .fb-ports {
   position: absolute;
-  left: -70px;
+  right: 410px;
   top: 30px;
   display: flex;
   flex-direction: column;
