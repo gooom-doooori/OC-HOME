@@ -3134,11 +3134,10 @@ input, textarea, select, [contenteditable="true"],
 }
 .fb-img {
   display: block;
-  width: min(420px, 34vw);
-  height: calc(100vh - 170px);
-  max-height: 640px;
-  object-fit: contain;
-  object-position: center;
+  max-width: 100%;
+  max-height: calc(100vh - 170px);
+  width: auto;
+  height: auto;
   filter: drop-shadow(0 16px 24px rgba(0, 0, 0, .25));
   -webkit-user-drag: none;
   user-select: none;
