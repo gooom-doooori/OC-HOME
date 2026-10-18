@@ -948,18 +948,22 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", p
         if (mode === "full") {
           const ports = (ch.portraits || []).filter(Boolean).slice(0, 3);
           holder.innerHTML =
-            '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + '">' +
-              '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
-                '<div class="fb-art">' +
-                  '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
-                  (ports.length
-                    ? '<div class="fb-ports">' + ports.map(function (p, n) {
-                        return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>';
-                      }).join("") + '</div>'
-                    : "") +
+            holder.innerHTML =
+              '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + ';--sd-w:' + sdW(ch) + '">' +
+                '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
+                  '<div class="fb-stack">' +
+                    '<div class="fb-art">' +
+                      '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
+                    '</div>' +
+                    (ports.length
+                      ? '<div class="fb-ports">' + ports.map(function (p, n) {
+                          return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>';
+                        }).join("") + '</div>'
+                      : "") +
+                    (ch.sd ? '<img class="fb-sd" src="' + ch.sd + '" alt="">' : "") +
+                  '</div>' +
                 '</div>' +
-              '</div>' +
-            '</div>';
+              '</div>';
           holder.setAttribute("data-type", "full");
           document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
           return;
