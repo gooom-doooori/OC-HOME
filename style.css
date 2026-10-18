@@ -537,6 +537,23 @@ a { text-decoration: none; color: inherit; }
 .ch-tile-row:nth-child(4) { animation-delay: .26s; }
 .ch-tile-row:nth-child(5) { animation-delay: .33s; }
 
+/* 진영 제목 (faction 을 적었을 때만 나와요) */
+.ch-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(16vw + 84px);
+  margin-top: 8px;
+  font-family: 'Sukmyung';
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--deco);
+  opacity: .75;
+  animation: slideIn .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.ch-group::after { content: ""; flex: 1; border-top: 1.5px dashed currentColor; opacity: .5; }
+
 .ch-tile-label {
   width: 72px;
   display: flex;
