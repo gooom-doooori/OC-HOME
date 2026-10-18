@@ -3223,6 +3223,15 @@ input, textarea, select, [contenteditable="true"],
 }
 .fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
 
+/* 보기 전환 시작: 포트레이트 먼저 뿅 사라짐 (상세가 열려 있어도) */
+.cd-fb.ports-out .fb-ports span,
+.is-flipped .cd-fb.ports-out .fb-ports span {
+  opacity: 0;
+  transform: translateX(-28px) scale(.5);
+  transition: opacity .15s, transform .25s cubic-bezier(.5, 0, .9, .6);
+  transition-delay: calc((2 - var(--i, 0)) * .05s);
+}
+
 /* 설정 글 2단 전신 일러스트 */
 .dt-story-art { display: flex; gap: 5px; align-items: flex-start; opacity: 1; }
 .dt-story-art > div { flex: 1; min-width: 0; opacity: .85; }
