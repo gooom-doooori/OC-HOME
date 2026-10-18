@@ -1421,32 +1421,6 @@ a { text-decoration: none; color: inherit; }
 .cx-empty span { font-size: 14px; }
 .is-flipped .ch-holder[data-type="custom-wide"] { transform: scale(.72); }
 
-/* ---------- SD 이미지 (카드 오른쪽 아래 모서리) ---------- */
-.cd-sd {
-  position: absolute;
-  z-index: 5;
-  /* 크기는 data.js 의 sdSize 로 바꿀 수 있어요 (기본 230px) */
-  width: var(--sd-w, 230px);
-  right: calc(var(--sd-w, 230px) * -0.38);
-  bottom: calc(var(--sd-w, 230px) * -0.22);
-  height: auto;
-  pointer-events: none;
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,.2));
-  transform-origin: 50% 100%;
-  transform: scale(0) rotate(-20deg);
-  opacity: 0;
-  transition: transform .45s cubic-bezier(.3,1.6,.5,1), opacity .2s;
-}
-
-/* 뒷면으로 뒤집으면 톡 튀어나옴 */
-.is-flipped .cd-sd,
-.sd-always .cd-sd {
-  transform: scale(1) rotate(6deg);
-  opacity: 1;
-  transition-delay: .55s;
-}
-.sd-always .cd-sd { transition-delay: .3s; }
-
 /* =========================================================
    뒤집었을 때: 타일 사라짐 · 카드 작아지며 왼쪽 · 상세 프로필
    ========================================================= */
@@ -3175,28 +3149,46 @@ input, textarea, select, [contenteditable="true"],
   max-height: 100%;
 }
 
-/* 전신 SD: 캐릭터 왼쪽 아래, 기울기 없음 */
-.fb-sd {
+/* SD (카드 · 전신 공통, 회전하는 카드 밖) */
+.sd-fx {
   position: absolute;
   z-index: 5;
   width: var(--sd-w, 230px);
-  left: calc(var(--sd-w, 230px) * -0.38);
-  bottom: calc(var(--sd-w, 230px) * -0.1);
   height: auto;
   pointer-events: none;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .2));
   transform-origin: 50% 100%;
-  transform: scale(0);                 /* 회전 제거 */
+  transform: scale(0);
   opacity: 0;
   transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), opacity .2s;
 }
-.is-flipped .fb-sd,
-.sd-always .fb-sd {
-  transform: scale(1);                 /* 똑바로 */
-  opacity: 1;
-  transition-delay: .55s;
+/* 카드 보기: 오른쪽 아래 (기울기 있음) */
+.sd-fx.at-card {
+  right: calc(var(--sd-w, 230px) * -0.38);
+  bottom: calc(var(--sd-w, 230px) * -0.22);
 }
-.sd-always .fb-sd { transition-delay: .3s; }
+/* 전신 보기: 왼쪽 아래 (똑바로) */
+.sd-fx.at-full {
+  left: calc(var(--sd-w, 230px) * -0.38);
+  bottom: calc(var(--sd-w, 230px) * -0.1);
+}
+
+/* 나타남: 상세 프로필이 열렸을 때 / 항상 */
+.is-flipped .sd-fx.at-card,
+.sd-always .sd-fx.at-card { transform: scale(1) rotate(6deg); opacity: 1; transition-delay: .55s; }
+.is-flipped .sd-fx.at-full,
+.sd-always .sd-fx.at-full { transform: scale(1); opacity: 1; transition-delay: .55s; }
+.sd-always .sd-fx { transition-delay: .3s; }
+
+/* 전환 중: 즉시 쇽 사라짐 */
+.sd-fx.gone,
+.is-flipped .sd-fx.gone,
+.sd-always .sd-fx.gone {
+  transform: scale(0);
+  opacity: 0;
+  transition: transform .2s cubic-bezier(.5, 0, .9, .6), opacity .15s;
+  transition-delay: 0s;
+}
 
 /* 포트레이트 */
 .fb-ports {
