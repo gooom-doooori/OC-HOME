@@ -335,6 +335,9 @@ const SITE = {
                         "left top" / "right 50%"
      name     : 이름
      nameEn   : 이름 아래 작은 영어 글자 (직책, 영문 이름 등)
+     faction  : 적으면 왼쪽 타일 목록에서 같은 진영끼리 묶이고 진영 이름이 제목으로 나와요.
+     비워두거나 줄 자체가 없으면 지금처럼 번호 순서대로 나와요.
+     진영 없는 캐릭터는 맨 위에, 나머지 진영은 처음 나온 순서대로 이어져요.
      intro    : 한 줄 소개
      tags     : 태그 목록. ["태그1", "태그2"] 처럼 따옴표와 쉼표로 구분
      seat     : 공연 좌석 정보 (type이 "ticket"일 때만)
@@ -381,6 +384,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0001",
@@ -418,6 +422,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       seat: { gate: "A", row: "07", seat: "12" },
@@ -450,6 +455,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "Outlaw",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "$7,000.00",
@@ -485,6 +491,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0004",
@@ -521,6 +528,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0001",
@@ -558,6 +566,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       seat: { gate: "A", row: "07", seat: "12" },
@@ -590,6 +599,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "Outlaw",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "$7,000.00",
@@ -625,6 +635,7 @@ const SITE = {
       tilePosition: "center 30%",
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
+      faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0004",
