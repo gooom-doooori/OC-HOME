@@ -13,10 +13,11 @@
   var VER = (typeof SITE !== 'undefined' && SITE.firebaseSdk) || '13.0.0';
   var BASE = 'https://www.gstatic.com/firebasejs/' + VER + '/';
   var SKIP = { firebase: 1, admin: 1, firebaseSdk: 1 };      /* 편집기에서 건드리지 않는 항목 */
-  var ORDER = ['themeColor', 'pageTitle', 'title', 'menus', 'deco', 'characterPage', 'characters', 'floormasterPage', 'floormasters', 'otherPage', 'others',
+  var ORDER = ['themeColor', 'pageTitle', 'title', 'menus', 'deco', 'bgmPlayer','characterPage', 'characters', 'floormasterPage', 'floormasters', 'otherPage', 'others',
                'pairPage', 'pairs', 'owner', 'guest', 'colors', 'background', 'fonts'];
   var TAB_NAME = {
     themeColor: '대표 색', pageTitle: '사이트 이름', title: '메인 타이틀', menus: '메인 메뉴', deco: '메인 꾸밈 글자',
+    bgmPlayer: 'BGM 플레이어',
     characterPage: '캐릭터 페이지 설정', characters: '캐릭터 목록', pairPage: '페어 페이지 설정', floormasterPage: '플로어마스터 페이지 설정', floormasters: '플로어마스터 목록', otherPage: 'Other 페이지 설정', others: 'Other 목록', pairs: '페어 목록',
     owner: '오너 페이지', guest: '방명록 안내', colors: '색상', background: '배경', fonts: '글꼴'
   };
@@ -27,6 +28,8 @@
     badge: '왼쪽 위 동그라미 글자', topLabel: '왼쪽 위 라벨', topRight: '오른쪽 위 글자', sideText: '세로 글자',
     titleTag: '타이틀 위 작은 글자', titleFrame: '타이틀 꺾쇠 테두리', info: '왼쪽 아래 소개', show: '보이기',
     heading: '큰 제목',
+    bgmPlayer: 'BGM 플레이어', autoplay: '자동 재생', volume: '음량',
+    bgm: '테마곡', bgmTitle: '곡 제목',
     label: '라벨', imageTint: '대표색 입히기', tintStrength: '색 진하기(0~1)', idNotice: '학생증 뒷면 안내',
     idIssued: '발급일', idValid: '유효기간', ticketTerms: '티켓 약관', tabs: '탭 이름', galleryEmpty: '갤러리 비었을 때 글',
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
@@ -66,7 +69,7 @@
   var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1 };
   /* 이미지 칸 : [올리기] 버튼이 붙어요 */
   var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, fullBody: 1, portraits: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
-                     wantedPaper: 1, ownerImage: 1 };
+                     wantedPaper: 1, ownerImage: 1, bgm: 1};
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
@@ -84,7 +87,7 @@
   var st = { user: null, fb: null, draft: null, dirty: false, tab: null, root: null, view: 'site', busy: false,
              preview: window.innerWidth >= 1000, pvMobile: false, pvFrame: null, pvBody: null, pvRoute: '', pvTimer: null, pvN: 0 };
   /* 편집 탭 → 미리보기에서 보여줄 화면 */
-  var TAB_ROUTE = { themeColor: '', pageTitle: '', title: '', menus: '', deco: '', colors: '', background: '', fonts: '',
+  var TAB_ROUTE = { themeColor: '', pageTitle: '', title: '', menus: '', deco: '', bgmPlayer: '', colors: '', background: '', fonts: '',
                     characterPage: 'character', characters: 'character', floormasterPage: 'floormaster', floormasters: 'floormaster',otherPage: 'other', others: 'other', pairPage: 'pair', pairs: 'pair',
                     owner: 'owner', guest: 'guest', __gb: 'guest' };
 
@@ -368,7 +371,7 @@
   function cardTpl(type) {
     var base = { type: type, color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', sd: '', tile: '',
       tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', intro: '', tags: [], number: '' };
-    var tail = { quote: '', story: '', gallery: [], relations: [] };
+    var tail = { quote: '', story: '', gallery: [], relations: [], bgm: '', bgmTitle: '' };
     var x;
     if (type === 'id') x = { cardTitle: 'STUDENT ID', cardSub: '', number: '0001', profile: profileRows(['나이', '키', '생일', '좋아하는 것', '싫어하는 것']) };
     if (type === 'ticket') x = { cardTitle: 'LIVE CONCERT', cardSub: 'WORLD TOUR', seat: { gate: 'A', row: '01', seat: '01' }, number: '', profile: profileRows(['공연일', '공연장', '나이', '키']) };
@@ -394,7 +397,7 @@
   function pairTpl(n) {
     var m = []; for (var i = 1; i <= n && i <= allChars().length; i++) m.push(i);
     var sides = m.map(function () { return { catchphrase: '', desc: '', image: '' }; });
-    return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
+    return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', bgm: '', bgmTitle: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
   }
   var LIST_TPL = {
     gallery: { image: '', caption: '' }, relations: { name: '', label: '', text: '', image: '', link: 0 },
@@ -508,7 +511,10 @@
   /* 칸이 없는 항목을 나중에 다시 꺼내 쓰는 "+ 항목 추가" 목록 */
   var OPTIONAL = {
     characters: { pairImage: '', sdSize: 230, subColor: '', textColor: '', seat: { gate: 'A', row: '01', seat: '01' },
-                  customFront: '', customBack: '', customRatio: '', customRadius: 12 },
+                  customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: '' },
+    pairs: { bgm: '', bgmTitle: '' },
+    floormasterPage: { bgm: '', bgmTitle: '' },
+    otherPage: { bgm: '', bgmTitle: '' },
     menus: { left: false },
     background: { width: '' }
   };
