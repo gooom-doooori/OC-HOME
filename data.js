@@ -170,6 +170,15 @@ const SITE = {
       icon: "",
       newTab: false
     },
+        {
+      num: "",
+      title: "Other",
+      desc: "기타 캐릭터 소개",
+      link: "#other",
+      icon: "",
+      newTab: false,
+      left: false
+    },
     {
       num: "03",
       title: "Pair",
@@ -661,6 +670,51 @@ const SITE = {
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0004",
+
+      profile: [
+        { label: "나이", value: "적어주세요" },
+        { label: "키", value: "적어주세요" }
+      ],
+      quote: "대표 대사를 적어주세요.",
+      story: "캐릭터 설정을 자유롭게 적어주세요.",
+
+      gallery: [],
+      relations: []
+    }
+  ],
+
+    /* =============================================
+     [6-3] Other 페이지 설정  (#other)
+     ---------------------------------------------
+     플로어마스터와 같은 구조예요.
+     번호는 Participant(characters) 다음 번호부터 자동으로 이어져요.
+     (Participant 가 4명이면 Other 는 05번부터 시작)
+     다른 캐릭터와 연결할 때 : 숫자(1,2…) = Participant,
+                              "F1" = 플로어마스터, "O1" = Other
+     ---------------------------------------------*/
+  otherPage: {
+    label: "OTHER"
+  },
+  others: [
+    {
+      type: "id",
+      color: "",
+      subColor: "",
+      textColor: "",
+      cardTitle: "STUDENT ID",
+      cardSub: "BLUE HOUR HIGH",
+      image: "",
+      sd: "",
+      tile: "",
+      tilePosition: "center 30%",
+      fullBody: "",
+      portraits: ["", "", ""],
+      name: "캐릭터 이름",
+      nameEn: "OTHER",
+      faction: "",
+      intro: "한 줄 소개를 적어주세요.",
+      tags: ["태그", "키워드"],
+      number: "0001",
 
       profile: [
         { label: "나이", value: "적어주세요" },
