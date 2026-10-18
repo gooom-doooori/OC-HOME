@@ -3388,3 +3388,177 @@ input, textarea, select, [contenteditable="true"],
 .tg > summary::after { content: "+"; font-weight: 400; opacity: .6; }
 .tg[open] > summary::after { content: "−"; }
 .tg > div { padding: 2px 12px 10px; }
+
+
+/* =========================================================
+   BGM 플레이어  (왼쪽 위 라벨 선  ↔  오른쪽 위 글자 사이)
+   ========================================================= */
+.bgm {
+  position: absolute;
+  z-index: 6;
+  top: 40px;                           /* ★ 세로 위치 */
+  left: calc(52% + 22px);              /* 라벨 선이 끝나는 곳(52%) 바로 뒤 */
+  right: 310px;                        /* ★ 오른쪽 위 글자 자리. 겹치면 숫자를 키우세요 */
+  max-width: 460px;
+  font-family: var(--font-body), sans-serif;
+  animation: fadeIn 1.2s ease both .3s;
+}
+.bgm-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 7px 0 16px;
+  background: var(--menu-bar);         /* 메뉴 막대와 같은 색 */
+  color: var(--menu-text);
+}
+
+/* 이퀄라이저 (재생 중에만 움직여요) */
+.bgm-eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0; }
+.bgm-eq i { width: 3px; height: 28%; background: var(--accent); }
+.bgm.is-playing .bgm-eq i { animation: bgmEq .9s ease-in-out infinite; }
+.bgm-eq i:nth-child(2) { animation-delay: .25s; }
+.bgm-eq i:nth-child(3) { animation-delay: .5s; }
+@keyframes bgmEq { 0%, 100% { height: 25%; } 50% { height: 100%; } }
+
+/* 제목 (길면 천천히 흘러가요) */
+.bgm-ttl {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.bgm-ttl b { display: inline-block; font-weight: 700; }
+.bgm-ttl b.run { animation: bgmMarq var(--t, 8s) ease-in-out infinite alternate; }
+@keyframes bgmMarq {
+  0%, 15%   { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--d, 0)); }
+}
+
+/* 재생시간 / 총 시간 */
+.bgm-time {
+  flex-shrink: 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: .5px;
+  white-space: nowrap;
+  color: var(--menu-desc);
+}
+.bgm-time em { font-style: normal; color: var(--menu-text); }
+
+/* 재생 / 멈춤 (동그란 버튼 = 왼쪽 위 뱃지 느낌) */
+.bgm-play {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .25s;
+}
+.bgm-play svg { width: 13px; height: 13px; }
+.bgm-play:hover { transform: scale(1.1); }
+.bgm-play:disabled { opacity: .35; cursor: default; transform: none; }
+
+/* 음량 버튼 */
+.bgm-vbtn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--menu-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color .25s;
+}
+.bgm-vbtn svg { width: 18px; height: 18px; }
+.bgm-vbtn:hover, .bgm.vol-open .bgm-vbtn { color: var(--accent); }
+
+/* 아래 진행 바 (눌러서 이동) */
+.bgm-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: rgba(128, 128, 128, .35);
+  cursor: pointer;
+}
+.bgm-bar::before { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: 0; }
+.bgm-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.bgm.is-empty .bgm-bar { cursor: default; }
+
+/* 음량 조절 바 (음량 버튼을 누르면 아래로 펼쳐져요) */
+.bgm-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--menu-bar);
+  color: var(--menu-text);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .25s, transform .25s;
+}
+.bgm.vol-open .bgm-pop { opacity: 1; pointer-events: auto; transform: none; }
+.bgm-pct {
+  width: 34px;
+  text-align: right;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--menu-desc);
+}
+.bgm-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  margin: 0;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(to right, var(--accent) var(--v, 40%), rgba(128,128,128,.4) var(--v, 40%));
+}
+.bgm-range::-webkit-slider-thumb {     /* 마름모 손잡이 */
+  -webkit-appearance: none;
+  width: 11px; height: 11px;
+  border: 0; border-radius: 0;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+.bgm-range::-moz-range-thumb {
+  width: 11px; height: 11px;
+  border: 0; border-radius: 0;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+
+/* 유튜브 곡용 숨은 플레이어 (소리만 나와요) */
+.bgm-yt {
+  position: fixed;
+  left: -400px;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 화면이 좁을 땐 시간 글자를 숨겨요 */
+@media (max-width: 1150px) { .bgm-time { display: none; } }
