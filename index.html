@@ -262,12 +262,15 @@
   </main>
   </template>
 
+  <script src="bgm.js"></script>
+
   <script>
     (function () {
       const S = (typeof SITE !== "undefined") ? SITE : {};
       const C = S.colors || {};
       const F = S.fonts || {};
       const root = document.documentElement.style;
+            const BGM = window.BGM || { page: function () {}, item: function () {}, reset: function () {} };
 
       /* =====================================================
          공통 설정 (메인홈과 동일: 색상 · 배경 · 글꼴)
@@ -425,6 +428,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       // 키보드 단축키는 지금 페이지 것만 작동하게
       let keyHandlers = [];
+      BGM.reset();
       function addKey(fn) { keyHandlers.push(fn); }
       document.addEventListener("keydown", function (e) {
         keyHandlers.forEach(function (fn) { fn(e); });
@@ -539,6 +543,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       const OT = route === "other";
       const PAGE = FM ? "floormaster" : OT ? "other" : "character";
       const OFFSET = OT ? (S.characters || []).length : 0;
+            if (FM || OT) {   // 플로어마스터 · Other 는 페이지 자체 테마곡
+        const PG = FM ? (S.floormasterPage || {}) : (S.otherPage || {});
+        BGM.page(PG.bgm, PG.bgmTitle);
+      }
       /* =====================================================
          페이지 꾸밈
          ===================================================== */
@@ -949,6 +957,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const next = (on === undefined) ? !was : on;
         f.classList.toggle("flipped", next);
         document.body.classList.toggle("is-flipped", next);
+        if (!FM && !OT) { const c = list[current]; BGM.item(next && c ? c.bgm : "", c && c.bgmTitle); }
         // 전신 보기: 카드처럼 한 바퀴 빙글 돌면서 열리고 닫혀요
         if (f.classList.contains("fb-flip") && next !== was) {
           f.classList.remove("spin"); void f.offsetWidth; f.classList.add("spin");
@@ -1093,6 +1102,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const ch = list[i];
         if (!ch) return;
         document.body.classList.remove("is-flipped");
+        BGM.item("");
         drawStage(ch, modeOf(ch), false);
         syncView(ch);
         renderDetail(ch, i);
@@ -1535,6 +1545,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       function openRelation(pi) {
         const p = pairs[pi];
+        BGM.item(p.bgm, p.bgmTitle);
         const rows = p.members.map(function (m, k) {
           const ch = chars[m - 1];
           return ch ? capsuleRow(ch, p.sides[k], k % 2 === 0 ? "a" : "b") : "";
@@ -1598,7 +1609,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       box.addEventListener("click", function (e) { if (e.target === box || e.target.classList.contains("box-close")) closeBox(); });
       box.querySelector(".box-prev").addEventListener("click", function () { moveBox(-1); });
       box.querySelector(".box-next").addEventListener("click", function () { moveBox(1); });
-      function closeRelation() { rl.classList.remove("open"); }
+      function closeRelation() { rl.classList.remove("open"); BGM.item(""); }
 
       addKey( function (e) {
         if (box.classList.contains("open")) {
