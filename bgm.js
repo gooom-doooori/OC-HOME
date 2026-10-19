@@ -14,7 +14,7 @@
 (function () {
   const S = (typeof SITE !== "undefined") ? SITE : {};
   const CFG = S.bgmPlayer || {};
-  const NOOP = { page: function () {}, item: function () {}, reset: function () {} };
+  const NOOP = { page: function () {}, item: function () {}, reset: function () {}, bind: function () { return false; } };
   window.BGM = NOOP;
 
   const PREVIEW = window.parent !== window && /[?&]preview=1/.test(location.search);
@@ -80,7 +80,8 @@
     const go = function (e) {
       if (engine && engine.playing()) { off(); return; }          // 이미 재생 중이면 끝
       if (!want || !engine) return;
-      if (e && el && el.contains(e.target)) return;               // 플레이어 버튼은 버튼이 알아서 해요
+      if (e && el && el.contains(e.target)) return;
+      if (e && e.target && e.target.closest && e.target.closest("[data-bgm-btn]")) return;   // 페어 상세의 BGM 버튼도 마찬가지
       engine.play();
       setTimeout(refresh, 60);
       setTimeout(function () { if (engine && engine.playing()) off(); }, 500);   // 그래도 안 되면 다음 입력에 다시 시도
@@ -238,11 +239,13 @@
   const ICON_PLAY  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
   const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
   const ICON_VOL   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  const ICON_NOTE  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
   const ICON_MUTE  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
 
   el = document.createElement("div");
   el.className = "bgm is-empty";
   el.innerHTML =
+    '<button type="button" class="bgm-note" aria-label="BGM 열기"></button>' +
     '<div class="bgm-main">' +
       '<span class="bgm-eq"><i></i><i></i><i></i></span>' +
       '<span class="bgm-ttl"><b>BGM</b></span>' +
@@ -258,6 +261,8 @@
   document.body.appendChild(el);
 
   const q = function (s) { return el.querySelector(s); };
+  const noteBtn = q(".bgm-note");
+  noteBtn.innerHTML = ICON_NOTE;
   const ttl = q(".bgm-ttl"), ttlB = q(".bgm-ttl b");
   const tCur = q(".bgm-time em"), tTot = q(".bgm-time span");
   const playBtn = q(".bgm-play"), volBtn = q(".bgm-vbtn");
@@ -283,7 +288,26 @@
     if (t) return t;
     return engine === YtEng ? "YouTube" : nameOf(curKey);
   }
+  /* ----- 다른 곳에 둔 "재생/멈춤 버튼" (예: 페어 상세 화면) 도 같이 움직여요 ----- */
+  const bound = [];
+  function paintBound(on) {
+    for (let i = bound.length - 1; i >= 0; i--) {
+      const b = bound[i];
+      if (!b.isConnected) { bound.splice(i, 1); continue; }
+      b.classList.toggle("is-playing", on);
+      b.disabled = !engine;
+      b.setAttribute("aria-label", on ? "BGM 멈춤" : "BGM 재생");
+    }
+  }
+  function toggle() {
+    if (!engine) return;
+    if (engine.playing()) { want = false; engine.pause(); }
+    else { want = true; engine.play(); }
+    setTimeout(refresh, 60);
+  }
   function refresh() {
+    const on = !!engine && engine.playing();
+    paintBound(on);
     const on = !!engine && engine.playing();
     if (on !== lastOn) {
       lastOn = on;
@@ -316,11 +340,10 @@
   }
 
   /* ----- 버튼 ----- */
-  playBtn.addEventListener("click", function () {
-    if (!engine) return;
-    if (engine.playing()) { want = false; engine.pause(); }
-    else { want = true; engine.play(); }
-    setTimeout(refresh, 60);
+  playBtn.addEventListener("click", toggle);
+  noteBtn.addEventListener("click", function () {
+    el.classList.toggle("mini-open");
+    if (!el.classList.contains("mini-open")) el.classList.remove("vol-open");
   });
   volBtn.addEventListener("click", function () { el.classList.toggle("vol-open"); });
   range.addEventListener("input", function () {
@@ -330,7 +353,7 @@
     paintVol();
   });
   document.addEventListener("pointerdown", function (e) {     // 바깥을 누르면 음량 바가 닫혀요
-    if (!el.contains(e.target)) el.classList.remove("vol-open");
+    if (!el.contains(e.target)) el.classList.remove("vol-open", "mini-open");
   });
   bar.addEventListener("click", function (e) {                // 진행 바를 눌러서 이동
     if (!engine) return;
@@ -358,7 +381,15 @@
   window.BGM = {
     page: function (src, title) { layers.page = clean(src) ? { src: clean(src), title: clean(title), at: here() } : null; apply(); },
     item: function (src, title) { layers.item = clean(src) ? { src: clean(src), title: clean(title), at: here() } : null; apply(); },
-    reset: function () { layers.page = null; layers.item = null; apply(); }
+    reset: function () { layers.page = null; layers.item = null; apply(); },
+    bind: function (btn) {
+      if (!btn) return false;
+      btn.setAttribute("data-bgm-btn", "");
+      btn.addEventListener("click", toggle);
+      bound.push(btn);
+      paintBound(!!engine && engine.playing());
+      return true;
+    }
   };
 
   // 곡을 지정했던 페이지를 벗어나면 그 곡 설정을 스스로 풀고 기본 BGM 으로 돌아가요.
