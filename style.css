@@ -3461,4 +3461,4 @@ input, textarea, select, [contenteditable="true"],
 .rl-bgm.is-playing .pp i:nth-child(1) { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%); }
 .rl-bgm.is-playing .pp i:nth-child(2) { clip-path: polygon(60% 0, 90% 0, 90% 100%, 60% 100%); }
 
-body.rl-open .bgm { display: none !important; }
+body:has(.rl.open) .bgm { display: none !important; }
