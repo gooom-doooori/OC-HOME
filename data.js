@@ -422,8 +422,6 @@ const SITE = {
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
-      bgm: "",
-      bgmTitle: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
       number: "0001",
