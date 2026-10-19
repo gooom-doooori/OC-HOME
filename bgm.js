@@ -19,8 +19,6 @@
 
   const PREVIEW = window.parent !== window && /[?&]preview=1/.test(location.search);
   const clean = function (s) { return String(s == null ? "" : s).trim(); };
-  // 편집기(#admin) · 설치 화면(#setup) 에서는 소리를 내지 않아요. (미리보기 iframe 은 해당 없음 → 그대로 재생돼요)
-  const inEditor = function () { return /^#\/?(admin|setup)/.test(location.hash); };
 
   // 사이트 어디에도 곡이 없으면 플레이어를 안 만들어요
   function anySong() {
@@ -81,7 +79,7 @@
     };
     const go = function (e) {
       if (engine && engine.playing()) { off(); return; }          // 이미 재생 중이면 끝
-      if (!want || !engine || inEditor()) return;
+      if (!want || !engine) return;
       if (e && el && el.contains(e.target)) return;
       if (e && e.target && e.target.closest && e.target.closest("[data-bgm-btn]")) return;   // 페어 상세의 BGM 버튼도 마찬가지
       engine.play();
@@ -105,7 +103,7 @@
     f.tabIndex = -1;
     f.style.display = "none";
     f.addEventListener("load", function () {                  // iframe 이 불러와진 뒤 한 번 더 재생 시도
-      if (want && engine && !engine.playing() && !inEditor()) { engine.play(); setTimeout(refresh, 60); }
+      if (want && engine && !engine.playing()) { engine.play(); setTimeout(refresh, 60); }
     });
     document.body.appendChild(f);
   }
@@ -231,7 +229,7 @@
     engine = id ? YtEng : FileEng;
     if (old && old !== engine) old.pause();
     engine.vol(vol);
-    engine.load(id || src, isItem ? 0 : (saved[src] || 0), want && !inEditor());
+    engine.load(id || src, isItem ? 0 : (saved[src] || 0), want);
     refresh();
   }
 
@@ -257,8 +255,8 @@
       '<div class="bgm-bar"><i></i></div>' +
     '</div>' +
     '<div class="bgm-pop">' +
-      '<input class="bgm-range" type="range" min="0" max="100" step="1" aria-label="음량 조절">' +
       '<span class="bgm-pct"></span>' +
+      '<div class="bgm-vs" role="slider" tabindex="0" aria-orientation="vertical" aria-label="음량 조절" aria-valuemin="0" aria-valuemax="100"><i></i></div>' +
     '</div>';
   document.body.appendChild(el);
 
@@ -269,9 +267,13 @@
   const tCur = q(".bgm-time em"), tTot = q(".bgm-time span");
   const playBtn = q(".bgm-play"), volBtn = q(".bgm-vbtn");
   const bar = q(".bgm-bar"), fill = q(".bgm-bar i");
-  const range = q(".bgm-range"), pct = q(".bgm-pct");
+  const vs = q(".bgm-vs"), pct = q(".bgm-pct");
+  bar.setAttribute("role", "slider");
+  bar.setAttribute("aria-label", "재생 위치");
+  bar.tabIndex = 0;
 
   let lastTitle = null, lastOn = null, lastMute = null;
+  let seeking = false, seekRatio = 0, hold = null;   // 진행 바 드래그 중 / 놓은 직후 잠깐 위치 고정
 
   function fitTitle() {                                       // 제목이 길면 천천히 흘러가요
     ttlB.classList.remove("run");
@@ -302,7 +304,7 @@
     }
   }
   function toggle() {
-    if (!engine || inEditor()) return;
+    if (!engine) return;
     if (engine.playing()) { want = false; engine.pause(); }
     else { want = true; engine.play(); }
     setTimeout(refresh, 60);
@@ -318,10 +320,16 @@
     el.classList.toggle("is-empty", !engine);
     playBtn.disabled = !engine;
 
-    const d = engine ? engine.dur() : 0, t = engine ? engine.time() : 0;
+    const d = engine ? engine.dur() : 0;
+    let t = engine ? engine.time() : 0;
+    if (seeking && d) t = d * seekRatio;                                  // 드래그하는 동안은 손가락 위치를 보여줘요
+    else if (hold && Date.now() < hold.until) t = hold.t;                 // 놓은 직후엔 이동한 위치를 잠깐 유지 (유튜브 반응 지연 보정)
     tCur.textContent = engine ? fmt(t) : "--:--";
     tTot.textContent = d ? fmt(d) : "--:--";
-    fill.style.width = d ? Math.min(100, t / d * 100) + "%" : "0%";
+    fill.style.width = d ? Math.max(0, Math.min(100, t / d * 100)) + "%" : "0%";
+    bar.setAttribute("aria-valuemin", "0");
+    bar.setAttribute("aria-valuemax", String(Math.floor(d)));
+    bar.setAttribute("aria-valuenow", String(Math.floor(t)));
 
     const title = titleText();
     if (title !== lastTitle) {
@@ -333,8 +341,8 @@
   }
   function paintVol() {
     const p = Math.round(vol * 100);
-    range.value = p;
-    range.style.setProperty("--v", p + "%");
+    vs.style.setProperty("--v", p + "%");
+    vs.setAttribute("aria-valuenow", p);
     pct.textContent = p + "%";
     const mute = p === 0;
     if (mute !== lastMute) { lastMute = mute; volBtn.innerHTML = mute ? ICON_MUTE : ICON_VOL; }
@@ -347,35 +355,87 @@
     if (!el.classList.contains("mini-open")) el.classList.remove("vol-open");
   });
   volBtn.addEventListener("click", function () { el.classList.toggle("vol-open"); });
-  range.addEventListener("input", function () {
-    vol = (+range.value) / 100;
+  /* ----- 세로 음량 바 : 누르거나 위아래로 드래그 (위 = 크게, 아래 = 작게) ----- */
+  function setVol(p) {
+    p = Math.max(0, Math.min(100, Math.round(p)));
+    vol = p / 100;
     if (engine) engine.vol(vol);
     FileEng.vol(vol);
     paintVol();
+  }
+  function volFromY(e) {
+    const r = vs.getBoundingClientRect();
+    setVol((1 - (e.clientY - r.top) / r.height) * 100);
+  }
+  let vDrag = false;
+  vs.addEventListener("pointerdown", function (e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    vDrag = true;
+    try { vs.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+    vs.focus();
+    volFromY(e);
+  });
+  vs.addEventListener("pointermove", function (e) { if (vDrag) volFromY(e); });
+  const vEnd = function () { vDrag = false; };
+  vs.addEventListener("pointerup", vEnd);
+  vs.addEventListener("pointercancel", vEnd);
+  vs.addEventListener("keydown", function (e) {               // 키보드: ↑→ 크게 / ↓← 작게
+    const p = Math.round(vol * 100);
+    const m = { ArrowUp: p + 5, ArrowRight: p + 5, ArrowDown: p - 5, ArrowLeft: p - 5, PageUp: p + 10, PageDown: p - 10, Home: 0, End: 100 };
+    if (!(e.key in m)) return;
+    e.preventDefault();
+    setVol(m[e.key]);
   });
   document.addEventListener("pointerdown", function (e) {     // 바깥을 누르면 음량 바가 닫혀요
     if (!el.contains(e.target)) el.classList.remove("vol-open", "mini-open");
   });
-  bar.addEventListener("click", function (e) {                // 진행 바를 눌러서 이동
+  /* ----- 진행 바 : 누르거나 좌우로 드래그해서 이동 (손을 떼는 순간 그 위치로 이동) ----- */
+  function ratioOf(e) {
+    const r = bar.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  }
+  function seekTo(t) {
     if (!engine) return;
     const d = engine.dur();
     if (!d) return;
-    const r = bar.getBoundingClientRect();
-    engine.seek(d * Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)));
+    t = Math.max(0, Math.min(d, t));
+    engine.seek(t);
+    hold = { t: t, until: Date.now() + 500 };
     refresh();
+  }
+  bar.addEventListener("pointerdown", function (e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (!engine || !engine.dur()) return;
+    seeking = true;
+    seekRatio = ratioOf(e);
+    el.classList.add("is-seek");
+    try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+    refresh();
+  });
+  bar.addEventListener("pointermove", function (e) {
+    if (!seeking) return;
+    seekRatio = ratioOf(e);
+    refresh();
+  });
+  function endSeek(commit) {
+    if (!seeking) return;
+    seeking = false;
+    el.classList.remove("is-seek");
+    if (commit && engine) seekTo(engine.dur() * seekRatio);
+    else refresh();
+  }
+  bar.addEventListener("pointerup", function (e) { seekRatio = ratioOf(e); endSeek(true); });
+  bar.addEventListener("pointercancel", function () { endSeek(false); });
+  bar.addEventListener("keydown", function (e) {              // 키보드: ←→ 5초 이동
+    if (!engine) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); seekTo(engine.time() + 5); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); seekTo(engine.time() - 5); }
   });
 
   // 편집기(#admin) · 설치 화면(#setup) 에서는 숨겨요
-  let wasEditor = inEditor();
-  function route() {
-    const ed = inEditor();
-    el.style.display = ed ? "none" : "";
-    if (engine) {
-      if (ed) { if (engine.playing()) engine.pause(); setTimeout(refresh, 60); }              // 편집기에서는 멈춰요
-      else if (wasEditor && want && !engine.playing()) { wait(); engine.play(); setTimeout(refresh, 60); }   // 편집기에서 나오면 이어서 재생
-    }
-    wasEditor = ed;
-  }
+  function route() { el.style.display = /^#\/?(admin|setup)/.test(location.hash) ? "none" : ""; }
   window.addEventListener("hashchange", route);
   route();
 
