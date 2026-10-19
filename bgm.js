@@ -91,6 +91,22 @@
     if (p && p.catch) p.catch(function (err) { if (err && err.name === "NotAllowedError") wait(); });
   }
 
+  /* 자동 재생 우회 시도 : 소리 없는 음악 파일을 allow="autoplay" iframe 으로 먼저 불러와요.
+     (예전 크롬에서 통하던 방법이라 지금은 막혀 있을 수 있어요. 안 통해도 아무 일도 일어나지 않고,
+      그땐 기존처럼 화면을 처음 누를 때 재생돼요) */
+  function unlockFrame() {
+    const f = document.createElement("iframe");
+    f.src = clean(CFG.silence) || "silence.mp3";
+    f.setAttribute("allow", "autoplay");
+    f.setAttribute("aria-hidden", "true");
+    f.tabIndex = -1;
+    f.style.display = "none";
+    f.addEventListener("load", function () {                  // iframe 이 불러와진 뒤 한 번 더 재생 시도
+      if (want && engine && !engine.playing()) { engine.play(); setTimeout(refresh, 60); }
+    });
+    document.body.appendChild(f);
+  }
+
   /* =====================================================
      엔진 1 : 음악 파일
      ===================================================== */
@@ -191,18 +207,18 @@
      ===================================================== */
   function apply() {
     const t = layers.item || layers.page || DEF;
-    const isItem = t === layers.item && !!layers.item;        // 프로필 · 페어 곡은 열 때마다 처음부터
+    const isItem = t === layers.item && !!layers.item;
     const src = clean(t.src);
     if (src === curKey) { if (t.title !== (track && track.title)) { track = t; refresh(); } return; }
 
-    if (engine && curKey && !curItem) saved[curKey] = engine.time();   // 기본 · 페이지 곡만 떠나는 위치를 기억
+    if (engine && curKey && !curItem) saved[curKey] = engine.time();
     const old = engine;
     curKey = src;
     curItem = isItem;
     track = t;
     note = "";
 
-    if (!src) {                                               // 틀 곡이 없으면 멈춤
+    if (!src) {
       if (old) old.pause();
       engine = null;
       refresh();
@@ -361,7 +377,7 @@
      시작
      ===================================================== */
   paintVol();
-  if (!PREVIEW) { want = true; wait(); }     // 자동 재생 : 막히면 처음 누를 때 재생
+  if (CFG.autoplay && !PREVIEW) { want = true; wait(); unlockFrame(); }     // 자동 재생 : 막히면 처음 누를 때 재생
   apply();
   setInterval(refresh, 250);
 })();
