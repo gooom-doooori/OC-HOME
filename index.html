@@ -1595,6 +1595,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         });
         rl.scrollTop = 0;
         rl.classList.add("open");
+        document.body.classList.add("rl-open");
       }
 
       /* ----- 갤러리 크게 보기 ----- */
@@ -1611,7 +1612,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       box.addEventListener("click", function (e) { if (e.target === box || e.target.classList.contains("box-close")) closeBox(); });
       box.querySelector(".box-prev").addEventListener("click", function () { moveBox(-1); });
       box.querySelector(".box-next").addEventListener("click", function () { moveBox(1); });
-      function closeRelation() { rl.classList.remove("open"); BGM.item(""); }
+      function closeRelation() { rl.classList.remove("open"); document.body.classList.remove("rl-open"); BGM.item(""); }
 
       addKey( function (e) {
         if (box.classList.contains("open")) {
@@ -2098,7 +2099,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         holder.classList.add("ow-out");
         setTimeout(function () {
           draw(OWNERS[current]);
-          holder.classList.remove("ow-out");
+          document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single", "rl-open");
           busy = false;
         }, 200);
       }
