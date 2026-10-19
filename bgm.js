@@ -19,6 +19,8 @@
 
   const PREVIEW = window.parent !== window && /[?&]preview=1/.test(location.search);
   const clean = function (s) { return String(s == null ? "" : s).trim(); };
+  // 편집기(#admin) · 설치 화면(#setup) 에서는 소리를 내지 않아요. (미리보기 iframe 은 해당 없음 → 그대로 재생돼요)
+  const inEditor = function () { return /^#\/?(admin|setup)/.test(location.hash); };
 
   // 사이트 어디에도 곡이 없으면 플레이어를 안 만들어요
   function anySong() {
@@ -79,7 +81,7 @@
     };
     const go = function (e) {
       if (engine && engine.playing()) { off(); return; }          // 이미 재생 중이면 끝
-      if (!want || !engine) return;
+      if (!want || !engine || inEditor()) return;
       if (e && el && el.contains(e.target)) return;
       if (e && e.target && e.target.closest && e.target.closest("[data-bgm-btn]")) return;   // 페어 상세의 BGM 버튼도 마찬가지
       engine.play();
@@ -103,7 +105,7 @@
     f.tabIndex = -1;
     f.style.display = "none";
     f.addEventListener("load", function () {                  // iframe 이 불러와진 뒤 한 번 더 재생 시도
-      if (want && engine && !engine.playing()) { engine.play(); setTimeout(refresh, 60); }
+      if (want && engine && !engine.playing() && !inEditor()) { engine.play(); setTimeout(refresh, 60); }
     });
     document.body.appendChild(f);
   }
@@ -229,7 +231,7 @@
     engine = id ? YtEng : FileEng;
     if (old && old !== engine) old.pause();
     engine.vol(vol);
-    engine.load(id || src, isItem ? 0 : (saved[src] || 0), want);
+    engine.load(id || src, isItem ? 0 : (saved[src] || 0), want && !inEditor());
     refresh();
   }
 
@@ -300,7 +302,7 @@
     }
   }
   function toggle() {
-    if (!engine) return;
+    if (!engine || inEditor()) return;
     if (engine.playing()) { want = false; engine.pause(); }
     else { want = true; engine.play(); }
     setTimeout(refresh, 60);
@@ -364,7 +366,16 @@
   });
 
   // 편집기(#admin) · 설치 화면(#setup) 에서는 숨겨요
-  function route() { el.style.display = /^#\/?(admin|setup)/.test(location.hash) ? "none" : ""; }
+  let wasEditor = inEditor();
+  function route() {
+    const ed = inEditor();
+    el.style.display = ed ? "none" : "";
+    if (engine) {
+      if (ed) { if (engine.playing()) engine.pause(); setTimeout(refresh, 60); }              // 편집기에서는 멈춰요
+      else if (wasEditor && want && !engine.playing()) { wait(); engine.play(); setTimeout(refresh, 60); }   // 편집기에서 나오면 이어서 재생
+    }
+    wasEditor = ed;
+  }
   window.addEventListener("hashchange", route);
   route();
 
