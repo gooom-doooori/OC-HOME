@@ -428,7 +428,6 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       // 키보드 단축키는 지금 페이지 것만 작동하게
       let keyHandlers = [];
-      BGM.reset();
       function addKey(fn) { keyHandlers.push(fn); }
       document.addEventListener("keydown", function (e) {
         keyHandlers.forEach(function (fn) { fn(e); });
@@ -2479,6 +2478,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function show(route) {
         if (ROUTES.indexOf(route) < 0) route = "home";
         keyHandlers = [];
+        BGM.reset();
         document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
         document.body.setAttribute("data-page", route);
                 app.innerHTML = document.getElementById("tpl-" + ((route === "floormaster" || route === "other") ? "character" : route)).innerHTML;
