@@ -3410,7 +3410,6 @@ input, textarea, select, [contenteditable="true"],
   gap: 12px;
   height: 44px;
   padding: 0 7px 0 16px;
-  background: var(--menu-bar);         /* 메뉴 막대와 같은 색 */
   color: var(--menu-text);
 }
 
