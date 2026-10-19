@@ -361,7 +361,7 @@
      시작
      ===================================================== */
   paintVol();
-  if (CFG.autoplay && !PREVIEW) { want = true; wait(); }     // 자동 재생 : 막히면 처음 누를 때 재생
+  if (!PREVIEW) { want = true; wait(); }     // 자동 재생 : 막히면 처음 누를 때 재생
   apply();
   setInterval(refresh, 250);
 })();
