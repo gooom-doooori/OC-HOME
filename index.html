@@ -1016,6 +1016,12 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '</div>';
           holder.setAttribute("data-type", "full");
           document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
+          holder.querySelectorAll(".fb-ports span").forEach(function (sp, n) {
+            sp.addEventListener("click", function (e) {
+              e.stopPropagation();
+              openBox(ports.map(function (p) { return { image: p, caption: ch.name || "" }; }), n);
+            });
+          });
           drawSd(ch, mode);
           return;
         }
