@@ -3282,13 +3282,6 @@ input, textarea, select, [contenteditable="true"],
 }
 .fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
 
-.is-flipped .cd-fb:not(.hold):not(.ports-out) .fb-ports span {
-  pointer-events: auto;
-  cursor: zoom-in;
-}
-.fb-ports span img { transition: transform .4s; }
-.is-flipped .cd-fb:not(.hold):not(.ports-out) .fb-ports span:hover img { transform: scale(1.08); }
-
 /* 보기 전환 시작: 포트레이트 먼저 뿅 사라짐 (상세가 열려 있어도) */
 .cd-fb.ports-out .fb-ports span,
 .is-flipped .cd-fb.ports-out .fb-ports span {
@@ -3494,27 +3487,52 @@ input, textarea, select, [contenteditable="true"],
 .bgm-vbtn svg { width: 18px; height: 18px; }
 .bgm-vbtn:hover, .bgm.vol-open .bgm-vbtn { color: var(--accent); }
 
-/* 아래 진행 바 (눌러서 이동) */
+/* 아래 진행 바 (눌러서 이동 · 좌우로 드래그해서 시간 조절) */
 .bgm-bar {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 3px;
   background: rgba(128, 128, 128, .35);
   cursor: pointer;
+  touch-action: none;                  /* 모바일에서 드래그할 때 화면이 같이 스크롤되지 않게 */
+  user-select: none;
+  outline: none;
+  transition: height .15s;
 }
-.bgm-bar::before { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: 0; }
-.bgm-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.bgm-bar::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; bottom: -4px; }   /* 누르기 쉽게 터치 영역을 넓혀요 */
+.bgm-bar i { position: relative; display: block; height: 100%; width: 0; background: var(--accent); }
+.bgm-bar i::after {                    /* 마름모 손잡이 (음량 바와 같은 모양) */
+  content: "";
+  position: absolute;
+  right: 0; top: 50%;
+  width: 10px; height: 10px;
+  margin: -5px -5px 0 0;
+  background: var(--accent);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.bgm:not(.is-empty) .bgm-bar:hover,
+.bgm:not(.is-empty) .bgm-bar:focus-visible,
+.bgm.is-seek .bgm-bar { height: 5px; }
+.bgm:not(.is-empty) .bgm-bar:hover i::after,
+.bgm:not(.is-empty) .bgm-bar:focus-visible i::after,
+.bgm.is-seek .bgm-bar i::after { opacity: 1; }
+@media (hover: none) { .bgm:not(.is-empty) .bgm-bar i::after { opacity: 1; } }   /* 터치 화면에선 손잡이를 항상 보여줘요 */
 .bgm.is-empty .bgm-bar { cursor: default; }
 
-/* 음량 조절 바 (음량 버튼을 누르면 아래로 펼쳐져요) */
+/* 음량 조절 바 (음량 버튼을 누르면 아래로 펼쳐져요 · 세로형) */
 .bgm-pop {
   position: absolute;
-  right: 0;
+  right: 0;                            /* 음량 버튼 바로 아래에 오도록 */
   top: calc(100% + 6px);
+  width: 44px;
+  box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 12px 0 14px;
   background: var(--menu-bar);
   color: var(--menu-text);
   opacity: 0;
@@ -3524,36 +3542,45 @@ input, textarea, select, [contenteditable="true"],
 }
 .bgm.vol-open .bgm-pop { opacity: 1; pointer-events: auto; transform: none; }
 .bgm-pct {
-  width: 34px;
-  text-align: right;
+  width: 100%;
+  text-align: center;
   font-family: var(--font-mono), monospace;
   font-size: 11px;
   color: var(--menu-desc);
 }
-.bgm-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 120px;
-  height: 4px;
-  margin: 0;
-  border-radius: 0;
-  outline: none;
+.bgm-vs {                              /* 세로 음량 슬라이더 (위 = 크게 / 아래 = 작게) */
+  position: relative;
+  width: 28px;                         /* 누르기 쉬운 영역 (선 자체는 4px) */
+  height: 110px;                       /* ★ 음량 바 길이 */
   cursor: pointer;
-  background: linear-gradient(to right, var(--accent) var(--v, 40%), rgba(128,128,128,.4) var(--v, 40%));
+  touch-action: none;
+  user-select: none;
+  outline: none;
 }
-.bgm-range::-webkit-slider-thumb {     /* 마름모 손잡이 */
-  -webkit-appearance: none;
+.bgm-vs::before {                      /* 바탕 선 */
+  content: "";
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 4px; margin-left: -2px;
+  background: rgba(128, 128, 128, .4);
+}
+.bgm-vs i {                            /* 채워진 부분 (아래에서부터) */
+  position: absolute;
+  left: 50%; bottom: 0;
+  width: 4px; margin-left: -2px;
+  height: var(--v, 40%);
+  background: var(--accent);
+}
+.bgm-vs i::after {                     /* 마름모 손잡이 */
+  content: "";
+  position: absolute;
+  left: 50%; top: 0;
   width: 11px; height: 11px;
-  border: 0; border-radius: 0;
+  margin: -5.5px 0 0 -5.5px;
   background: var(--accent);
   transform: rotate(45deg);
 }
-.bgm-range::-moz-range-thumb {
-  width: 11px; height: 11px;
-  border: 0; border-radius: 0;
-  background: var(--accent);
-  transform: rotate(45deg);
-}
+.bgm-vs:focus-visible i::after { outline: 2px solid var(--menu-text); outline-offset: 2px; }
 
 /* 유튜브 곡용 숨은 플레이어 (소리만 나와요) */
 .bgm-yt {
