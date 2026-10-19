@@ -306,8 +306,8 @@
     setTimeout(refresh, 60);
   }
   function refresh() {
-    paintBound(on);
     const on = !!engine && engine.playing();
+    paintBound(on);
     if (on !== lastOn) {
       lastOn = on;
       el.classList.toggle("is-playing", on);
