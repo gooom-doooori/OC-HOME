@@ -3416,7 +3416,7 @@ input, textarea, select, [contenteditable="true"],
 /* 이퀄라이저 (재생 중에만 움직여요) */
 .bgm-eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0; }
 .bgm-eq i { width: 3px; height: 28%; background: var(--accent); }
-.bgm.is-playing .bgm-eq i { animation: bgmEq ease-in-out infinite; }
+.bgm.is-playing .bgm-eq i { animation: bgmEq 0.15s ease-in-out infinite; }
 .bgm-eq i:nth-child(1) { animation-duration: 0.8s; animation-delay: 0.15s; }
 .bgm-eq i:nth-child(2) { animation-duration: 0.5s; animation-delay: 0.3s; }
 .bgm-eq i:nth-child(3) { animation-duration: 0.7s; animation-delay: 0.0s; }
