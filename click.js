@@ -11,8 +11,8 @@
 (function () {
   /* ★ 여기만 바꾸면 돼요 */
   var CFG = {
-    src: "audio/click.mp3",     // 효과음 파일 주소 (사이트 폴더 안 파일 또는 업로드한 파일 주소)
-    volume: 50,                 // 음량 (0 ~ 100)
+    src: "click.mp3",
+    volume: 10,
     // 소리를 낼 대상 (CSS 선택자). 이미지를 빼고 싶으면 맨 뒤의 ", img" 를 지우세요.
     targets: "a, button, summary, label, input, select, textarea, [role='button'], [role='switch'], " +
              ".ch-tile-row, .cd-flip, .fb-flip, .rv, .rt-shot, .dt-shot, .rt-log, .dt-rel-item.linked, .menu-link, img",
