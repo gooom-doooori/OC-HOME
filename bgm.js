@@ -62,12 +62,11 @@
   let vol = Math.max(0, Math.min(100, CFG.volume != null && CFG.volume !== "" ? +CFG.volume : 40)) / 100;
   const layers = { page: null, item: null };   // page: 플로어마스터 / Other 페이지 곡, item: 프로필 · 페어 곡
   const saved = {};                            // 곡별로 멈춘 위치 (돌아오면 이어서 재생)
-  let engine = null, track = null, curKey = "", note = "";
+  let engine = null, track = null, curKey = "", note = "", curItem = false;   // curItem: 지금 곡이 프로필 · 페어 곡인지
   let want = false;                            // 사용자가 "재생 중이길" 원하는 상태
 
-  /* 브라우저가 소리 재생을 막았을 때: 화면을 처음 누르는 순간 재생해요 */
-  let waiting = false;
-  let el = null;
+  /* 브라우저가 소리 재생을 막았을 때: 화면을 처음 누르는 순간 재생해요.
+     (모바일은 pointerdown 이 아니라 손을 뗄 때 · click 부터 "눌렀다" 고 인정해서 여러 입력을 같이 들어요) */
   const GESTURES = ["pointerup", "click", "touchend", "keydown"];
   let waiting = false;
   let el = null;
@@ -192,12 +191,14 @@
      ===================================================== */
   function apply() {
     const t = layers.item || layers.page || DEF;
+    const isItem = t === layers.item && !!layers.item;        // 프로필 · 페어 곡은 열 때마다 처음부터
     const src = clean(t.src);
     if (src === curKey) { if (t.title !== (track && track.title)) { track = t; refresh(); } return; }
 
-    if (engine && curKey) saved[curKey] = engine.time();      // 떠나는 곡의 위치 기억
+    if (engine && curKey && !curItem) saved[curKey] = engine.time();   // 기본 · 페이지 곡만 떠나는 위치를 기억
     const old = engine;
     curKey = src;
+    curItem = isItem;
     track = t;
     note = "";
 
@@ -211,7 +212,7 @@
     engine = id ? YtEng : FileEng;
     if (old && old !== engine) old.pause();
     engine.vol(vol);
-    engine.load(id || src, saved[src] || 0, want);
+    engine.load(id || src, isItem ? 0 : (saved[src] || 0), want);
     refresh();
   }
 
@@ -335,7 +336,7 @@
      BGM.item(곡, 제목) : 캐릭터 프로필 · 페어 관계 화면 곡 (비우면 해제)
      BGM.reset()        : 페이지를 옮길 때 (곡 설정만 풀어요)
      ===================================================== */
-    // 지금 보고 있는 페이지 이름 (#floormaster → "floormaster")
+  // 지금 보고 있는 페이지 이름 (#floormaster → "floormaster")
   const here = function () { return location.hash.slice(1); };
 
   window.BGM = {
@@ -345,6 +346,7 @@
   };
 
   // 곡을 지정했던 페이지를 벗어나면 그 곡 설정을 스스로 풀고 기본 BGM 으로 돌아가요.
+  // (페이지 쪽 코드가 새 곡을 지정하는 걸 기다렸다가 확인해서, 플로어마스터 ↔ Other 이동 때 기본곡이 잠깐 끼어들지 않아요)
   window.addEventListener("hashchange", function () {
     setTimeout(function () {
       let changed = false;
