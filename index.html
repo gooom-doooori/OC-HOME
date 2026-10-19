@@ -2098,7 +2098,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         holder.classList.add("ow-out");
         setTimeout(function () {
           draw(OWNERS[current]);
-          document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
+          holder.classList.remove("ow-out");
           busy = false;
         }, 200);
       }
