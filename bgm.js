@@ -68,18 +68,25 @@
   /* 브라우저가 소리 재생을 막았을 때: 화면을 처음 누르는 순간 재생해요 */
   let waiting = false;
   let el = null;
+  const GESTURES = ["pointerup", "click", "touchend", "keydown"];
+  let waiting = false;
+  let el = null;
   function wait() {
     if (waiting) return;
     waiting = true;
-    const go = function (e) {
+    const off = function () {
       waiting = false;
-      document.removeEventListener("pointerdown", go, true);
-      document.removeEventListener("keydown", go, true);
-      if (e && el && el.contains(e.target)) return;      // 플레이어를 직접 누른 거면 그 버튼이 알아서 해요
-      if (want && engine) engine.play();
+      GESTURES.forEach(function (n) { document.removeEventListener(n, go, true); });
     };
-    document.addEventListener("pointerdown", go, true);
-    document.addEventListener("keydown", go, true);
+    const go = function (e) {
+      if (engine && engine.playing()) { off(); return; }          // 이미 재생 중이면 끝
+      if (!want || !engine) return;
+      if (e && el && el.contains(e.target)) return;               // 플레이어 버튼은 버튼이 알아서 해요
+      engine.play();
+      setTimeout(refresh, 60);
+      setTimeout(function () { if (engine && engine.playing()) off(); }, 500);   // 그래도 안 되면 다음 입력에 다시 시도
+    };
+    GESTURES.forEach(function (n) { document.addEventListener(n, go, true); });
   }
   function kick(p) {
     if (p && p.catch) p.catch(function (err) { if (err && err.name === "NotAllowedError") wait(); });
@@ -328,11 +335,25 @@
      BGM.item(곡, 제목) : 캐릭터 프로필 · 페어 관계 화면 곡 (비우면 해제)
      BGM.reset()        : 페이지를 옮길 때 (곡 설정만 풀어요)
      ===================================================== */
+    // 지금 보고 있는 페이지 이름 (#floormaster → "floormaster")
+  const here = function () { return location.hash.slice(1); };
+
   window.BGM = {
-    page: function (src, title) { layers.page = clean(src) ? { src: clean(src), title: clean(title) } : null; apply(); },
-    item: function (src, title) { layers.item = clean(src) ? { src: clean(src), title: clean(title) } : null; apply(); },
+    page: function (src, title) { layers.page = clean(src) ? { src: clean(src), title: clean(title), at: here() } : null; apply(); },
+    item: function (src, title) { layers.item = clean(src) ? { src: clean(src), title: clean(title), at: here() } : null; apply(); },
     reset: function () { layers.page = null; layers.item = null; apply(); }
   };
+
+  // 곡을 지정했던 페이지를 벗어나면 그 곡 설정을 스스로 풀고 기본 BGM 으로 돌아가요.
+  window.addEventListener("hashchange", function () {
+    setTimeout(function () {
+      let changed = false;
+      ["page", "item"].forEach(function (k) {
+        if (layers[k] && layers[k].at !== here()) { layers[k] = null; changed = true; }
+      });
+      if (changed) apply();
+    }, 0);
+  });
 
   /* =====================================================
      시작
