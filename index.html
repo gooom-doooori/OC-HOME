@@ -1557,6 +1557,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
                 ? '<img src="' + p.titleImage + '" alt="' + (p.pairName || "") + '">'
                 : '<h2>' + (p.pairName || "") + '</h2>') +
               (p.pairNameSub ? '<p>' + p.pairNameSub + '</p>' : "") +
+              '<button type="button" class="rl-bgm" hidden aria-label="BGM 재생"><span class="pp" aria-hidden="true"><i></i><i></i></span></button>' +
             '</header>' +
             '<section class="rl-hero n' + p.members.length + '">' +
               rows +
@@ -1574,6 +1575,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '</section>' +
           '</div>';
         rl.querySelector(".rl-close").addEventListener("click", closeRelation);
+        const rb = rl.querySelector(".rl-bgm");                       // 이름 아래 BGM 버튼 (곡이 있을 때만 보여요)
+        if (rb && BGM.bind(rb)) rb.hidden = false;
         rl.querySelectorAll(".rl-tabs button").forEach(function (b) {
           b.addEventListener("click", function () {
             const t = b.getAttribute("data-t");
