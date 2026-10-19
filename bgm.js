@@ -306,7 +306,6 @@
     setTimeout(refresh, 60);
   }
   function refresh() {
-    const on = !!engine && engine.playing();
     paintBound(on);
     const on = !!engine && engine.playing();
     if (on !== lastOn) {
