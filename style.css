@@ -3394,6 +3394,16 @@ input, textarea, select, [contenteditable="true"],
 .ch-box.single .box-next,
 .ch-box.single .box-cap small { display: none; }
 
+/* 글 속 캐릭터 링크 (누르면 그 캐릭터 상세 프로필로 이동) */
+.ch-link {
+  cursor: pointer;
+  font-weight: 700;
+  border-bottom: 2px solid var(--c, currentColor);
+  outline: none;
+  transition: opacity .2s;
+}
+.ch-link:hover, .ch-link:focus-visible { opacity: .65; }
+
 /* 스포일러 */
 .spoil { filter: blur(6px); cursor: pointer; user-select: none; transition: filter .3s; }
 .spoil.open { filter: none; user-select: auto; }
