@@ -528,7 +528,7 @@
       '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
       '.oha-link>details.oha-box{margin:6px 0}' +
       'details.oha-box{padding:0;background:#e6e6ea;border:1px solid #cfcfd6;overflow:hidden}' +
-      'details.oha-box details.oha-box{background:#eeeef1}' +
+      'details.oha-box details.oha-box{background:#f3f3f3}' +
       'details.oha-box>summary{list-style:none;padding:9px 12px;user-select:none}' +
       'details.oha-box>summary::-webkit-details-marker{display:none}' +
       'details.oha-box>summary:hover{background:rgba(0,0,0,.04)}' +
@@ -651,6 +651,30 @@
     function refresh() { fit(); paint(); }
     ta.addEventListener('input', function () { refresh(); if (onChange) onChange(ta.value); });
     ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; });
+    /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
+    function insertAt(t) {
+      ta.focus();
+      if (!document.execCommand || !document.execCommand('insertText', false, t)) {
+        ta.setRangeText(t, ta.selectionStart, ta.selectionEnd, 'end');
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    if (opt.autoBr) {
+      ta.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || e.shiftKey || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+        var before = ta.value.slice(0, ta.selectionStart);
+        if (before.lastIndexOf('<') > before.lastIndexOf('>')) return;
+        if (/<\/?(?:ul|ol|li|details|summary|div|p|h[1-6])\b[^>]*>\s*$/i.test(before)) return;
+        e.preventDefault();
+        insertAt('<br>\n');
+      });
+      ta.addEventListener('paste', function (e) {          /* 여러 줄을 붙여넣어도 줄마다 <br> 가 들어가요 */
+        var t = e.clipboardData && e.clipboardData.getData('text');
+        if (!t || !/\n/.test(t) || /</.test(t)) return;
+        e.preventDefault();
+        insertAt(t.replace(/\r?\n/g, '<br>\n'));
+      });
+    }
     paint();
     setTimeout(refresh, 0);
     if (window.ResizeObserver) {                       /* 접혀 있던 칸이 펼쳐질 때 / 너비가 바뀔 때 다시 맞춰요 */
@@ -663,14 +687,14 @@
   }
 
   /* 크게 편집 : 왼쪽 미리보기 / 오른쪽 편집 */
-  function openEditor(label, hl, set) {
+  function openEditor(label, hl, set, autoBr) {
     var old = $('.oha-pop'); if (old) old.remove();
     var pvIn = h('div', { class: 'oha-pop-pvin dt-story' });
     var area = hlArea(hl.ta.value, function (v) {
       hl.ta.value = v; hl.refresh();                   /* 원래 칸 · 저장할 값 · 미리보기에 바로 반영 */
       set(v); touch();
       pvIn.innerHTML = v;
-    }, { fill: true });
+    }, { fill: true, autoBr: autoBr });
     pvIn.innerHTML = area.ta.value;
 
     function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
@@ -719,12 +743,13 @@
     var isImg = !!(IMAGE_KEYS[key] || IMAGE_KEYS[pkey]);
     var long = LONG_KEYS[key] || String(val).indexOf('\n') >= 0;
     if (long && !isImg) {
-      var hl = hlArea(val, function (v) { set(v); touch(); }, {});
+      var autoBr = key !== 'code' && key !== 'message';
+      var hl = hlArea(val, function (v) { set(v); touch(); }, { autoBr: autoBr });
       var phl = PH[pkey + '.' + key] || PH[key]; if (phl) hl.ta.placeholder = phl;
       var ex = h('button', { class: 'oha-btn oha-xs', type: 'button', text: '⤢ 크게 편집 · 미리보기' });
-      ex.onclick = function () { openEditor(LABEL[key] || key, hl, set); };
+      ex.onclick = function () { openEditor(LABEL[key] || key, hl, set, autoBr); };
       var lg = h('span', { class: 'oha-legend' });
-      lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크';
+      lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크' + (autoBr ? ' · 엔터 = 줄바꿈(&lt;br&gt; 자동)' : '');
       wrap.appendChild(hl.el);
       wrap.appendChild(h('div', { class: 'oha-xrow' }, [ex, lg]));
       return wrap;
