@@ -449,15 +449,16 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return (real && ch.useRealName !== false) ? ch.realName : ((ch && ch.name) || "");
       }
 
-      // 상세 프로필에 표시할 영문 이름: 본명 영문 이름이 있고 "표시"가 켜져 있으면 그것, 아니면 기존 영문 이름
+      // 상세 프로필에 표시할 이름: "본명 표시"가 켜져 있고 본명이 있으면 본명, 아니면 가명
+      function detailName(ch) {
+        const real = String((ch && ch.realName) || "").trim();
+        return (real && ch.useRealName === true) ? ch.realName : ((ch && ch.name) || "");
+      }
+      
+      // 영문 이름도 같은 체크박스를 따라가요
       function detailNameEn(ch) {
         const real = String((ch && ch.realNameEn) || "").trim();
-        return (real && ch.useRealNameEn !== false) ? ch.realNameEn : ((ch && ch.nameEn) || "");
-      }
-
-      // 이름에 걸린 링크(<a>, 캐릭터 링크)를 벗겨내고 글자만 남겨요. 타일 · 카드 · 페어 화면용 (상세 프로필은 그대로 링크 유지)
-      function plainName(v) {
-        return String(v == null ? "" : v).replace(/<a\b[^>]*>/gi, "").replace(/<\/a>/gi, "");
+        return (real && ch.useRealName === true) ? ch.realNameEn : ((ch && ch.nameEn) || "");
       }
 
       const PAGES = {};
@@ -852,6 +853,45 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return ch.story ? '<div class="dt-story">' + ch.story + '</div>' : "";
       }
 
+      /* ---------- 가명 → 본명 뒤섞기 효과 ---------- */
+      let morphJobs = [], morphTimer = 0, morphDelay = 0;
+      const SCR_POOL = "가각간갈감강개거건걸검겨결경고곡공관광교구국군궁귀규균그극근금기김나난날남내너노녀능다단달담당대덕도독동두라란람랑래량려력련령로록론루류리림마만말망매명모목무문미민바박반발방배백범벽변별보복본봉부북분불비빈사산살삼상새서석선설성세소손송수순술스승시신실심아안알암앙애야약양어언얼여연열영예오옥온왕요용우운원월위유윤은을음의이인일임자작잔장재저전절정제조종주준중지진차찬창채천철청초최추춘충치탄태통파판평포표풍하한함해행허현형호홍화환황효후훈희ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#@%&*";
+      const plainText = function (html) { const d = document.createElement("div"); d.innerHTML = html; return d.textContent || ""; };
+      function stopMorph() { clearInterval(morphTimer); morphTimer = 0; }
+      function resetMorph() {                       // 가명으로 되돌리기
+        stopMorph();
+        morphJobs.forEach(function (j) { if (j.el.isConnected) j.el.innerHTML = j.from; });
+      }
+      function runMorph() {
+        stopMorph();
+        const jobs = morphJobs.filter(function (j) { return j.el.isConnected; });
+        if (!jobs.length) return;
+        const t0 = Date.now(), DUR = 1000;
+        jobs.forEach(function (j) {
+          j.fa = plainText(j.from);
+          j.ta = plainText(j.to);
+          const len = Math.max(j.fa.length, j.ta.length, 1);
+          j.thr = [];
+          for (let i = 0; i < len; i++) j.thr.push(i / len * 0.55 + Math.random() * 0.45);   // 글자마다 확정되는 시점이 제각각
+        });
+        morphTimer = setInterval(function () {
+          const p = Math.min(1, (Date.now() - t0) / DUR);
+          jobs.forEach(function (j) {
+            if (p >= 1) { j.el.innerHTML = j.to; return; }   // 마지막엔 원본(링크 등 포함)으로
+            const L = Math.round(j.fa.length + (j.ta.length - j.fa.length) * p);
+            let s = "";
+            for (let i = 0; i < L; i++) {
+              const c = j.ta[i];
+              if (c !== undefined && p >= j.thr[i]) s += c;
+              else if (c === " ") s += " ";
+              else s += SCR_POOL.charAt(Math.floor(Math.random() * SCR_POOL.length));
+            }
+            j.el.textContent = s;
+          });
+          if (p >= 1) stopMorph();
+        }, 45);
+      }
+
       function renderDetail(ch, i) {
         const color = cardColor(ch.color);
         detail.style.setProperty("--c", color);
@@ -917,6 +957,17 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<section class="dt-pane" data-pane="gallery">' + paneGallery + '</section>' +
             '<section class="dt-pane" data-pane="relation">' + paneRelation + '</section>' +
           '</div>';
+
+
+        // 본명 표시 캐릭터: 상세가 열릴 때 가명 → 본명으로 바뀌어요
+        stopMorph();
+        morphJobs = [];
+        if (!document.body.classList.contains("is-flipped")) {   // 이미 열려 있는 상태에서 다시 그릴 땐 바로 본명
+          [[".dt-name", ch.name, detailName(ch)], [".dt-en", ch.nameEn, detailNameEn(ch)]].forEach(function (a) {
+            const el = detail.querySelector(a[0]), from = a[1] || "", to = a[2] || "";
+            if (el && from !== to) { el.innerHTML = from; morphJobs.push({ el: el, from: from, to: to }); }
+          });
+        }
 
         // 탭 전환
         detail.querySelectorAll(".dt-tabs button").forEach(function (btn) {
@@ -997,8 +1048,12 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const next = (on === undefined) ? !was : on;
         f.classList.toggle("flipped", next);
         document.body.classList.toggle("is-flipped", next);
+        if (next !== was) {
+          clearTimeout(morphDelay);
+          if (next) morphDelay = setTimeout(runMorph, 550);
+          else morphDelay = setTimeout(resetMorph, 700);
+        }
         if (!FM && !OT) { const c = list[current]; BGM.item(next && c ? c.bgm : "", c && c.bgmTitle); }
-        // 전신 보기: 카드처럼 한 바퀴 빙글 돌면서 열리고 닫혀요
         if (f.classList.contains("fb-flip") && next !== was) {
           f.classList.remove("spin"); void f.offsetWidth; f.classList.add("spin");
         }
