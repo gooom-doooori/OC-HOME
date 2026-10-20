@@ -36,7 +36,7 @@
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
     fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)',
-    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
+    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', realName: '본명', useRealName: '본명 표시', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
     relations: '관계', customFront: '앞면 이미지', customBack: '뒷면 이미지', customRatio: '카드 비율',
@@ -73,7 +73,7 @@
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
   /* 체크 칸 옆에 붙는 글자 (없으면 "사용") */
-  var BOOL_TEXT = { spoiler: '스포일러 포함 — 체크하면 열람 전에 경고 팝업이 떠요' };
+  var BOOL_TEXT = { useRealName: '체크하면 상세 페이지에 본명 표시 / 해제하면 기존 이름(가명) 표시', spoiler: '스포일러 포함 — 체크하면 열람 전에 경고 팝업이 떠요' };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
@@ -100,6 +100,7 @@
 
   var PH_CARD = {
     nameEn: '직책 · 영문 이름 등',
+    realName: '상세 페이지에 표시될 본명 (비우면 기존 이름 표시)',
     faction: '같은 진영끼리 왼쪽 목록에서 묶여요.',
     intro: '카드 앞면 한 줄 소개',
     number: '학생증 - ID No. · 티켓 - 코드 · 수배지 - 현상금',
@@ -202,7 +203,7 @@
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
-    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
+    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', realName: '', useRealName: true, nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
     number: '', seat: { gate: '', row: '', seat: '' }, profile: [], quote: '', story: '', gallery: [], relations: [],
     customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: ''
   };
@@ -244,7 +245,7 @@
      when 이 있는 섹션은 그 상태일 때만 나타나요. */
   function cardType(o) { return ['id', 'ticket', 'wanted', 'custom'].indexOf(o.type) > -1 ? o.type : 'id'; }
   var CARD_SECTIONS = [
-    { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], 'faction', 'spoiler', 'intro', 'tags'] },
+    { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], ['realName', 'useRealName'], 'faction', 'spoiler', 'intro', 'tags'] },
     { t: '카드 외형', tag: '공통', rows: ['type', ['color', 'subColor', 'textColor'], ['cardTitle', 'cardSub'], 'number'] },
     { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], ['sd', 'sdSize']] },
     { t: '상세 프로필', tag: '공통', rows: ['profile', 'quote', 'story'] },
