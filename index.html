@@ -454,6 +454,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return c ? { page: "character", idx: n - 1, ch: c } : null;
       }
       let CH_START = null;
+      const spoilSeen = {};     // "예" 한 스포일러 캐릭터 (새로고침 전까지, 페이지를 오가도 기억해요)
 
       /* ##################################################### */
       /* ##### 페이지: home ##### */
@@ -940,8 +941,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const tg = chRef(String(ref == null ? "" : ref).trim());
         if (!tg) return;
         if (tg.page === PAGE) {
-          go(tg.idx);
-          setTimeout(function () { flip(true); }, 350);
+          enter(tg.idx, function () { setTimeout(function () { flip(true); }, 350); });
         } else {
           CH_START = { i: tg.idx, flip: true };
           location.hash = "#" + tg.page;
@@ -1130,6 +1130,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function render(i) {
         const ch = list[i];
         if (!ch) return;
+        shown = i;
+        spoilBanner(isSpoil(i));              // 스포일러 캐릭터면 상단 안내가 계속 떠 있어요
         document.body.classList.remove("is-flipped");
         BGM.item("");
         drawStage(ch, modeOf(ch), false);
@@ -1150,6 +1152,76 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         render(current);
       }
 
+      /* =====================================================
+         스포일러 캐릭터 (편집기에서 "스포일러 캐릭터" 를 체크한 캐릭터)
+         - 열람 전에 확인 팝업 (예 / 아니오)
+         - "예" 로 열어도 화면 위 가운데에 안내 툴팁이 계속 떠 있어요
+         ===================================================== */
+      let shown = -1;                          // 지금 화면에 펼쳐진 캐릭터
+      let spoilAsk = null;                     // 열려 있는 확인 팝업
+      const spoilNo = {};                      // "아니오" 한 캐릭터 (키보드 ↑↓ 이동에서 건너뛰어요)
+      const isSpoil = function (i) { return !!(list[i] && list[i].spoiler === true); };
+      const seenKey = function (i) { return PAGE + ":" + i; };
+      const needAsk = function (i) { return isSpoil(i) && !spoilSeen[seenKey(i)]; };   // 이미 "예" 했으면 다시 묻지 않아요
+
+      function askSpoil(i, done) {
+        if (spoilAsk) return;
+        const el = document.createElement("div");
+        el.className = "spoil-ask";
+        el.setAttribute("role", "alertdialog");
+        el.setAttribute("aria-modal", "true");
+        el.innerHTML =
+          '<div class="spoil-ask-box">' +
+            '<span class="spoil-ask-ico" aria-hidden="true">!</span>' +
+            '<p class="spoil-ask-msg">이 캐릭터에는 직·간접적인 스포일러가 포함되어 있습니다.<br>열람하시겠습니까?</p>' +
+            '<div class="spoil-ask-btns">' +
+              '<button type="button" class="spoil-yes">예</button>' +
+              '<button type="button" class="spoil-no">아니오</button>' +
+            '</div>' +
+          '</div>';
+        function close(ok) {
+          if (spoilAsk !== api) return;
+          spoilAsk = null;
+          el.remove();
+          done(ok);
+        }
+        const api = { el: el, close: close };
+        spoilAsk = api;
+        el.querySelector(".spoil-yes").addEventListener("click", function () { close(true); });
+        el.querySelector(".spoil-no").addEventListener("click", function () { close(false); });
+        el.addEventListener("mousedown", function (e) { if (e.target === el) close(false); });   // 바깥을 누르면 "아니오"
+        document.body.appendChild(el);
+        el.querySelector(".spoil-no").focus();   // 실수로 열리지 않게 "아니오" 에 포커스
+      }
+
+      // 캐릭터 열기 : 스포일러 캐릭터면 먼저 물어보고, "예" 일 때만 열어요
+      function enter(i, after) {
+        i = (i + list.length) % list.length;
+        if (!needAsk(i)) { go(i); if (after) after(); return; }
+        if (i === shown) { if (after) after(); return; }
+        askSpoil(i, function (ok) {
+          if (!ok) { spoilNo[i] = true; return; }
+          delete spoilNo[i];
+          spoilSeen[seenKey(i)] = true;
+          go(i);
+          if (after) after();
+        });
+      }
+
+      // 위 가운데 안내 툴팁 (body 에 띄워서 페이지가 바뀌면 show() 가 치워요)
+      function spoilBanner(on) {
+        let b = document.getElementById("spoilBanner");
+        if (!b) {
+          b = document.createElement("div");
+          b.id = "spoilBanner";
+          b.className = "spoil-banner";
+          b.setAttribute("role", "status");
+          b.textContent = "현재 프로필에는 직·간접적인 스포일러 요소가 포함되어 있습니다.";
+          document.body.appendChild(b);
+        }
+        b.classList.toggle("on", !!on);
+      }
+
             // 진영(faction)별로 묶기 — 진영을 하나도 안 적으면 예전과 똑같이 보여요
       const gMap = new Map();
       list.forEach(function (ch, i) {
@@ -1163,7 +1235,18 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       const order = [];
       groups.forEach(function (g) { g.items.forEach(function (i) { order.push(i); }); });
-      function step(d) { go(order[(order.indexOf(current) + d + order.length) % order.length]); }
+      function step(d) {
+        const n = order.length;
+        let pos = order.indexOf(current);
+        for (let k = 0; k < n; k++) {
+          pos = (pos + d + n) % n;
+          const t = order[pos];
+          if (t === current) return;
+          if (spoilNo[t]) continue;            // 이미 "아니오" 한 스포일러 캐릭터는 건너뛰어요
+          enter(t);
+          return;
+        }
+      }
 
       // 왼쪽 타일 만들기
       let k = 0;
@@ -1188,7 +1271,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               (img ? ' style="background-image:url(\'' + img + '\');background-position:' + (ch.tilePosition || "center 30%") + '"' : "") + '>' +
               '<span class="ch-tile-name"><b>' + (ch.name || "") + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
             '</span>';
-          row.addEventListener("click", function () { go(i); });
+          row.addEventListener("click", function () { enter(i); });
           tilesBox.appendChild(row);
           k++;
         });
@@ -1196,6 +1279,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       // 키보드: ↑ ↓ 캐릭터 선택, 스페이스 뒤집기, Esc 앞면으로
       addKey( function (e) {
+        // 스포일러 확인 팝업이 열려 있으면 그것부터 (Esc = 아니오)
+        if (spoilAsk) {
+          if (e.key === "Escape") { e.preventDefault(); spoilAsk.close(false); }
+          return;
+        }
         // 라이트박스가 열려 있으면 그것부터
         if (box.classList.contains("open")) {
           if (e.key === "Escape") closeBox();
@@ -1211,8 +1299,16 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       const start0 = CH_START;
       CH_START = null;
-      go(start0 ? start0.i : 0);
-      if (start0 && start0.flip) setTimeout(function () { flip(true); }, 700);
+      const first = start0 ? start0.i : 0;
+      const afterFirst = function () { if (start0 && start0.flip) setTimeout(function () { flip(true); }, 700); };
+      if (needAsk(first)) {
+        askSpoil(first, function (ok) {
+          if (ok) { spoilSeen[seenKey(first)] = true; go(first); afterFirst(); return; }
+          spoilNo[first] = true;               // "아니오" → 스포일러 아닌 첫 캐릭터를 보여줘요 (없으면 메인으로)
+          const alt = order.filter(function (n) { return !isSpoil(n); })[0];
+          if (alt != null) go(alt); else location.hash = "#";
+        });
+      } else { go(first); afterFirst(); }
       };
 
       /* ##################################################### */
@@ -2520,6 +2616,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         if (ROUTES.indexOf(route) < 0) route = "home";
         keyHandlers = [];
         BGM.reset();
+        document.querySelectorAll("#spoilBanner, .spoil-ask").forEach(function (n) { n.remove(); });
         document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
         document.body.setAttribute("data-page", route);
                 app.innerHTML = document.getElementById("tpl-" + ((route === "floormaster" || route === "other") ? "character" : route)).innerHTML;
