@@ -541,7 +541,7 @@
       '.oha-split .oha-snip-wrap{top:0}.oha-split .oha-snip{max-width:none;padding:8px 12px}' +
       '.oha-snip-l{flex:none;display:flex;flex-direction:column;line-height:1.25}' +
       '.oha-snip-l b{font-size:12px}.oha-snip-l small{font-size:11px;color:#777}' +
-      '.oha-snip-b{display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:thin}' +
+      '.oha-snip-b{display:flex;flex:1;min-width:0;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:thin}' +
       '.oha-snipbtn{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;color:#222}' +
       '.oha-snipbtn:hover{border-color:' + point + '}.oha-snipbtn:active{transform:translateY(1px)}' +
       '.oha-snipbtn .k{font-style:normal;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:4px;background:#ececf0;font-size:11px}' +
@@ -1031,6 +1031,15 @@
       b.addEventListener('click', function () { applySnippet(it); });
       btns.appendChild(b);
     });
+    /* 버튼이 넘치면 마우스 휠(세로)로도 좌우로 스크롤돼요. 끝에 닿으면 페이지가 스크롤돼요 */
+    btns.addEventListener('wheel', function (e) {
+      var max = btns.scrollWidth - btns.clientWidth;
+      if (max <= 0) return;
+      var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if ((d < 0 && btns.scrollLeft <= 0) || (d > 0 && btns.scrollLeft >= max - 1)) return;
+      e.preventDefault();
+      btns.scrollLeft += d;
+    }, { passive: false });
     return h('div', { class: 'oha-snip-wrap' }, [h('div', { class: 'oha-snip' }, [
       h('div', { class: 'oha-snip-l' }, [h('b', { text: '자주 쓰는 코드' }), h('small', { text: '글을 드래그 → 버튼 클릭' })]),
       btns
