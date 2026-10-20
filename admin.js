@@ -107,7 +107,7 @@
     subColor: 'HEX코드 입력',
     textColor: 'HEX코드 입력',
     image: '카드에 들어갈 캐릭터 이미지',
-    pairImage: '페어 상세 페이지용 프로필 이미지',
+    pairImage: '페어 페이지 프로필 이미지(페어 상세 페이지와 다름)',
     sd: '',
     sdSize: '기본 230px',
     tile: '왼쪽 목록 타일 이미지',
