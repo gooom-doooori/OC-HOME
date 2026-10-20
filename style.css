@@ -3354,6 +3354,8 @@ input, textarea, select, [contenteditable="true"],
   /* 사라질 때: 쇽 줄어들며 사라짐 (아래쪽부터 차례로) */
   transition: opacity .15s, transform .25s cubic-bezier(.5, 0, .9, .6);
   transition-delay: calc((2 - var(--i, 0)) * .05s);
+  pointer-events: none;   /* 안 보일 땐 클릭 안 되게 */
+  cursor: zoom-in;
 }
 .is-flipped .cd-fb:not(.hold) .fb-ports span {
   opacity: 1;
@@ -3363,6 +3365,11 @@ input, textarea, select, [contenteditable="true"],
   transition-delay: calc(var(--pd, .7s) + var(--i, 0) * .09s);
 }
 .fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+
+/* 상세프로필이 열려 포트레이트가 보일 때만 클릭 가능 (눌러도 상세프로필은 안 닫혀요) */
+.is-flipped .cd-fb:not(.hold):not(.ports-out) .fb-ports span {
+  pointer-events: auto;
+}
 
 /* 보기 전환 시작: 포트레이트 먼저 뿅 사라짐 (상세가 열려 있어도) */
 .cd-fb.ports-out .fb-ports span,
