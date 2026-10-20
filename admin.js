@@ -35,7 +35,7 @@
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
-    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)',
+    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)', outfits: '의상 (옷장 · 개수 제한 없음)',
     sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', realName: '본명', useRealName: '본명 표시', realNameEn: '본명 영문 이름', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
@@ -68,7 +68,7 @@
   };
   var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1 };
   /* 이미지 칸 : [올리기] 버튼이 붙어요 */
-  var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, fullBody: 1, portraits: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
+  var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, fullBody: 1, portraits: 1, outfits: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
                      wantedPaper: 1, ownerImage: 1, bgm: 1};
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
@@ -118,6 +118,7 @@
     tilePosition: 'top | center | bottom 숫자% 형식으로 작성',
     fullBody: '',
     portraits: '포트레이트 이미지',
+    outfits: '의상 이미지 (옷장에 펼쳐져요. 위의 전신 일러스트가 "기본" 의상이 돼요)',
     quote: '대표 대사',
     story: '설정 글',
     customFront: '커스텀 앞면 이미지',
@@ -204,7 +205,7 @@
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
-    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', realName: '', realName: '', useRealName: false, realNameEn: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
+    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], outfits: [], name: '', realName: '', realName: '', useRealName: false, realNameEn: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
     number: '', seat: { gate: '', row: '', seat: '' }, profile: [], quote: '', story: '', gallery: [], relations: [],
     customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: ''
   };
@@ -250,7 +251,7 @@
   var CARD_SECTIONS = [
     { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], ['realName', 'realNameEn', 'useRealName'], 'faction', 'spoiler', 'intro', 'tags'] },
     { t: '카드 외형', tag: '공통', rows: ['type', ['color', 'subColor', 'textColor'], ['cardTitle', 'cardSub'], 'number'] },
-    { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], ['sd', 'sdSize']] },
+    { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], 'outfits', ['sd', 'sdSize']] },
     { t: '상세 프로필', tag: '공통', rows: ['profile', 'quote', 'story'] },
     { t: '갤러리 · 관계', tag: '공통', rows: ['gallery', 'relations'] },
     { t: '테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] },
@@ -476,7 +477,7 @@
     var point = ((S.colors || {}).point) || '#2b2b2b';
     var css =
       '#oha{position:fixed;inset:0;z-index:100000;background:#f6f6f6;color:#222;font:14px/1.5 Pretendard,system-ui,sans-serif;overflow:auto}' +
-      '#oha *{box-sizing:border-box}#oha[hidden]{display:none}' +
+      '#oha *{box-sizing:border-box}#oha[hidden]{display:none!important}' +
       '.oha-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;background:#fff;border-bottom:1px solid #ddd}' +
       '.oha-top h1{font-size:16px;margin:0 8px 0 0}.oha-sp{flex:1}' +
       '.oha-btn{border:1px solid #ccc;background:#fff;border-radius:999px;padding:7px 14px;font:600 13px inherit;cursor:pointer;color:#222}' +
@@ -564,7 +565,7 @@
       '.oha-li.is-dragging{opacity:.4}' +
       '.oha-li.drop-before{box-shadow:0 -3px 0 0 ' + point + '}.oha-li.drop-after{box-shadow:0 3px 0 0 ' + point + '}' +
       '.oha-snip-b.is-two{align-content:center}' +
-      '#oha *{box-sizing:border-box}#oha[hidden]{display:none!important}' +
+      '#oha.is-editor{display:flex;flex-direction:column;overflow:hidden}' +
       '#oha.is-editor>.oha-top,#oha.is-editor .oha-snip-wrap{flex:none;position:relative;top:auto}' +
       '#oha.is-editor .oha-main{flex:1;min-height:0;width:100%;margin:12px auto;grid-template-rows:minmax(0,1fr)}' +
       '#oha.is-editor .oha-nav{position:static;align-self:stretch;min-height:0;overflow-y:auto}' +
