@@ -278,9 +278,9 @@
       { t: '상세 소개', tag: '공통', rows: ['profile', 'about', 'links'] },
       { t: '취향 · 주의사항', tag: '공통', rows: [['likeTitle', 'likes'], ['dislikeTitle', 'dislikes'], 'notice'] },
       { t: '탭 · 배너', tag: '공통', rows: ['tabs', 'panelStrength', 'banner'] },
-      { t: '학생증 / 사원증 전용', tag: '학생증일 때만', when: function (o) { return cardType(o) === 'id'; }, rows: ['strap', 'backNotice', ['sign', 'since', 'valid']] },
-      { t: '티켓 카드 전용', tag: '티켓일 때만', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
-      { t: '직접 만든 카드 전용', tag: '직접 만든 카드일 때만', when: function (o) { return cardType(o) === 'custom'; },
+      { t: '학생증 / 사원증 전용', tag: '학생증', when: function (o) { return cardType(o) === 'id'; }, rows: ['strap', 'backNotice', ['sign', 'since', 'valid']] },
+      { t: '티켓 카드 전용', tag: '티켓', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
+      { t: '직접 만든 카드 전용', tag: '직접 만든 카드', when: function (o) { return cardType(o) === 'custom'; },
         rows: [['customFront', 'customBack'], ['customRatio', 'customRadius']] }
     ],
     banner: [
@@ -290,14 +290,14 @@
     ],
     pairs: [
       { t: '페어 기본', tag: '공통', rows: ['members', ['pairName', 'pairNameSub', 'titleImage'], 'label'] },
-      { t: '캐릭터 칸', tag: '공통', rows: ['sides'] },
+      { t: '상세 페이지 캐릭터', tag: '공통', rows: ['sides'] },
       { t: '리뷰', tag: '공통', rows: ['reviews'] },
-      { t: '관계 화면 탭', tag: '공통', rows: ['timeline', 'gallery', 'trpg'] },
+      { t: '페어 상세 페이지 탭', tag: '공통', rows: ['timeline', 'gallery', 'trpg'] },
       { t: '테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] }
     ],
     pairPage: [
-      { t: '리뷰 목록 글자', tag: '공통', rows: ['label', ['reviewTitle', 'sortText'], ['replyButton', 'emptyText'], 'bestCount'] },
-      { t: '관계 화면 글자', tag: '공통', rows: ['relationTabs', ['timelineEmpty', 'galleryEmpty', 'trpgEmpty'], ['logButton', 'logEmpty']] }
+      { t: '리뷰 페이지 양식', tag: '공통', rows: ['label', ['reviewTitle', 'sortText'], ['replyButton', 'emptyText'], 'bestCount'] },
+      { t: '페어 상세 페이지 양', tag: '공통', rows: ['relationTabs', ['timelineEmpty', 'galleryEmpty', 'trpgEmpty'], ['logButton', 'logEmpty']] }
     ],
     menus: [
       { t: '메뉴 표시', tag: '공통', rows: [['num', 'title', 'desc'], 'icon'] },
