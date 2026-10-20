@@ -3436,6 +3436,18 @@ a[href]:hover .spoil.open {
 }
 .spoil-tip.on { opacity: 1; }
 
+/* 요미가나: 스포일러가 걸린 글자(ruby 바로 안쪽)면 읽는 법(rt)도 같이 가려지고 같이 열려요 */
+/* 스포일러가 ruby 를 감싼 경우도 요미가나(rt)를 직접 같이 가려요 */
+.spoil rt, ruby:has(> .spoil) rt { transition: filter .3s; }
+.spoil:not(.open) rt { filter: blur(6px); }
+.spoil.open rt { filter: none; }
+ruby:has(> .spoil:not(.open)) rt { filter: blur(6px); cursor: pointer; user-select: none; -webkit-user-select: none; }
+ruby:has(> .spoil.open) rt { filter: none; }
+/* 각주 팝업 안: 호버하면 글자와 요미가나가 같이 보여요 */
+.fn-tip ruby:has(> .spoil) rt { filter: blur(5px); cursor: default; }
+.fn-tip ruby:has(> .spoil):hover rt,
+.fn-tip ruby:hover > .spoil { filter: none; }
+
 /* 각주 (원래 span 은 숨기고, 내용은 JS 가 body 에 띄우는 .fn-tip 으로 보여줘요 → 어떤 영역에서도 안 잘려요) */
 .fn {
   position: relative;
