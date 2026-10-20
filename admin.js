@@ -564,7 +564,7 @@
       '.oha-li.is-dragging{opacity:.4}' +
       '.oha-li.drop-before{box-shadow:0 -3px 0 0 ' + point + '}.oha-li.drop-after{box-shadow:0 3px 0 0 ' + point + '}' +
       '.oha-snip-b.is-two{align-content:center}' +
-      '#oha.is-editor{display:flex;flex-direction:column;overflow:hidden}' +
+      '#oha *{box-sizing:border-box}#oha[hidden]{display:none!important}' +
       '#oha.is-editor>.oha-top,#oha.is-editor .oha-snip-wrap{flex:none;position:relative;top:auto}' +
       '#oha.is-editor .oha-main{flex:1;min-height:0;width:100%;margin:12px auto;grid-template-rows:minmax(0,1fr)}' +
       '#oha.is-editor .oha-nav{position:static;align-self:stretch;min-height:0;overflow-y:auto}' +
