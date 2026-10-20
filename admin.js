@@ -73,7 +73,7 @@
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
   /* 체크 칸 옆에 붙는 글자 (없으면 "사용") */
-  var BOOL_TEXT = { useRealName: '체크하면 상세 페이지에 본명 표시 / 해제하면 기존 이름(가명) 표시', spoiler: '스포일러 포함 — 체크하면 열람 전에 경고 팝업이 떠요' };
+  var BOOL_TEXT = { useRealName: '본명 표시', spoiler: '스포일러 포함 페이지 여부' };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
