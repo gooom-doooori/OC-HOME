@@ -166,10 +166,19 @@
           width: 200, height: 200,
           playerVars: { controls: 0, disablekb: 1, playsinline: 1, rel: 0, fs: 0, iv_load_policy: 3 },
           events: {
-            onReady: function () {
-              ready = true;
-              player.setVolume(Math.round(vol * 100));
-              if (job) { const j = job; job = null; start(j); }
+            onReady: function (e) {
+              // 간혹 onReady 가 먼저 불려서 아직 player 에 함수가 안 붙어 있을 때가 있어요 → 붙을 때까지 잠깐 기다려요
+              if (e && e.target && typeof e.target.setVolume === "function") player = e.target;
+              (function wait(n) {
+                if (player && typeof player.setVolume === "function") {
+                  ready = true;
+                  try { player.setVolume(Math.round(vol * 100)); } catch (x) {}
+                  if (job) { const j = job; job = null; start(j); }
+                  return;
+                }
+                if (n > 0) setTimeout(function () { wait(n - 1); }, 250);
+                else { note = "유튜브 플레이어를 불러오지 못했어요"; refresh(); }
+              })(24);
             },
             onStateChange: function (e) {
               if (e.data === 0) { player.seekTo(0, true); player.playVideo(); }   // 끝나면 처음부터 반복
