@@ -1001,7 +1001,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           const ports = (ch.portraits || []).filter(Boolean).slice(0, 3);
           holder.innerHTML =
             '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + ';--sd-w:' + sdW(ch) + '">' +
-              '<div class="fb-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
+              '<div class="fb-flip' + cls + '" id="cdFlip">' +
                 '<div class="fb-stack">' +
                   '<div class="fb-art">' +
                     '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
@@ -1033,7 +1033,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
         holder.innerHTML =
           '<div class="cd cd-' + type + '" style="--c:' + cardColor(ch.color) + ';--c2:' + cardSub(ch.subColor, ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + ';--cx-r:' + ((ch.customRadius != null) ? ch.customRadius : 12) + 'px">' +
-            '<div class="cd-flip' + cls + '" id="cdFlip" title="눌러서 뒤집기">' +
+            '<div class="cd-flip' + cls + '" id="cdFlip">' +
               '<div class="cd-face cd-front">' + front + '</div>' +
               '<div class="cd-face cd-back">' + backFace + '</div>' +
             '</div>' +
@@ -2072,7 +2072,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         holder.innerHTML =
           '<div class="cd cd-' + type + (type === "id" ? " ow-card" : "") + '" style="--c:' + cardColor(o.color) + ';--c2:' + cardSub(o.subColor, o.color) + ';--ct:' + cardText(o.textColor, o.color) + ';--cx-r:' + ((o.customRadius != null) ? o.customRadius : 12) + 'px">' +
             (type === "id" && o.strap !== false ? '<div class="ow-strap"><span>' + (o.strap || "") + '</span></div><div class="ow-clip"></div>' : "") +
-            '<div class="cd-flip" id="cdFlip" title="눌러서 뒤집기">' +
+            '<div class="cd-flip" id="cdFlip">' +
               '<div class="cd-face cd-front">' + faceF + '</div>' +
               '<div class="cd-face cd-back">' + faceB + '</div>' +
             '</div>' +
