@@ -596,6 +596,8 @@
       '.oha-linkmenu{position:fixed;z-index:100002;display:flex;gap:6px;padding:6px;background:#fff;border:1px solid #ccc;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18)}' +
       '.oha-lm{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 10px;border:1px solid #e2e2e2;border-radius:8px;background:#fafafa;font:600 11px inherit;color:#222;cursor:pointer}' +
       '.oha-lm:hover{border-color:' + point + ';background:#fff}.oha-lm svg{width:20px;height:20px}' +
+      '.oha-linkmenu.is-list{flex-direction:column;gap:3px;min-width:200px;max-height:300px;overflow-y:auto}' +
+      '.oha-linkmenu.is-list .oha-lm{flex-direction:row;justify-content:flex-start;gap:8px;width:100%;min-width:0;padding:7px 10px;font-size:12px;text-align:left}' +
       '.oha-seg{margin-left:auto;display:inline-flex;border:1px solid #ccc;border-radius:999px;overflow:hidden;background:#fff}' +
       '.oha-seg button{border:0;background:transparent;padding:3px 14px;font:600 12px inherit;cursor:pointer;color:#555}' +
       '.oha-seg button.is-on{background:' + point + ';color:#fff}' +
@@ -1299,6 +1301,24 @@
   }
   var ICON_NEWTAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>';
   var ICON_SAMETAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 15h8"/><path d="M13 12l3 3-3 3"/></svg>';
+  /* 캐릭터 링크 : 관계 탭 링크와 같은 방식으로 그 캐릭터 상세 프로필을 열어요 */
+  function chLinkSnip(ref, name) {
+    return function (sel) {
+      var o = '<a class="ch-link" data-ch="' + ref + '">', inner = sel || name;
+      return { text: o + inner + '</a>', from: o.length, to: o.length + inner.length };
+    };
+  }
+  function charChoices() {
+    var out = [];
+    function add(ref, c) {
+      var name = (c && c.name) || '';
+      out.push({ icon: '', label: ref + ' · ' + (name || '(이름 없음)'), tip: '이 캐릭터의 상세 프로필 열기', make: chLinkSnip(ref, name || '캐릭터 이름') });
+    }
+    chars().forEach(function (c, i) { add(String(i + 1), c); });
+    floors().forEach(function (c, i) { add('F' + (i + 1), c); });
+    others().forEach(function (c, i) { add('O' + (i + 1), c); });
+    return out;
+  }
   function linkSnip(newTab) {
     return function (sel) {
       var o = '<a href="', url = 'https://';
@@ -1316,6 +1336,7 @@
         { icon: ICON_NEWTAB, label: '새 탭', tip: '<a href="주소" target="_blank" rel="noopener">내용</a>', make: linkSnip(true) },
         { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
       ] },
+    { html: '<i class="k">☺</i>캐릭터 링크 ▾', tip: '글을 누르면 그 캐릭터 상세 프로필이 열려요', listMenu: true, choices: charChoices },
     { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
       make: function (sel) {
         var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
@@ -1363,17 +1384,20 @@
   function toggleChoices(btn, it, getTarget) {
     if (choiceBtn === btn) { closeChoices(); return; }
     closeChoices();
-    var menu = h('div', { class: 'oha-linkmenu', role: 'menu' });
-    it.choices.forEach(function (c) {
+    var list = typeof it.choices === 'function' ? it.choices() : it.choices;
+    if (!list.length) { toast('먼저 캐릭터를 추가해 주세요.', true); return; }
+    var menu = h('div', { class: 'oha-linkmenu' + (it.listMenu ? ' is-list' : ''), role: 'menu' });
+    list.forEach(function (c) {
       var b = h('button', { class: 'oha-lm', type: 'button', title: c.tip, role: 'menuitem' });
-      b.innerHTML = c.icon + '<span>' + c.label + '</span>';
+      b.innerHTML = c.icon || '';
+      b.appendChild(h('span', { text: c.label }));
       b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   /* 글 선택이 풀리지 않게 */
       b.addEventListener('click', function () { closeChoices(); applySnippet(c, getTarget()); });
       menu.appendChild(b);
     });
     st.root.appendChild(menu);
     var r = btn.getBoundingClientRect();
-    menu.style.top = (r.bottom + 6) + 'px';
+    menu.style.top = Math.max(8, Math.min(r.bottom + 6, window.innerHeight - menu.offsetHeight - 8)) + 'px';
     menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + 'px';
     choiceMenu = menu; choiceBtn = btn;
     document.addEventListener('mousedown', onChoiceOutside, true);
