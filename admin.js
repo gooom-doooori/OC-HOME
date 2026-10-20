@@ -557,6 +557,28 @@
       '.oha-li.is-dragging{opacity:.4}' +
       '.oha-li.drop-before{box-shadow:0 -3px 0 0 ' + point + '}.oha-li.drop-after{box-shadow:0 3px 0 0 ' + point + '}' +
       '.oha-nav{top:124px}.oha-split .oha-nav{top:68px}' +
+      '.oha-hl{position:relative;background:#fff;border:1px solid #ccc;border-radius:8px}' +
+      '.oha-hl:focus-within{border-color:' + point + '}' +
+      '.oha-hl pre,.oha-hl textarea{margin:0;padding:8px 10px;border:0;box-sizing:border-box;font:13px/1.65 ui-monospace,Menlo,Consolas,"Noto Sans KR",monospace;letter-spacing:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;tab-size:2;overflow:auto;scrollbar-gutter:stable}' +
+      '.oha-hl pre{position:absolute;inset:0;color:#111;pointer-events:none;scrollbar-color:transparent transparent}' +
+      '.oha-hl pre::-webkit-scrollbar-thumb,.oha-hl pre::-webkit-scrollbar-track{background:transparent}' +
+      '.oha-hl textarea{position:relative;z-index:1;display:block;width:100%;min-height:76px;resize:none;outline:none;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#111}' +
+      '.oha-hl textarea::selection{background:rgba(60,120,255,.28)}' +
+      '.oha-hl textarea::placeholder{color:#999;-webkit-text-fill-color:#999}' +
+      '.oha-hl.is-fill{height:100%}.oha-hl.is-fill textarea{height:100%}' +
+      '.hl-t{color:#aeaeb8}.hl-l{color:#0b66d6;text-decoration:underline}' +
+      '.oha-xrow{display:flex;gap:8px;align-items:center;margin-top:4px}.oha-xs{padding:4px 10px;font-size:12px}' +
+      '.oha-legend{font-size:11px;color:#777}' +
+      '.oha-pop{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:2vh 2vw}' +
+      '.oha-pop-panel{display:flex;flex-direction:column;width:min(1500px,100%);height:100%;background:#f6f6f6;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}' +
+      '.oha-pop-head{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid #ddd}.oha-pop-head h3{margin:0;font-size:15px}' +
+      '.oha-pop .oha-snip-wrap{position:static}.oha-pop .oha-snip{max-width:none;padding:8px 16px}' +
+      '.oha-pop-body{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}' +
+      '.oha-pop-col{display:flex;flex-direction:column;min-height:0;min-width:0;background:#fff;border:1px solid #ddd;border-radius:10px;overflow:hidden}' +
+      '.oha-pop-col>header{flex:none;padding:8px 12px;font-size:12px;font-weight:700;color:#555;border-bottom:1px solid #eee;background:#fafafa}' +
+      '.oha-pop-col .oha-hl{flex:1;min-height:0;border:0;border-radius:0}' +
+      '.oha-pop-pvin.dt-story{flex:1;margin:0;opacity:1;overflow:auto;padding:16px 18px;color:#222}.oha-pop-pvin img{max-width:100%;height:auto}' +
+      '@media(max-width:760px){.oha-pop-body{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}' +
       '@media(max-width:760px){.oha-main{grid-template-columns:1fr}.oha-nav{position:static;flex-direction:row;flex-wrap:wrap}.oha-row{grid-template-columns:1fr}}';
     document.head.appendChild(h('style', { id: 'oha-css', text: css }));
   }
@@ -580,6 +602,93 @@
       if (k) return (i + 1) + '. ' + item[k];
     }
     return (i + 1) + '번';
+  }
+
+  /* ==========================================================
+     코드 구분 입력칸 (회색 = 태그 코드, 파랑 = 링크 / 이미지 주소, 검정 = 본문)
+     + 크게 편집 팝업 (왼쪽 미리보기 / 오른쪽 편집 / 위에 코드 버튼 바)
+     ========================================================== */
+  var HL_RE = /(<\/?[a-zA-Z][^>]*>?)|(https?:\/\/[^\s<>"']+)|(\b[\w\-.\/%]+\.(?:png|jpe?g|gif|webp|svg|bmp|mp3|ogg|wav|html?)\b)/gi;
+  var LINK_RE = /(https?:\/\/[^\s<>"']+|[\w\-.\/%]+\.(?:png|jpe?g|gif|webp|svg|bmp|mp3|ogg|wav|html?)\b)/gi;
+  function escH(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function hlTag(raw) {
+    var out = '', last = 0, m;
+    LINK_RE.lastIndex = 0;
+    while ((m = LINK_RE.exec(raw))) {
+      out += escH(raw.slice(last, m.index)) + '<span class="hl-l">' + escH(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    return '<span class="hl-t">' + out + escH(raw.slice(last)) + '</span>';
+  }
+  function highlight(v) {
+    var out = '', last = 0, m;
+    HL_RE.lastIndex = 0;
+    while ((m = HL_RE.exec(v))) {
+      if (!m[0].length) { HL_RE.lastIndex++; continue; }
+      out += escH(v.slice(last, m.index));
+      out += m[1] ? hlTag(m[1]) : '<span class="hl-l">' + escH(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += escH(v.slice(last));
+    if (/\n$/.test(v)) out += ' ';
+    return out;
+  }
+
+  /* 글자는 투명한 textarea, 색은 뒤에 깔린 <pre> 가 보여줘요 (두 층이 정확히 겹쳐요) */
+  function hlArea(value, onChange, opt) {
+    opt = opt || {};
+    var pre = h('pre', { class: 'oha-hl-pre', 'aria-hidden': 'true' });
+    var ta = h('textarea', { spellcheck: 'false' });
+    ta.value = value;
+    var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') }, [pre, ta]);
+    var lastW = -1;
+    function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; }
+    function fit() {
+      if (opt.fill) return;
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, opt.max || 260) + 'px';
+    }
+    function refresh() { fit(); paint(); }
+    ta.addEventListener('input', function () { refresh(); if (onChange) onChange(ta.value); });
+    ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; });
+    paint();
+    setTimeout(refresh, 0);
+    if (window.ResizeObserver) {                       /* 접혀 있던 칸이 펼쳐질 때 / 너비가 바뀔 때 다시 맞춰요 */
+      new ResizeObserver(function () {
+        var w = box.clientWidth;
+        if (w && w !== lastW) { lastW = w; refresh(); }
+      }).observe(box);
+    }
+    return { el: box, ta: ta, refresh: refresh };
+  }
+
+  /* 크게 편집 : 왼쪽 미리보기 / 오른쪽 편집 */
+  function openEditor(label, hl, set) {
+    var old = $('.oha-pop'); if (old) old.remove();
+    var pvIn = h('div', { class: 'oha-pop-pvin dt-story' });
+    var area = hlArea(hl.ta.value, function (v) {
+      hl.ta.value = v; hl.refresh();                   /* 원래 칸 · 저장할 값 · 미리보기에 바로 반영 */
+      set(v); touch();
+      pvIn.innerHTML = v;
+    }, { fill: true });
+    pvIn.innerHTML = area.ta.value;
+
+    function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
+    function close() { pop.remove(); document.removeEventListener('keydown', onKey, true); hl.refresh(); }
+    document.addEventListener('keydown', onKey, true);
+
+    var closeBtn = h('button', { class: 'oha-btn is-main', type: 'button', text: '닫기' });
+    closeBtn.onclick = close;
+    var legend = h('span', { class: 'oha-legend' });
+    legend.innerHTML = '<span class="hl-t">&lt;회색&gt;</span> 코드 · <span class="hl-l">파랑</span> 링크 · 검정 본문';
+    var head = h('div', { class: 'oha-pop-head' }, [h('h3', { text: label + ' 편집' }), legend, h('span', { class: 'oha-sp' }), closeBtn]);
+    var bar = snipBar(function () { return area.ta; });
+    var left = h('div', { class: 'oha-pop-col' }, [h('header', { text: '미리보기 (실제 사이트 표시)' }), pvIn]);
+    var right = h('div', { class: 'oha-pop-col' }, [h('header', { text: '편집' }), area.el]);
+    var pop = h('div', { class: 'oha-pop' }, [h('div', { class: 'oha-pop-panel' }, [head, bar, h('div', { class: 'oha-pop-body' }, [left, right])])]);
+    st.root.appendChild(pop);
+    area.refresh();
+    area.ta.focus();
   }
 
   function stringEd(val, set, key, pkey) {
@@ -609,6 +718,17 @@
     }
     var isImg = !!(IMAGE_KEYS[key] || IMAGE_KEYS[pkey]);
     var long = LONG_KEYS[key] || String(val).indexOf('\n') >= 0;
+    if (long && !isImg) {
+      var hl = hlArea(val, function (v) { set(v); touch(); }, {});
+      var phl = PH[pkey + '.' + key] || PH[key]; if (phl) hl.ta.placeholder = phl;
+      var ex = h('button', { class: 'oha-btn oha-xs', type: 'button', text: '⤢ 크게 편집 · 미리보기' });
+      ex.onclick = function () { openEditor(LABEL[key] || key, hl, set); };
+      var lg = h('span', { class: 'oha-legend' });
+      lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크';
+      wrap.appendChild(hl.el);
+      wrap.appendChild(h('div', { class: 'oha-xrow' }, [ex, lg]));
+      return wrap;
+    }
     var inp = long ? h('textarea', { class: 'oha-ta' }) : h('input', { class: 'oha-in', type: 'text' });
     inp.value = val;
     var ph = PH[pkey + '.' + key] || PH[key]; if (ph) inp.placeholder = ph;
@@ -1103,8 +1223,7 @@
     { html: '<i class="k">•</i>목록', tip: '<ul class="dot-list"><li>내용</li></ul>', make: listSnip('dot-list') }
   ];
 
-  function applySnippet(it) {
-    var el = lastField;
+  function applySnippet(it, el) {
     if (!el || !document.body.contains(el)) { toast('먼저 글을 적을 칸을 눌러 주세요.', true); return; }
     var s = el.selectionStart, e = el.selectionEnd, v = el.value;
     var r = it.make(v.slice(s, e));
@@ -1114,13 +1233,13 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));     /* 저장할 값에 반영 + 미리보기 갱신 */
   }
 
-  function snipBar() {
+  function snipBar(getTarget) {
     var btns = h('div', { class: 'oha-snip-b' });
     SNIPS.forEach(function (it) {
       var b = h('button', { class: 'oha-snipbtn', type: 'button', title: it.tip });
       b.innerHTML = it.html;
       b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   /* 눌러도 글 선택이 풀리지 않게 */
-      b.addEventListener('click', function () { applySnippet(it); });
+      b.addEventListener('click', function () { applySnippet(it, getTarget()); });
       btns.appendChild(b);
     });
     /* 버튼이 넘치면 마우스 휠(세로)로도 좌우로 스크롤돼요. 끝에 닿으면 페이지가 스크롤돼요 */
@@ -1160,7 +1279,7 @@
       };
       nav.appendChild(b);
     });
-    body.appendChild(snipBar());
+    body.appendChild(snipBar(function () { return lastField; }));
     body.appendChild(h('div', { class: 'oha-main' }, [nav, panel]));
     show();
   }
@@ -1451,7 +1570,7 @@
       document.body.appendChild(st.root);
       st.root.addEventListener('focusin', function (e) {      /* 코드 버튼을 적용할 칸 기억하기 */
         var t = e.target;
-        if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type === 'text')) && !t.closest('.oha-snip-wrap') && !t.closest('.oha-color')) lastField = t;
+        if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type === 'text')) && !t.closest('.oha-snip-wrap') && !t.closest('.oha-color') && !t.closest('.oha-pop')) lastField = t;
       });
       window.addEventListener('hashchange', function () {
         var m = location.hash.match(/^#\/?(admin|setup)/);
