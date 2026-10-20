@@ -530,7 +530,7 @@
       '.oha-pill.is-cond{background:' + point + ';color:#fff}' +
       '.oha-subhead{font-weight:700;font-size:12px;color:#555;margin:8px 0 2px}' +
       '.oha-link{position:relative;margin:8px 0;padding-left:16px}' +
-      '.oha-link::before{content:"";position:absolute;left:3px;top:18px;bottom:10px;width:2px;border-radius:2px;background:' + point + ';opacity:.55}' +
+      '.oha-link::before{content:"";position:absolute;left:3px;top:18px;bottom:16px;width:2px;border-radius:2px;background:' + point + ';opacity:.55}' +
       '.oha-link>.oha-row{position:relative;margin:6px 0}' +
       '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
       '.oha-link>details.oha-box{margin:6px 0}' +
