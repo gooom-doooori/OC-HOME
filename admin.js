@@ -83,6 +83,268 @@
     'guest.mode': [['firebase', 'Firebase (비밀글 / 답글 / 삭제)'], ['form', '구글 폼 + 시트'], ['widget', '외부 위젯'], ['links', '익명 질문 링크만']]
   };
 
+  /* ==========================================================
+     편집기 보기 개선용 설정
+     - PH      : 이름만 봐서는 알기 어려운 칸의 한 줄 설명 (placeholder)
+     - SCHEMA  : 항목을 섹션 / 세로줄 묶음으로 나누는 틀
+     - *_DEFAULTS : 예전에 "+ 항목 추가"로 꺼내던 칸을 처음부터 넣어두기
+     ========================================================== */
+  var ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';
+  var ICON_BUSY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>';
+
+  var PH_CARD = {
+    nameEn: '이름 아래 작은 글자 (직책 · 영문 이름 등)',
+    faction: '같은 진영끼리 왼쪽 목록에서 묶여요 (비우면 번호 순서)',
+    intro: '카드 앞면에 나오는 한 줄 소개',
+    number: '카드 번호 (학생증 ID No. · 티켓 코드 · 수배지 현상금)',
+    cardTitle: '카드 위쪽 큰 글자 (예: STUDENT ID)',
+    cardSub: '카드 위쪽 작은 글자 (소속 · 학교 이름 등)',
+    color: '#222222 · 비우면 사이트 대표 색',
+    subColor: '#888888 · 비우면 대표색을 연하게 자동 적용',
+    textColor: '#ffffff · 비우면 대표색에 맞춰 자동',
+    image: '카드에 들어갈 캐릭터 사진 (비우면 기본 실루엣)',
+    pairImage: '페어 페이지에서만 쓸 사진 (비우면 카드 사진)',
+    sd: '카드 오른쪽 아래에 붙는 작은 SD 이미지 (투명 png)',
+    sdSize: '이 캐릭터 SD 가로 크기만 바꿀 때 (숫자 · 비우면 페이지 설정)',
+    tile: '왼쪽 목록 타일 사진 (비우면 카드 사진)',
+    tilePosition: '타일에서 보일 부분 (예: center 30%)',
+    fullBody: '전신 일러스트 (있으면 CARD / FULL 전환이 생겨요)',
+    portraits: '포트레이트 이미지 (전신 보기 왼쪽 아래 · 최대 3개)',
+    quote: '대표 대사 (수배지는 뒷면 메모로도 나와요)',
+    story: '설정 글 · 줄바꿈은 위쪽 [줄바꿈] 버튼',
+    customFront: '카드 앞면 이미지 주소',
+    customBack: '카드 뒷면 이미지 주소',
+    customRatio: '가로 / 세로 (예: 2 / 3) · 비우면 앞면 이미지 비율',
+    bgm: '이 캐릭터 테마곡 (음악 파일 · 유튜브 링크)',
+    bgmTitle: '곡 제목 (비우면 자동)'
+  };
+  var PH = {
+    'tags.tags': '태그 하나 (# 없이)', 'likes.likes': '좋아하는 것 하나', 'dislikes.dislikes': '싫어하는 것 하나 (지뢰 등)',
+    'notice.notice': '주의사항 한 줄', 'ticketTerms.ticketTerms': '약관 한 줄', 'replies.replies': '답글 한 줄 (첫 답은 리뷰 받은 캐릭터)',
+    'profile.label': '항목 이름 (예: 나이)', 'profile.value': '내용',
+    'gallery.image': '이미지 주소', 'gallery.caption': '이미지 설명 (크게 볼 때 아래에 나와요)',
+    'relations.name': '상대 이름', 'relations.label': '관계 (친구 · 라이벌 등)', 'relations.text': '관계 설명',
+    'relations.image': '상대 사진 (비우면 연결된 캐릭터 사진)',
+    'seat.gate': '입구 (예: A)', 'seat.row': '열 (예: 07)', 'seat.seat': '좌석 번호 (예: 12)',
+    'menus.num': '비우면 자동 번호 (01, 02 …)', 'menus.desc': '제목 아래 작은 설명', 'menus.link': '#character 또는 다른 사이트 주소',
+    'menus.icon': '메뉴 오른쪽 아이콘 (비우면 기본 아이콘)',
+    'deco.badge': '왼쪽 위 동그라미 안 글자 (예: OC)', 'deco.topLabel': '왼쪽 위 뱃지 옆 글자', 'deco.topRight': '오른쪽 위 글자',
+    'deco.sideText': '왼쪽에 세로로 나오는 글자', 'deco.titleTag': '타이틀 위 작은 글자',
+    'info.heading': '큰 영어 제목', 'info.text': '소개 문장 · 줄바꿈은 위쪽 [줄바꿈] 버튼',
+    'title.text': '메인 큰 글자 (줄바꿈은 위쪽 [줄바꿈] 버튼)', 'title.image': '로고 이미지 주소', 'title.imageWidth': '로고 가로 크기 (예: 480px)',
+    'title.subText': '타이틀 아래 작은 글씨 (비워도 돼요)',
+    'pairs.pairName': '관계 화면 맨 위 큰 이름', 'pairs.pairNameSub': '이름 아래 작은 글자 (영문 이름 등)',
+    'pairs.titleImage': '이름 대신 넣을 로고 이미지 (비우면 글자)', 'pairs.label': '관계 (친구 · 연인 · 라이벌 등)',
+    'pairs.bgm': '이 페어 테마곡 (음악 파일 · 유튜브 링크)', 'pairs.bgmTitle': '곡 제목 (비우면 자동)',
+    'sides.catchphrase': '이름 위 작은 태그에 들어가는 한마디', 'sides.desc': '간단한 서사 (3~4줄)', 'sides.image': '이 칸에만 쓸 이미지 (투명 png 추천)',
+    'reviews.call': '상대를 부르는 호칭', 'reviews.review': '리뷰 내용', 'reviews.date': '리뷰 아래 작은 글씨 (날짜 등)',
+    'timeline.date': '날짜', 'timeline.title': '제목', 'timeline.text': '내용', 'timeline.image': '이미지 주소 (선택)',
+    'trpg.title': '시나리오 제목', 'trpg.system': '룰 (예: CoC 7th)', 'trpg.date': '날짜', 'trpg.role': '역할 (KPC · PC 등)',
+    'trpg.text': '후기', 'trpg.file': '로그 파일 위치 (예: logs/log1.html)', 'trpg.link': '파일 대신 쓸 외부 링크',
+    'links.label': '앞에 붙는 짧은 글자 (X · ASK 등)', 'links.text': '표시할 글자 (@아이디 · 서비스 이름)', 'links.url': '연결 주소',
+    'links.desc': '아래 작은 설명 (방명록 링크만)',
+    'mine.image': '배너 이미지 주소', 'mine.size': '이미지 없을 때 표시할 크기 (예: 200 × 40)',
+    'friends.name': '친구 이름', 'friends.image': '친구 배너 이미지', 'friends.url': '친구 홈페이지 주소',
+    'banner.mineTitle': '내 배너 제목 (비우면 MY BANNER)', 'banner.siteUrl': '배너 클릭 시 이동할 내 홈 주소 (비우면 현재 주소)',
+    'banner.note': '내 배너 아래 안내 글', 'banner.copyText': '복사 버튼 글자 (비우면 COPY)',
+    'banner.copiedText': '복사 완료 글자 (비우면 COPIED!)', 'banner.friendsTitle': '친구 링크 제목 (비우면 LINK)',
+    'bgmPlayer.bgm': '기본 BGM (음악 파일 · 유튜브 링크)', 'bgmPlayer.bgmTitle': '곡 제목 (비우면 자동)',
+    'background.image': '배경 사진 주소', 'background.position': '사진 위치 (예: center)', 'background.width': '사진 가로 크기 (예: 1200px · 비우면 자동)',
+    'background.frontImage': '격자무늬 위에 올라오는 이미지', 'background.frontPosition': '이미지 위치 (예: center)',
+    'background.frontWidth': '이미지 가로 크기 (예: 600px)',
+    'guest.label': '왼쪽 위 뱃지 옆 글자', 'guest.title': '가운데 큰 제목', 'guest.intro': '제목 아래 안내 글',
+    'guest.ownerName': '답글 쓴 사람 이름', 'guest.ownerImage': '답글 프로필 사진 (비우면 이름 첫 글자)',
+    'form.formLink': '구글 폼의 "미리 채워진 링크"', 'form.sheetCsv': '시트를 웹에 게시해서 받은 csv 주소',
+    'widget.url': '외부 위젯 주소 (주소 형태일 때)', 'widget.code': '외부 위젯 코드 (코드 형태일 때)',
+    'pairPage.label': '왼쪽 위 뱃지 옆 글자', 'pairPage.reviewTitle': '리뷰 목록 위 글자 (옆에 개수가 붙어요)',
+    'pairPage.sortText': '오른쪽 위 정렬 글자', 'pairPage.replyButton': '리뷰 아래 답글 버튼 글자',
+    'pairPage.logButton': 'TRPG 백업 카드 버튼 글자', 'pairPage.logEmpty': '로그 파일이 없을 때 안내 글',
+    'tabs.profile': '프로필 탭 이름', 'tabs.gallery': '갤러리 탭 이름', 'tabs.relation': '관계 탭 이름',
+    'tabs.taste': '취향 탭 이름', 'tabs.notice': '주의사항 탭 이름', 'tabs.banner': '배너 탭 이름',
+    'relationTabs.timeline': '타임라인 탭 이름', 'relationTabs.gallery': '갤러리 탭 이름', 'relationTabs.trpg': 'TRPG 탭 이름'
+  };
+  ['characters', 'floormasters', 'others', 'owner'].forEach(function (k) {
+    Object.keys(PH_CARD).forEach(function (f) { PH[k + '.' + f] = PH_CARD[f]; });
+  });
+  ['characterPage', 'floormasterPage', 'otherPage'].forEach(function (k) {
+    PH[k + '.label'] = '왼쪽 위 뱃지 옆 글자';
+    PH[k + '.idNotice'] = '학생증 뒷면 안내 글 (줄바꿈은 위쪽 [줄바꿈] 버튼)';
+    PH[k + '.idIssued'] = '발급일 (예: 2026.03.02)';
+    PH[k + '.idValid'] = '유효기간 (예: 2029.02.28)';
+    PH[k + '.wantedPaper'] = '수배지 종이 질감 이미지 (비우면 기본)';
+    PH[k + '.galleryEmpty'] = '갤러리가 비었을 때 보여줄 글';
+    PH[k + '.relationEmpty'] = '관계가 비었을 때 보여줄 글';
+    PH[k + '.bgm'] = '이 페이지 테마곡 (음악 파일 · 유튜브 링크)';
+    PH[k + '.bgmTitle'] = '곡 제목 (비우면 자동)';
+  });
+  ['title', 'menu', 'body', 'mono', 'hand', 'sign', 'jet', 'MU'].forEach(function (f) { PH['fonts.' + f] = '구글 폰트 이름 (예: Noto Sans KR)'; });
+  PH['owner.label'] = '왼쪽 위 뱃지 옆 글자';
+  PH['owner.hint'] = '화면 아래 안내 글';
+  PH['owner.image'] = '프로필 사진 (비우면 기본 실루엣)';
+  PH['owner.sd'] = '카드를 뒤집었을 때 모서리에 붙는 SD 이미지';
+  PH['owner.cardTitle'] = '카드 위쪽 큰 글자 (예: OWNER ID)';
+  PH['owner.number'] = '카드 번호 (티켓 코드 · 수배지 현상금)';
+  PH['owner.strap'] = '목걸이 줄에 들어가는 글자 (사원증 카드만)';
+  PH['owner.backNotice'] = '카드 뒷면 안내 글';
+  PH['owner.sign'] = '서명란 글씨 (비우면 영문 이름)';
+  PH['owner.since'] = '활동 시작일 (예: 2026.01.01)';
+  PH['owner.valid'] = '유효기간 (예: ∞)';
+  PH['owner.about'] = '자기소개 · 줄바꿈은 위쪽 [줄바꿈] 버튼';
+  PH['owner.likeTitle'] = '좋아하는 것 제목 (비우면 LIKE)';
+  PH['owner.dislikeTitle'] = '싫어하는 것 제목 (비우면 DISLIKE)';
+
+  /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
+  var CARD_DEFAULTS = {
+    type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
+    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', intro: '', tags: [],
+    number: '', seat: { gate: '', row: '', seat: '' }, profile: [], quote: '', story: '', gallery: [], relations: [],
+    customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: ''
+  };
+  var OWNER_DEFAULTS = {
+    label: '', hint: '', type: 'id', color: '', subColor: '', textColor: '', strap: '', cardTitle: '', cardSub: '', image: '', sd: '', sdSize: '',
+    name: '', nameEn: '', intro: '', number: '', seat: { gate: '', row: '', seat: '' }, tags: [],
+    customFront: '', customBack: '', customRatio: '', customRadius: 12, links: [],
+    backNotice: '', sign: '', since: '', valid: '', profile: [], about: '', likeTitle: '', likes: [], dislikeTitle: '', dislikes: [], notice: [],
+    panelStrength: 0.18,
+    banner: { mineTitle: '', siteUrl: '', mine: [], note: '', copyText: '', copiedText: '', friendsTitle: '', friends: [] }
+  };
+  var PAIR_DEFAULTS = { members: [], pairName: '', pairNameSub: '', titleImage: '', label: '', bgm: '', bgmTitle: '', sides: [], reviews: [], gallery: [], timeline: [], trpg: [] };
+
+  function fillDefaults(o, def) {
+    Object.keys(def).forEach(function (k) {
+      var d = def[k];
+      if (!(k in o)) o[k] = clone(d);
+      else if (d && typeof d === 'object' && !Array.isArray(d) && o[k] && typeof o[k] === 'object' && !Array.isArray(o[k])) fillDefaults(o[k], d);
+    });
+  }
+  /* 이미 만들어 둔 캐릭터 · 오너 · 페어 · 메뉴에도 같은 칸이 처음부터 보이게 해요 */
+  function ensureDefaults(d) {
+    ['characters', 'floormasters', 'others'].forEach(function (k) {
+      (d[k] || []).forEach(function (c) { if (c && typeof c === 'object') fillDefaults(c, CARD_DEFAULTS); });
+    });
+    (d.owner || []).forEach(function (o) { if (o && typeof o === 'object') fillDefaults(o, OWNER_DEFAULTS); });
+    (d.pairs || []).forEach(function (p) {
+      if (!p || typeof p !== 'object') return;
+      fillDefaults(p, PAIR_DEFAULTS);
+      (p.sides || []).forEach(function (s) { if (s && typeof s === 'object') fillDefaults(s, { catchphrase: '', desc: '', image: '' }); });
+    });
+    (d.menus || []).forEach(function (m) { if (m && typeof m === 'object') fillDefaults(m, { left: false }); });
+    ['floormasterPage', 'otherPage'].forEach(function (k) { if (d[k] && typeof d[k] === 'object') fillDefaults(d[k], { bgm: '', bgmTitle: '' }); });
+    if (d.background && typeof d.background === 'object') fillDefaults(d.background, { width: '' });
+  }
+
+  /* ---------- 섹션 틀 ----------
+     rows 안의 [a, b, c] 는 "함께 쓰는 항목"이라 세로줄로 이어서 보여줘요.
+     when 이 있는 섹션은 그 상태일 때만 나타나요. */
+  function cardType(o) { return ['id', 'ticket', 'wanted', 'custom'].indexOf(o.type) > -1 ? o.type : 'id'; }
+  var CARD_SECTIONS = [
+    { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], 'faction', 'intro', 'tags'] },
+    { t: '카드 외형', tag: '공통', rows: ['type', ['color', 'subColor', 'textColor'], ['cardTitle', 'cardSub'], 'number'] },
+    { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], ['sd', 'sdSize']] },
+    { t: '상세 프로필', tag: '공통', rows: ['profile', 'quote', 'story'] },
+    { t: '갤러리 · 관계', tag: '공통', rows: ['gallery', 'relations'] },
+    { t: '테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] },
+    { t: '티켓 카드 전용', tag: '티켓일 때만', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
+    { t: '직접 만든 카드 전용', tag: '직접 만든 카드일 때만', when: function (o) { return cardType(o) === 'custom'; },
+      rows: [['customFront', 'customBack'], ['customRatio', 'customRadius']] }
+  ];
+  var PAGE_SECTIONS = [
+    { t: '페이지 글자', tag: '공통', rows: ['label', 'tabs', ['galleryEmpty', 'relationEmpty']] },
+    { t: '카드 이미지 색', tag: '공통', rows: [['imageTint', 'tintStrength'], 'panelStrength'] },
+    { t: 'SD 이미지', tag: '공통', rows: [['sdShow', 'sdSize']] },
+    { t: '학생증 / 사원증 뒷면', tag: '학생증 카드에서만', rows: ['idNotice', ['idIssued', 'idValid']] },
+    { t: '티켓 약관', tag: '티켓 카드에서만', rows: ['ticketTerms'] },
+    { t: '수배지', tag: '수배지 카드에서만', rows: ['wantedPaper'] },
+    { t: '페이지 테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] }
+  ];
+  var SCHEMA = {
+    characters: CARD_SECTIONS, floormasters: CARD_SECTIONS, others: CARD_SECTIONS,
+    characterPage: PAGE_SECTIONS, floormasterPage: PAGE_SECTIONS, otherPage: PAGE_SECTIONS,
+    owner: [
+      { t: '페이지 글자', tag: '공통', rows: ['label', 'hint'] },
+      { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], 'intro', 'tags'] },
+      { t: '카드 외형', tag: '공통', rows: ['type', ['color', 'subColor', 'textColor'], ['cardTitle', 'cardSub'], 'number'] },
+      { t: '이미지', tag: '공통', rows: ['image', ['sd', 'sdSize']] },
+      { t: '상세 소개', tag: '공통', rows: ['profile', 'about', 'links'] },
+      { t: '취향 · 주의사항', tag: '공통', rows: [['likeTitle', 'likes'], ['dislikeTitle', 'dislikes'], 'notice'] },
+      { t: '탭 · 배너', tag: '공통', rows: ['tabs', 'panelStrength', 'banner'] },
+      { t: '학생증 / 사원증 전용', tag: '학생증일 때만', when: function (o) { return cardType(o) === 'id'; }, rows: ['strap', 'backNotice', ['sign', 'since', 'valid']] },
+      { t: '티켓 카드 전용', tag: '티켓일 때만', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
+      { t: '직접 만든 카드 전용', tag: '직접 만든 카드일 때만', when: function (o) { return cardType(o) === 'custom'; },
+        rows: [['customFront', 'customBack'], ['customRatio', 'customRadius']] }
+    ],
+    banner: [
+      { t: '내 배너', rows: [['mineTitle', 'siteUrl'], 'mine', 'note'] },
+      { t: '복사 버튼', rows: [['copyText', 'copiedText']] },
+      { t: '친구 링크', rows: [['friendsTitle', 'friends']] }
+    ],
+    pairs: [
+      { t: '페어 기본', tag: '공통', rows: ['members', ['pairName', 'pairNameSub', 'titleImage'], 'label'] },
+      { t: '캐릭터 칸', tag: '공통', rows: ['sides'] },
+      { t: '리뷰', tag: '공통', rows: ['reviews'] },
+      { t: '관계 화면 탭', tag: '공통', rows: ['timeline', 'gallery', 'trpg'] },
+      { t: '테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] }
+    ],
+    pairPage: [
+      { t: '리뷰 목록 글자', tag: '공통', rows: ['label', ['reviewTitle', 'sortText'], ['replyButton', 'emptyText'], 'bestCount'] },
+      { t: '관계 화면 글자', tag: '공통', rows: ['relationTabs', ['timelineEmpty', 'galleryEmpty', 'trpgEmpty'], ['logButton', 'logEmpty']] }
+    ],
+    menus: [
+      { t: '메뉴 표시', tag: '공통', rows: [['num', 'title', 'desc'], 'icon'] },
+      { t: '이동 · 위치', tag: '공통', rows: [['link', 'newTab'], 'left'] }
+    ],
+    title: [
+      { t: '타이틀', tag: '공통', rows: ['type', 'subText'] },
+      { t: '글자 타이틀', tag: '글자일 때만', when: function (o) { return o.type !== 'image'; }, rows: ['text'] },
+      { t: '로고 이미지 타이틀', tag: '로고 이미지일 때만', when: function (o) { return o.type === 'image'; }, rows: [['image', 'imageWidth']] }
+    ],
+    deco: [
+      { t: '화면 글자', tag: '공통', rows: ['badge', 'topLabel', 'topRight', 'sideText', 'titleTag'] },
+      { t: '타이틀 · 소개 블록', tag: '공통', rows: ['titleFrame', 'info'] }
+    ],
+    bgmPlayer: [
+      { t: '플레이어', tag: '공통', rows: ['show', ['autoplay', 'volume']] },
+      { t: '기본 BGM', tag: '선택', rows: [['bgm', 'bgmTitle']] }
+    ],
+    background: [
+      { t: '배경 사진', tag: '공통', rows: [['image', 'position', 'width', 'blur']] },
+      { t: '스크린 효과', tag: '선택', rows: [['overlay', 'overlayColor', 'overlayStrength']] },
+      { t: '아래 그라데이션', tag: '선택', rows: [['fade', 'fadeColor', 'fadeHeight', 'fadeStrength']] },
+      { t: '모눈 무늬', tag: '선택', rows: [['grid', 'gridColor', 'gridSize', 'gridLine', 'gridStrength']] },
+      { t: '격자 위 이미지', tag: '선택', rows: [['frontImage', 'frontPosition', 'frontWidth', 'frontOpacity']] }
+    ],
+    colors: [
+      { t: '바탕 · 글자', tag: '공통', rows: ['background', 'title', 'subText'] },
+      { t: '메뉴', tag: '공통', rows: [['menuBar', 'menuText', 'menuDesc']] },
+      { t: '마름모 · 꾸밈', tag: '공통', rows: [['accent', 'accentText'], 'icon', 'dots', 'deco'] }
+    ],
+    fonts: [
+      { t: '제목', tag: '공통', rows: [['title', 'titleWeight']] },
+      { t: '본문 · 기타', tag: '공통', rows: ['menu', 'body', 'mono', 'hand'] }
+    ],
+    guest: [
+      { t: '기본 글자', tag: '공통', rows: ['label', 'mode', 'title', 'intro', ['ownerName', 'ownerImage']] },
+      { t: '구글 폼 / Firebase 방식', tag: 'form · firebase 방식일 때만', when: function (o) { var m = o.mode || 'form'; return m === 'form' || m === 'firebase'; }, rows: ['form'] },
+      { t: '외부 위젯 방식', tag: 'widget 방식일 때만', when: function (o) { return o.mode === 'widget'; }, rows: ['widget'] },
+      { t: '익명 질문 링크', tag: '공통', rows: ['links'] },
+      { t: '예시 글', tag: '선택', rows: ['sample'] }
+    ],
+    /* 아래는 작은 목록 항목 : 제목 없이 세로줄 묶음만 */
+    gallery: [{ rows: [['image', 'caption']] }],
+    relations: [{ rows: [['name', 'label'], 'text', ['image', 'link']] }],
+    timeline: [{ rows: [['date', 'title'], 'text', 'image'] }],
+    trpg: [{ rows: [['title', 'system', 'date', 'role'], 'text', ['file', 'link']] }],
+    reviews: [{ rows: [['from', 'to', 'call'], 'review', ['likes', 'date'], 'replies'] }],
+    sides: [{ rows: [['catchphrase', 'desc'], 'image'] }],
+    links: [{ rows: [['label', 'text', 'desc', 'url']] }],
+    mine: [{ rows: [['image', 'size']] }],
+    friends: [{ rows: [['name', 'image', 'url']] }],
+    seat: [{ rows: [['gate', 'row', 'seat']] }],
+    info: [{ rows: [['show', 'heading', 'text']] }]
+  };
+  /* 토글 상자 없이 제목 + 세로줄로 바로 펼쳐 보여줄 객체 */
+  var INLINE = { seat: 1, info: 1 };
+
   var S = (typeof SITE !== 'undefined') ? SITE : (window.SITE || {});
   var st = { user: null, fb: null, draft: null, dirty: false, tab: null, root: null, view: 'site', busy: false,
              preview: window.innerWidth >= 1000, pvMobile: false, pvFrame: null, pvBody: null, pvRoute: '', pvTimer: null, pvN: 0 };
@@ -249,6 +511,41 @@
       '.oha-gb{border:1px solid #e2e2e2;border-radius:10px;padding:10px 12px;margin:8px 0;background:#fff}' +
       '.oha-gb.is-secret{background:#fff7f5;border-color:#efc9c3}.oha-gb small{color:#777}' +
       '.oha-tag{display:inline-block;background:#b3261e;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px}' +
+      '.oha-obj{display:block}' +
+      '.oha-sec{margin:0 0 18px}.oha-sec.is-bare{margin:0 0 8px}' +
+      '.oha-sec-h{display:flex;align-items:center;gap:8px;margin:0 0 4px;padding:0 0 6px;border-bottom:2px solid #e4e4e8}' +
+      '.oha-sec-h b{font-size:13px;color:#222}' +
+      '.oha-pill{font-size:11px;font-weight:700;line-height:1.6;padding:0 8px;border-radius:999px;background:#ececf0;color:#666}' +
+      '.oha-pill.is-cond{background:' + point + ';color:#fff}' +
+      '.oha-subhead{font-weight:700;font-size:12px;color:#555;margin:8px 0 2px}' +
+      '.oha-link{position:relative;margin:8px 0;padding-left:16px}' +
+      '.oha-link::before{content:"";position:absolute;left:3px;top:18px;bottom:18px;width:2px;border-radius:2px;background:' + point + ';opacity:.55}' +
+      '.oha-link>.oha-row{position:relative;margin:6px 0}' +
+      '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
+      '.oha-link>details.oha-box{margin:6px 0}' +
+      'details.oha-box{padding:0;background:#e6e6ea;border:1px solid #cfcfd6;overflow:hidden}' +
+      'details.oha-box details.oha-box{background:#eeeef1}' +
+      'details.oha-box>summary{list-style:none;padding:9px 12px;user-select:none}' +
+      'details.oha-box>summary::-webkit-details-marker{display:none}' +
+      'details.oha-box>summary:hover{background:rgba(0,0,0,.04)}' +
+      "details.oha-box>summary::before{content:\"\";flex:none;width:20px;height:20px;border-radius:6px;border:1px solid #bdbdc6;background:#fff center/12px no-repeat url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>\");transform:rotate(-90deg);transition:transform .15s}" +
+      'details.oha-box[open]>summary::before{transform:none}' +
+      'details.oha-box[open]>summary{border-bottom:1px solid #d3d3da}' +
+      'details.oha-box>:not(summary){margin-left:12px;margin-right:12px}' +
+      'details.oha-box>summary+*{margin-top:10px}details.oha-box>:last-child{margin-bottom:12px}' +
+      '.oha-icobtn{width:36px;height:36px;flex:none;padding:0;display:inline-grid;place-items:center;border-radius:8px}' +
+      '.oha-icobtn svg{width:18px;height:18px}' +
+      '.oha-icobtn.is-busy svg{animation:oha-spin .8s linear infinite}@keyframes oha-spin{to{transform:rotate(360deg)}}' +
+      '.oha-snip-wrap{position:sticky;top:58px;z-index:4;background:#f6f6f6;border-bottom:1px solid #ddd;box-shadow:0 2px 6px rgba(0,0,0,.05)}' +
+      '.oha-snip{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto;padding:8px 18px}' +
+      '.oha-split .oha-snip-wrap{top:0}.oha-split .oha-snip{max-width:none;padding:8px 12px}' +
+      '.oha-snip-l{flex:none;display:flex;flex-direction:column;line-height:1.25}' +
+      '.oha-snip-l b{font-size:12px}.oha-snip-l small{font-size:11px;color:#777}' +
+      '.oha-snip-b{display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:thin}' +
+      '.oha-snipbtn{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;color:#222}' +
+      '.oha-snipbtn:hover{border-color:' + point + '}.oha-snipbtn:active{transform:translateY(1px)}' +
+      '.oha-snipbtn .k{font-style:normal;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:4px;background:#ececf0;font-size:11px}' +
+      '.oha-nav{top:124px}.oha-split .oha-nav{top:68px}' +
       '@media(max-width:760px){.oha-main{grid-template-columns:1fr}.oha-nav{position:static;flex-direction:row;flex-wrap:wrap}.oha-row{grid-template-columns:1fr}}';
     document.head.appendChild(h('style', { id: 'oha-css', text: css }));
   }
@@ -287,7 +584,8 @@
     }
     /* 색 칸 : 색 선택기 + 글자 입력 */
     if (COLOR_KEYS[key] || pkey === 'colors') {
-      var txt = h('input', { class: 'oha-in', type: 'text', placeholder: '#222222  (비우면 자동)' }); txt.value = val;
+      var phc = PH[pkey + '.' + key] || PH[key] || '#222222  (비우면 자동)';
+      var txt = h('input', { class: 'oha-in', type: 'text', placeholder: phc }); txt.value = val;
       var pick = h('input', { type: 'color', style: 'width:44px;height:36px;padding:0;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer' });
       function hex6(s) { s = String(s || '').trim(); if (/^#[0-9a-f]{3}$/i.test(s)) s = '#' + s.slice(1).replace(/./g, '$&$&'); return /^#[0-9a-f]{6}$/i.test(s) ? s : '#ffffff'; }
       pick.value = hex6(val);
@@ -295,13 +593,14 @@
       txt.oninput = function () { set(txt.value); touch(); pick.value = hex6(txt.value); };
       var clr = h('button', { class: 'oha-mini', type: 'button', text: '비우기' });
       clr.onclick = function () { txt.value = ''; set(''); touch(); };
-      wrap.appendChild(h('div', { class: 'oha-img' }, [pick, txt, clr]));
+      wrap.appendChild(h('div', { class: 'oha-img oha-color' }, [pick, txt, clr]));
       return wrap;
     }
     var isImg = !!(IMAGE_KEYS[key] || IMAGE_KEYS[pkey]);
     var long = LONG_KEYS[key] || String(val).indexOf('\n') >= 0;
     var inp = long ? h('textarea', { class: 'oha-ta' }) : h('input', { class: 'oha-in', type: 'text' });
     inp.value = val;
+    var ph = PH[pkey + '.' + key] || PH[key]; if (ph) inp.placeholder = ph;
     inp.oninput = function () { set(inp.value); touch(); if (prev) prev.src = inp.value; };
     var prev = null;
     if (isImg) {
@@ -309,15 +608,15 @@
       prev.onerror = function () { prev.style.visibility = 'hidden'; };
       prev.onload = function () { prev.style.visibility = 'visible'; };
       var file = h('input', { type: 'file', accept: 'image/*,audio/*', hidden: 'hidden' });
-      var up = h('button', { class: 'oha-btn', type: 'button', text: '올리기' });
+      var up = h('button', { class: 'oha-btn oha-icobtn', type: 'button', title: '이미지 · 음악 올리기', 'aria-label': '올리기' }); up.innerHTML = ICON_UP;
       up.onclick = function () { file.click(); };
       file.onchange = function () {
         var f = file.files[0]; if (!f) return;
-        up.textContent = '올리는 중…'; up.disabled = true;
+        up.innerHTML = ICON_BUSY; up.classList.add('is-busy'); up.disabled = true;
         upload(f).then(function (url) {
           inp.value = url; set(url); touch(); prev.src = url; toast('올렸어요. 저장을 눌러 주세요.');
         }).catch(function (e) { toast('올리지 못했어요: ' + (e.message || e), true); })
-          .then(function () { up.textContent = '올리기'; up.disabled = false; file.value = ''; });
+          .then(function () { up.innerHTML = ICON_UP; up.classList.remove('is-busy'); up.disabled = false; file.value = ''; });
       };
       var row = h('div', { class: 'oha-img' }, [prev, inp, up, file]);
       wrap.appendChild(row);
@@ -349,6 +648,7 @@
     }
     if (typeof val === 'number') {
       var n = h('input', { class: 'oha-in', type: 'number', step: 'any' }); n.value = val;
+      var phn = PH[pkey + '.' + key] || PH[key]; if (phn) n.placeholder = phn;
       n.oninput = function () { set(n.value === '' ? 0 : Number(n.value)); touch(); };
       return n;
     }
@@ -378,6 +678,7 @@
     if (type === 'wanted') x = { cardTitle: 'WANTED', cardSub: 'DEAD OR ALIVE', number: '$0.00', profile: profileRows(['나이', '출신', '최근 목격', '별명', '죄목', '직업']) };
     if (type === 'custom') x = { customFront: '', customBack: '', customRatio: '', customRadius: 12, cardTitle: 'MY CARD', number: '', profile: profileRows(['나이', '키']) };
     var o = {}; [base, x, tail].forEach(function (src) { Object.keys(src).forEach(function (k) { o[k] = src[k]; }); });
+    fillDefaults(o, CARD_DEFAULTS);
     return o;
   }
     function ownerTpl(type) {
@@ -392,6 +693,7 @@
     if (type === 'ticket') { o.cardTitle = 'OWNER TICKET'; o.strap = false; }
     if (type === 'wanted') { o.cardTitle = 'WANTED'; o.strap = false; o.number = '$0.00'; }
     if (type === 'custom') { o.cardTitle = 'MY CARD'; o.strap = false; }
+    fillDefaults(o, OWNER_DEFAULTS);
     return o;
   }
   function pairTpl(n) {
@@ -520,21 +822,64 @@
   };
 
   function objectEd(obj, key) {
-    var box = h('div');
-    function draw() {
-      box.innerHTML = '';
-      Object.keys(obj).forEach(function (k) {
-        var v = obj[k];
-        var complex = v && typeof v === 'object';
-        var ed = valueEd(v, function (nv) { obj[k] = nv; }, k, key);
-        if (complex) {
-          var d = h('details', { class: 'oha-box' }, [h('summary', { text: LABEL[k] || k }), ed]);
-          if (!Array.isArray(v)) d.open = false;
-          box.appendChild(d);
-        } else {
-          box.appendChild(h('div', { class: 'oha-row' }, [h('div', { class: 'oha-lab', text: LABEL[k] || k }), ed]));
-        }
+    var box = h('div', { class: 'oha-obj' });
+    var defs = SCHEMA[key] || null;
+    var conds = [];
+    function refresh() { conds.forEach(function (c) { c.el.hidden = !c.when(obj); }); }
+
+    /* 칸 하나 (글자 칸은 한 줄, 목록 · 객체는 토글 상자) */
+    function rowFor(k) {
+      var v = obj[k];
+      var complex = v && typeof v === 'object';
+      var ed = valueEd(v, function (nv) { obj[k] = nv; refresh(); }, k, key);
+      if (complex && !Array.isArray(v) && INLINE[k]) {
+        return h('div', { class: 'oha-inline' }, [h('div', { class: 'oha-subhead', text: LABEL[k] || k }), ed]);
+      }
+      if (complex) return h('details', { class: 'oha-box' }, [h('summary', null, [h('span', { text: LABEL[k] || k })]), ed]);
+      return h('div', { class: 'oha-row' }, [h('div', { class: 'oha-lab', text: LABEL[k] || k }), ed]);
+    }
+
+    /* 섹션 하나 : rows 안의 배열은 세로줄로 이어 붙여요 */
+    function sectionFor(def) {
+      var sec = h('section', { class: 'oha-sec' + (def.t ? '' : ' is-bare') });
+      if (def.t) {
+        sec.appendChild(h('header', { class: 'oha-sec-h' }, [
+          h('b', { text: def.t }),
+          def.tag ? h('span', { class: 'oha-pill' + (def.when ? ' is-cond' : ''), text: def.tag }) : null
+        ]));
+      }
+      var any = false;
+      def.rows.forEach(function (r) {
+        var ks = (Array.isArray(r) ? r : [r]).filter(function (k) { return k in obj; });
+        if (!ks.length) return;
+        any = true;
+        if (ks.length > 1) {
+          var g = h('div', { class: 'oha-link', title: '함께 사용하는 항목이에요' });
+          ks.forEach(function (k) { g.appendChild(rowFor(k)); });
+          sec.appendChild(g);
+        } else sec.appendChild(rowFor(ks[0]));
       });
+      if (!any) return null;
+      if (def.when) conds.push({ el: sec, when: def.when });
+      return sec;
+    }
+
+    function draw() {
+      box.innerHTML = ''; conds = [];
+      if (defs) {
+        var used = {};
+        defs.forEach(function (d) { d.rows.forEach(function (r) { (Array.isArray(r) ? r : [r]).forEach(function (k) { used[k] = 1; }); }); });
+        defs.forEach(function (d) { var s = sectionFor(d); if (s) box.appendChild(s); });
+        var rest = Object.keys(obj).filter(function (k) { return !used[k]; });
+        if (rest.length) {
+          var titled = defs.some(function (d) { return d.t; });
+          var s2 = sectionFor({ t: titled ? '기타' : '', tag: titled ? '공통' : '', rows: rest });
+          if (s2) box.appendChild(s2);
+        }
+      } else {
+        Object.keys(obj).forEach(function (k) { box.appendChild(rowFor(k)); });
+      }
+      /* 아직 칸이 없는 항목만 예전처럼 "+ 항목 추가"로 꺼내 쓸 수 있어요 */
       var opt = OPTIONAL[key];
       if (opt) {
         var missing = Object.keys(opt).filter(function (k) { return !(k in obj); });
@@ -550,6 +895,7 @@
           box.appendChild(h('div', { class: 'oha-add' }, [sel]));
         }
       }
+      refresh();
     }
     draw();
     return box;
@@ -623,42 +969,72 @@
     return keys;
   }
 
-   /* 참고용 코드 모음 (편집기 맨 아래에 항상 보여요) */
-  function snippetBox() {
-    var items = [
-      { name: '줄바꿈',
-        code: '<br>' },
-      { name: '볼드체',
-        code: '<b>내용</b>' },
-       { name: '기울임체',
-        code: '<i>내용</i>' },
-      { name: '취소선',
-        code: '<s>내용</s>' },
-      { name: '프로필 2단 코드',
-        code: '<div class="story-2col"><div>설정 글 내용</div><img src="이미지 주소" alt="캐릭터 이름"></div>' },
-      { name: '스포일러',
-        code: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>' },
-      { name: '각주',
-        code: '각주<sup class="fn" tabindex="0">각주 번호<span>각주 내용</span></sup>' },
-      { name: '토글',
-        code: '<details class="tg"><summary>제목</summary><div>펼쳐질 내용</div></details>' },
-      { name: '- 목록',
-        code: '<ul class="dash-list"><li>내용</li><li>내용</li></ul>' },
-      { name: '• 목록',
-        code: '<ul class="dot-list"><li>내용</li><li>내용</li></ul>' },
-    ];
-    var box = h('div', { class: 'oha-box' });
-    box.appendChild(h('b', { text: '자주 쓰는 코드 참고' }));
-    items.forEach(function (it) {
-      box.appendChild(h('div', { style: 'display:flex;gap:8px;align-items:center;margin-top:8px' }, [
-        h('span', { class: 'oha-note', style: 'width:56px;flex-shrink:0;margin:0', text: it.name }),
-        h('pre', {
-          style: 'flex:1;min-width:0;margin:0;white-space:pre-wrap;word-break:break-all;background:#f3f3f3;border-radius:8px;padding:8px 10px;font-size:12px',
-          text: it.code }),
-        copyBtn('복사', function () { return it.code; })
-      ]));
+  /* ---------- 자주 쓰는 코드 버튼 (편집기 위쪽) ----------
+     글을 드래그해서 선택한 뒤 버튼을 누르면 그 부분에 코드가 자동으로 적용돼요.
+     선택한 글이 없으면 예시 글이 들어가고, 바꿔 적을 부분이 선택돼요. */
+  var lastField = null;
+  function wrapSnip(open, close, ph) {
+    return function (sel) { var inner = sel || ph; return { text: open + inner + close, from: open.length, to: open.length + inner.length }; };
+  }
+  function listSnip(cls) {
+    return function (sel) {
+      var lines = sel ? sel.split(/\r?\n/).filter(function (l) { return l.trim(); }) : ['내용', '내용'];
+      if (!lines.length) lines = ['내용'];
+      var t = '<ul class="' + cls + '">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';
+      return { text: t, from: t.length, to: t.length };
+    };
+  }
+  var SNIPS = [
+    { html: '<i class="k">↵</i>줄바꿈', tip: '<br>',
+      make: function (sel) { var t = sel + '<br>'; return { text: t, from: t.length, to: t.length }; } },
+    { html: '<i class="k"><b>B</b></i>볼드체', tip: '<b>내용</b>', make: wrapSnip('<b>', '</b>', '내용') },
+    { html: '<i class="k"><em>I</em></i>기울임체', tip: '<i>내용</i>', make: wrapSnip('<i>', '</i>', '내용') },
+    { html: '<i class="k"><s>S</s></i>취소선', tip: '<s>내용</s>', make: wrapSnip('<s>', '</s>', '내용') },
+    { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
+      make: function (sel) {
+        var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
+        return { text: o + rt + '</rt></ruby>', from: o.length, to: o.length + rt.length };
+      } },
+    { html: '<i class="k">▒</i>스포일러', tip: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>',
+      make: wrapSnip('<span class="spoil" onclick="this.classList.toggle(\'open\')">', '</span>', '숨길 내용') },
+    { html: '<i class="k">¹</i>각주', tip: '각주<sup class="fn" tabindex="0">1<span>각주 내용</span></sup>',
+      make: function (sel) {
+        var o = (sel || '각주 달 글') + '<sup class="fn" tabindex="0">1<span>', c = '각주 내용';
+        return { text: o + c + '</span></sup>', from: o.length, to: o.length + c.length };
+      } },
+    { html: '<i class="k">▸</i>토글', tip: '<details class="tg"><summary>제목</summary><div>펼쳐질 내용</div></details>',
+      make: function (sel) {
+        var o = '<details class="tg"><summary>', c = '제목';
+        return { text: o + c + '</summary><div>' + (sel || '펼쳐질 내용') + '</div></details>', from: o.length, to: o.length + c.length };
+      } },
+    { html: '<i class="k">-</i>목록', tip: '<ul class="dash-list"><li>내용</li></ul>', make: listSnip('dash-list') },
+    { html: '<i class="k">•</i>목록', tip: '<ul class="dot-list"><li>내용</li></ul>', make: listSnip('dot-list') }
+  ];
+
+  function applySnippet(it) {
+    var el = lastField;
+    if (!el || !document.body.contains(el)) { toast('먼저 글을 적을 칸을 눌러 주세요.', true); return; }
+    var s = el.selectionStart, e = el.selectionEnd, v = el.value;
+    var r = it.make(v.slice(s, e));
+    el.focus();
+    el.value = v.slice(0, s) + r.text + v.slice(e);
+    el.setSelectionRange(s + r.from, s + r.to);
+    el.dispatchEvent(new Event('input', { bubbles: true }));     /* 저장할 값에 반영 + 미리보기 갱신 */
+  }
+
+  function snipBar() {
+    var btns = h('div', { class: 'oha-snip-b' });
+    SNIPS.forEach(function (it) {
+      var b = h('button', { class: 'oha-snipbtn', type: 'button', title: it.tip });
+      b.innerHTML = it.html;
+      b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   /* 눌러도 글 선택이 풀리지 않게 */
+      b.addEventListener('click', function () { applySnippet(it); });
+      btns.appendChild(b);
     });
-    return box;
+    return h('div', { class: 'oha-snip-wrap' }, [h('div', { class: 'oha-snip' }, [
+      h('div', { class: 'oha-snip-l' }, [h('b', { text: '자주 쓰는 코드' }), h('small', { text: '글을 드래그 → 버튼 클릭' })]),
+      btns
+    ])]);
   }
 
   function renderEditor(body) {
@@ -673,10 +1049,6 @@
       panel.appendChild(h('h2', { text: TAB_NAME[st.tab] || st.tab }));
       var v = st.draft[st.tab];
       var ed = valueEd(v, function (nv) { st.draft[st.tab] = nv; }, st.tab, '');
-      if (v && typeof v === 'object' && !Array.isArray(v)) {
-        /* 최상위 객체는 펼쳐서 보여주기 */
-        ed.querySelectorAll(':scope > details.oha-box').forEach(function (d, i) { if (i < 1) d.open = true; });
-      }
       panel.appendChild(ed);
     }
     keys.concat(['__gb']).forEach(function (k) {
@@ -687,8 +1059,8 @@
       };
       nav.appendChild(b);
     });
+    body.appendChild(snipBar());
     body.appendChild(h('div', { class: 'oha-main' }, [nav, panel]));
-    body.appendChild(h('div', { class: 'oha-main' }, [h('div'), snippetBox()]));
     show();
   }
 
@@ -848,6 +1220,7 @@
             put();
           });
         });
+        ensureDefaults(st.draft);
         Object.keys(SKIP).forEach(function (k) { delete st.draft[k]; });
       }
       if (st.preview) {
@@ -975,6 +1348,10 @@
     if (!st.root) {
       st.root = h('div', { id: 'oha' });
       document.body.appendChild(st.root);
+      st.root.addEventListener('focusin', function (e) {      /* 코드 버튼을 적용할 칸 기억하기 */
+        var t = e.target;
+        if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type === 'text')) && !t.closest('.oha-snip-wrap') && !t.closest('.oha-color')) lastField = t;
+      });
       window.addEventListener('hashchange', function () {
         var m = location.hash.match(/^#\/?(admin|setup)/);
         st.root.hidden = !m;
