@@ -2623,7 +2623,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
   /* ----- 안내 말풍선 (열린 스포일러의 "링크 위"에 마우스를 올렸을 때만) ----- */
   function showTip(sp, anchor) {
     if (!tip) { tip = document.createElement("div"); tip.className = "spoil-tip"; document.body.appendChild(tip); }
-    tip.textContent = "더블클릭: 링크 열기";
+    tip.textContent = "더블클릭으로 링크 열기";
     tip.__sp = sp; tip.__a = anchor;
     tip.classList.add("on");
     var r = anchor.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
