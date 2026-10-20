@@ -912,7 +912,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         // 관계: 연결된 캐릭터로 이동
         detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
           li.addEventListener("click", function (e) {
-            if (e.target.closest(".ch-link")) return;   // 글 속 캐릭터 링크를 눌렀을 땐 그쪽이 처리
+            if (e.target.closest(".ch-link, a, .spoil, .fn")) return;   // 글 속 링크 · 스포일러 · 각주를 눌렀을 땐 그쪽이 처리
             openChar(li.getAttribute("data-link"));
           });
         });
@@ -1375,7 +1375,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         // 리뷰 누르면 관계 화면, 답글 버튼 누르면 대화 펼치기
         reviewsBox.querySelectorAll(".rv").forEach(function (card) {
           card.addEventListener("click", function (e) {
-            if (e.target.closest(".rv-btn") || e.target.closest(".rv-thread")) return;
+            if (e.target.closest(".rv-btn") || e.target.closest(".rv-thread") || e.target.closest("a, .spoil, .fn")) return;
             openRelation(+card.getAttribute("data-pair"));
           });
           const talk = card.querySelector(".rv-btn.talk");
@@ -2595,6 +2595,152 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
   thumb.addEventListener("pointerup", function () { dragging = false; bar.classList.remove("drag"); });
 
   (function tick() { update(); requestAnimationFrame(tick); })();
+})();
+</script>
+<script>
+/* ===== 스포일러 · 링크 · 각주 겹침 처리 ===== */
+(function () {
+  var passing = false;      // 우리가 일부러 발생시킨 클릭은 다시 가로채지 않게
+  var tip = null, lastFn = null;
+
+  /* 스포일러 자신에게 걸린 링크 (각주 팝업 안의 링크는 제외) */
+  function ownLink(sp) {
+    var list = sp.querySelectorAll("a[href], a[data-ch]");
+    for (var i = 0; i < list.length; i++) {
+      var f = list[i].closest(".fn");
+      if (!(f && sp.contains(f))) return list[i];
+    }
+    return sp.closest("a[href], a[data-ch]");
+  }
+  /* 클릭한 자리가 이 스포일러의 링크 위인지 */
+  function linkAt(sp, t) {
+    var a = t.closest("a");
+    if (!a || !(a.hasAttribute("href") || a.hasAttribute("data-ch"))) return null;
+    return (sp.contains(a) || a.contains(sp)) ? a : null;
+  }
+  function fire(a) { passing = true; try { a.click(); } finally { passing = false; } }
+
+  /* ----- 안내 말풍선 ----- */
+  function tipText(sp) {
+    return sp.classList.contains("open")
+      ? "더블클릭: 링크 열기 · 클릭: 닫기"
+      : "클릭: 스포일러 열기 (열린 뒤 더블클릭: 링크 열기)";
+  }
+  function showTip(sp) {
+    if (!tip) { tip = document.createElement("div"); tip.className = "spoil-tip"; document.body.appendChild(tip); }
+    tip.textContent = tipText(sp);
+    tip.__sp = sp;
+    tip.classList.add("on");
+    var r = sp.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
+    var y = r.top - h - 8; if (y < 8) y = r.bottom + 8;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { if (tip) { tip.classList.remove("on"); tip.__sp = null; } }
+  function afterChange() { if (tip && tip.__sp) showTip(tip.__sp); }
+
+  document.addEventListener("mouseover", function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var fnEl = t.closest(".fn"), p = t.closest(".spoil"), sp = null;
+    while (p) {
+      if (ownLink(p) && !(fnEl && p.contains(fnEl))) { sp = p; break; }
+      p = p.parentElement && p.parentElement.closest(".spoil");
+    }
+    if (sp) { if (!tip || tip.__sp !== sp) showTip(sp); } else hideTip();
+  });
+  document.addEventListener("mouseout", function (e) { if (!e.relatedTarget) hideTip(); });
+
+  /* ----- 더블클릭으로 글자가 선택되는 것 막기 ----- */
+  document.addEventListener("mousedown", function (e) {
+    var t = e.target;
+    if (e.detail > 1 && t && t.closest && t.closest(".spoil") && !t.closest(".fn")) e.preventDefault();
+  }, true);
+
+  /* ----- 클릭 처리 ----- */
+  document.addEventListener("click", function (e) {
+    if (passing) return;
+    var t = e.target;
+    if (t && t.nodeType !== 1) t = t.parentElement;
+    if (!t || !t.closest) return;
+
+    var fn = t.closest(".fn");
+    var chain = [], p = t.closest(".spoil");           // 안쪽 → 바깥쪽 스포일러
+    while (p) { chain.push(p); p = p.parentElement && p.parentElement.closest(".spoil"); }
+
+    if (!chain.length) {                               // 토글 제목 안의 각주 마커: 토글이 같이 접히지 않게
+      if (fn && fn.closest("summary") && !t.closest("a")) e.preventDefault();
+      return;
+    }
+
+    var now = Date.now(), hidden = null, i;
+    for (i = chain.length - 1; i >= 0; i--) {          // 가장 바깥의 닫힌 스포일러부터 열어요
+      if (!chain[i].classList.contains("open")) { hidden = chain[i]; break; }
+    }
+
+    /* 1) 닫혀 있으면: 한 번 클릭 = 열기 (링크 이동 · 상위 클릭 동작 모두 막음) */
+    if (hidden) {
+      e.preventDefault(); e.stopPropagation();
+      hidden.classList.add("open");
+      hidden.__openedAt = now;
+      // 아주 느린 더블클릭: 첫 클릭이 닫아버린 직후 두 번째 클릭이 온 경우 → 링크 열기
+      if (e.detail >= 2 && hidden.__closedAt && now - hidden.__closedAt < 700) {
+        var a0 = linkAt(hidden, t); if (a0) fire(a0);
+      }
+      afterChange();
+      return;
+    }
+
+    /* 2) 모두 열려 있으면 가장 안쪽 스포일러를 기준으로 */
+    var inner = chain[0];
+    if (inner.contains(fn)) {                          // 스포일러 안 각주(마커 · 팝업)를 누른 것 → 스포일러는 그대로
+      if (fn.closest("summary") && !t.closest("a")) e.preventDefault();
+      return;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    if (now - (inner.__openedAt || 0) < 350) return;   // 방금 열린 직후의 두 번째 클릭은 무시
+
+    var a = linkAt(inner, t);
+    if (a) {                                           // 링크 스포일러: 클릭 = 닫기, 더블클릭 = 링크 열기
+      clearTimeout(inner.__t);
+      if (e.detail >= 2) { inner.__t = 0; fire(a); return; }
+      inner.__t = setTimeout(function () {
+        inner.__t = 0;
+        inner.classList.remove("open");
+        inner.__closedAt = Date.now();
+        afterChange();
+      }, 300);
+    } else {                                           // 일반 스포일러: 클릭 = 닫기
+      inner.classList.remove("open");
+      inner.__closedAt = now;
+      afterChange();
+    }
+  }, true);
+
+  /* ----- 각주 팝업 위치 (잘리지 않게 화면 안으로) ----- */
+  function placeFn(fn) {
+    var pop = fn.querySelector(":scope > span"); if (!pop) return;
+    pop.style.left = "0px"; pop.style.top = "0px";
+    var r = fn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    var vw = document.documentElement.clientWidth;
+    var x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, vw - w - 8));
+    var below = r.top - h - 10 < 8;
+    fn.classList.toggle("down", below);
+    pop.style.left = x + "px";
+    pop.style.top = (below ? r.bottom + 10 : r.top - h - 10) + "px";
+  }
+  function onFn(e) {
+    var f = e.target && e.target.closest && e.target.closest(".fn");
+    if (!f) { if (e.type === "mouseover") lastFn = null; return; }
+    if (f !== lastFn || e.type === "focusin") { lastFn = f; placeFn(f); }
+  }
+  document.addEventListener("mouseover", onFn);
+  document.addEventListener("focusin", onFn);
+  document.addEventListener("scroll", function () {
+    hideTip();
+    if (lastFn && document.body.contains(lastFn)) placeFn(lastFn);
+  }, true);
+  window.addEventListener("resize", function () { if (lastFn) placeFn(lastFn); });
 })();
 </script>
 </body>
