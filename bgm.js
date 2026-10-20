@@ -138,7 +138,7 @@
      엔진 2 : 유튜브 (보이지 않는 플레이어로 소리만 재생)
      ===================================================== */
   const YtEng = (function () {
-    let player = null, ready = false, job = null, apiP = null;
+    let player = null, ready = false, job = null, apiP = null, booting = false;   // booting: 플레이어를 이미 만드는 중이면 또 만들지 않아요
     function api() {
       if (apiP) return apiP;
       apiP = new Promise(function (res) {
@@ -156,6 +156,8 @@
       if (j.play) player.loadVideoById(v); else player.cueVideoById(v);
     }
     function boot() {
+      if (booting) return;      // 새로고침 직후 API 가 로딩되는 동안 load() 가 여러 번 불려도 플레이어는 딱 하나만 만들어요
+      booting = true;
       api().then(function () {
         const host = document.createElement("div");
         host.className = "bgm-yt";
@@ -200,7 +202,7 @@
       load: function (id, from, play) {
         job = { id: id, at: from || 0, play: !!play };
         if (ready) { const j = job; job = null; start(j); }
-        else if (!player) boot();
+        else if (!player && !booting) boot();
       },
       play: function () { if (ready) player.playVideo(); else if (job) job.play = true; },
       pause: function () { if (ready) player.pauseVideo(); else if (job) job.play = false; },
