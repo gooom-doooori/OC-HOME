@@ -256,9 +256,9 @@
     { t: '페이지 글자', tag: '공통', rows: ['label', 'tabs', ['galleryEmpty', 'relationEmpty']] },
     { t: '카드 이미지 색', tag: '공통', rows: [['imageTint', 'tintStrength'], 'panelStrength'] },
     { t: 'SD 이미지', tag: '공통', rows: [['sdShow', 'sdSize']] },
-    { t: '학생증 / 사원증 뒷면', tag: '학생증 카드에서만', rows: ['idNotice', ['idIssued', 'idValid']] },
-    { t: '티켓 약관', tag: '티켓 카드에서만', rows: ['ticketTerms'] },
-    { t: '수배지', tag: '수배지 카드에서만', rows: ['wantedPaper'] },
+    { t: '학생증 / 사원증 뒷면', tag: '학생증 모드에서 표시', rows: ['idNotice', ['idIssued', 'idValid']] },
+    { t: '티켓 약관', tag: '티켓 모드에서 표시', rows: ['ticketTerms'] },
+    { t: '수배지', tag: '수배지 모드에서 표시', rows: ['wantedPaper'] },
     { t: '페이지 테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] }
   ];
   var SCHEMA = {
@@ -299,8 +299,8 @@
     ],
     title: [
       { t: '타이틀', tag: '공통', rows: ['type', 'subText'] },
-      { t: '글자 타이틀', tag: '글자일 때만', when: function (o) { return o.type !== 'image'; }, rows: ['text'] },
-      { t: '로고 이미지 타이틀', tag: '로고 이미지일 때만', when: function (o) { return o.type === 'image'; }, rows: [['image', 'imageWidth']] }
+      { t: '글자 타이틀', tag: '', when: function (o) { return o.type !== 'image'; }, rows: ['text'] },
+      { t: '로고 이미지 타이틀', tag: '', when: function (o) { return o.type === 'image'; }, rows: [['image', 'imageWidth']] }
     ],
     deco: [
       { t: '화면 글자', tag: '공통', rows: ['badge', 'topLabel', 'topRight', 'sideText', 'titleTag'] },
