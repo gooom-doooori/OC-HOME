@@ -36,7 +36,7 @@
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
     fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)',
-    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책', faction: '진영',
+    sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
     relations: '관계', customFront: '앞면 이미지', customBack: '뒷면 이미지', customRatio: '카드 비율',
@@ -72,6 +72,8 @@
                      wantedPaper: 1, ownerImage: 1, bgm: 1};
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
+  /* 체크 칸 옆에 붙는 글자 (없으면 "사용") */
+  var BOOL_TEXT = { spoiler: '스포일러 포함 — 체크하면 열람 전에 경고 팝업이 떠요' };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
@@ -200,7 +202,7 @@
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
-    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', intro: '', tags: [],
+    tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], name: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
     number: '', seat: { gate: '', row: '', seat: '' }, profile: [], quote: '', story: '', gallery: [], relations: [],
     customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: ''
   };
@@ -242,7 +244,7 @@
      when 이 있는 섹션은 그 상태일 때만 나타나요. */
   function cardType(o) { return ['id', 'ticket', 'wanted', 'custom'].indexOf(o.type) > -1 ? o.type : 'id'; }
   var CARD_SECTIONS = [
-    { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], 'faction', 'intro', 'tags'] },
+    { t: '기본 정보', tag: '공통', rows: [['name', 'nameEn'], 'faction', 'spoiler', 'intro', 'tags'] },
     { t: '카드 외형', tag: '공통', rows: ['type', ['color', 'subColor', 'textColor'], ['cardTitle', 'cardSub'], 'number'] },
     { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], ['sd', 'sdSize']] },
     { t: '상세 프로필', tag: '공통', rows: ['profile', 'quote', 'story'] },
@@ -864,7 +866,7 @@
     if (typeof val === 'boolean') {
       var c = h('input', { type: 'checkbox' }); c.checked = val;
       c.onchange = function () { set(c.checked); touch(); };
-      return h('label', null, [c, ' 사용']);
+      return h('label', null, [c, ' ' + (BOOL_TEXT[key] || '사용')]);
     }
         if ((typeof val === 'number' || isFRef(val) || isORef(val)) && (key === 'from' || key === 'to' || key === 'link' || key === 'members')) {
       /* 캐릭터 번호 칸 : 이름을 보며 고르기 */
@@ -1301,6 +1303,23 @@
   }
   var ICON_NEWTAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>';
   var ICON_SAMETAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 15h8"/><path d="M13 12l3 3-3 3"/></svg>';
+  var ICON_IMG_TWO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h8M3 10h8M3 14h8M3 18h6"/><rect x="14" y="5" width="7" height="14" rx="1.5"/><path d="M14 15l2.5-2.5L21 17"/></svg>';
+  var ICON_IMG_ONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 17l5-4.5 4 3.5 3-2.5 6 4.5"/></svg>';
+  /* 이미지 추가 : 주소 칸(https://)이 바로 선택돼서 붙여넣기만 하면 돼요 */
+  function imgOne(sel) {
+    var o = '<img class="st-img" src="', url = 'https://';
+    return { text: o + url + '" alt="">' + (sel || ''), from: o.length, to: o.length + url.length };
+  }
+  function imgTwo(sel) {
+    var o = '<div class="st-two"><div>' + (sel || '글 내용') + '</div><img src="', url = 'https://';
+    return { text: o + url + '" alt=""></div>', from: o.length, to: o.length + url.length };
+  }
+  /* 스포일러 주의 안내칸 : 글을 선택해 두면 그 글만 안내문 아래에 묶여요 */
+  function spoilNote(sel) {
+    var t = '<div class="spoil-box"><p class="spoil-box-head">아래 내용에는 직·간접적인 스포일러가 포함되어 있습니다.</p>' +
+      (sel ? '<div class="spoil-box-body">' + sel + '</div>' : '') + '</div>';
+    return { text: t, from: t.length, to: t.length };
+  }
   /* 캐릭터 링크 : 관계 탭 링크와 같은 방식으로 그 캐릭터 상세 프로필을 열어요 */
   function chLinkSnip(ref, name) {
     return function (sel) {
@@ -1337,6 +1356,11 @@
         { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
       ] },
     { html: '<i class="k">☺</i>캐릭터 링크 ▾', tip: '글을 누르면 그 캐릭터 상세 프로필이 열려요', listMenu: true, choices: charChoices },
+    { html: '<i class="k">▣</i>이미지 추가 ▾', tip: '이미지 넣기 (2단 뷰 / 일반 삽입) — 넣은 뒤 주소를 바로 붙여넣어요',
+      choices: [
+        { icon: ICON_IMG_TWO, label: '2단 뷰', tip: '선택한 글 + 이미지를 2단으로', make: imgTwo },
+        { icon: ICON_IMG_ONE, label: '일반 삽입', tip: '이미지만 삽입', make: imgOne }
+      ] },
     { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
       make: function (sel) {
         var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
@@ -1344,6 +1368,7 @@
       } },
     { html: '<i class="k">▒</i>스포일러', tip: '<span class="spoil">숨길 내용</span>',
       make: wrapSnip('<span class="spoil">', '</span>', '숨길 내용') },
+    { html: '<i class="k" style="color:#d93025">⚠</i>스포 주의', tip: '스포일러 주의 안내칸 (글을 선택하면 그 글만 묶여요)', make: spoilNote },
     { html: '<i class="k">¹</i>각주', tip: '각주<sup class="fn" tabindex="0">1<span>각주 내용</span></sup>',
       make: function (sel) {
         var o = (sel || '각주 달 글') + '<sup class="fn" tabindex="0">1<span>', c = '각주 내용';
