@@ -3409,12 +3409,12 @@ input, textarea, select, [contenteditable="true"],
   gap: 12px;
   height: 44px;
   padding: 0 7px 0 16px;
-  color: var(--menu-text);
+  color: var(--deco);
 }
 
 /* 이퀄라이저 (재생 중에만 움직여요) */
 .bgm-eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0; }
-.bgm-eq i { width: 3px; height: 28%; background: var(--accent); }
+.bgm-eq i { width: 3px; height: 28%; background: var(--deco); }
 .bgm.is-playing .bgm-eq i { animation: bgmEq .9s ease-in-out infinite; }
 .bgm.is-playing .bgm-eq i:nth-child(1) { animation-delay: -.6s; }
 .bgm.is-playing .bgm-eq i:nth-child(2) { animation-delay: -.3s; }
@@ -3445,9 +3445,9 @@ input, textarea, select, [contenteditable="true"],
   font-size: 11px;
   letter-spacing: .5px;
   white-space: nowrap;
-  color: var(--menu-desc);
+  color: var(--dots);
 }
-.bgm-time em { font-style: normal; color: var(--menu-text); }
+.bgm-time em { font-style: normal; color: var(--deco); }
 
 /* 재생 / 멈춤 (동그란 버튼 = 왼쪽 위 뱃지 느낌) */
 .bgm-play {
@@ -3457,7 +3457,7 @@ input, textarea, select, [contenteditable="true"],
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--deco);
   color: var(--accent-text);
   display: flex;
   align-items: center;
@@ -3477,7 +3477,7 @@ input, textarea, select, [contenteditable="true"],
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--menu-text);
+  color: var(--deco);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3485,7 +3485,7 @@ input, textarea, select, [contenteditable="true"],
   transition: color .25s;
 }
 .bgm-vbtn svg { width: 18px; height: 18px; }
-.bgm-vbtn:hover, .bgm.vol-open .bgm-vbtn { color: var(--accent); }
+.bgm-vbtn:hover, .bgm.vol-open .bgm-vbtn { color: var(--deco); }
 
 /* 아래 진행 바 (눌러서 이동 · 좌우로 드래그해서 시간 조절) */
 .bgm-bar {
@@ -3500,14 +3500,14 @@ input, textarea, select, [contenteditable="true"],
   transition: height .15s;
 }
 .bgm-bar::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; bottom: -4px; }   /* 누르기 쉽게 터치 영역을 넓혀요 */
-.bgm-bar i { position: relative; display: block; height: 100%; width: 0; background: var(--accent); }
+.bgm-bar i { position: relative; display: block; height: 100%; width: 0; background: var(--deco); }
 .bgm-bar i::after {                    /* 마름모 손잡이 (음량 바와 같은 모양) */
   content: "";
   position: absolute;
   right: 0; top: 50%;
   width: 10px; height: 10px;
   margin: -5px -5px 0 0;
-  background: var(--accent);
+  background: var(--deco);
   transform: rotate(45deg);
   opacity: 0;
   transition: opacity .2s;
@@ -3534,7 +3534,7 @@ input, textarea, select, [contenteditable="true"],
   gap: 10px;
   padding: 12px 0 14px;
   background: var(--menu-bar);
-  color: var(--menu-text);
+  color: var(--deco);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px);
@@ -3546,7 +3546,7 @@ input, textarea, select, [contenteditable="true"],
   text-align: center;
   font-family: var(--font-mono), monospace;
   font-size: 11px;
-  color: var(--menu-desc);
+  color: var(--dots);
 }
 .bgm-vs {                              /* 세로 음량 슬라이더 (위 = 크게 / 아래 = 작게) */
   position: relative;
@@ -3569,7 +3569,7 @@ input, textarea, select, [contenteditable="true"],
   left: 50%; bottom: 0;
   width: 4px; margin-left: -2px;
   height: var(--v, 40%);
-  background: var(--accent);
+  background: var(--deco);
 }
 .bgm-vs i::after {                     /* 마름모 손잡이 */
   content: "";
@@ -3577,10 +3577,10 @@ input, textarea, select, [contenteditable="true"],
   left: 50%; top: 0;
   width: 11px; height: 11px;
   margin: -5.5px 0 0 -5.5px;
-  background: var(--accent);
+  background: var(--deco);
   transform: rotate(45deg);
 }
-.bgm-vs:focus-visible i::after { outline: 2px solid var(--menu-text); outline-offset: 2px; }
+.bgm-vs:focus-visible i::after { outline: 2px solid var(--deco); outline-offset: 2px; }
 
 /* 유튜브 곡용 숨은 플레이어 (소리만 나와요) */
 .bgm-yt {
@@ -3605,7 +3605,7 @@ input, textarea, select, [contenteditable="true"],
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--deco);
   color: var(--accent-text);
   align-items: center;
   justify-content: center;
@@ -3632,7 +3632,7 @@ input, textarea, select, [contenteditable="true"],
     box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
   }
   .bgm.mini-open .bgm-main { display: flex; }
-  .bgm.mini-open .bgm-note { background: var(--menu-bar); color: var(--accent); }
+  .bgm.mini-open .bgm-note { background: var(--menu-bar); color: var(--deco); }
   .bgm.mini-open .bgm-pop { top: calc(100% + 58px); }   /* 음량 바는 펼친 창 아래로 */
   .bgm-time { display: block; }        /* 펼친 창에는 시간도 보여요 */
 }
