@@ -716,7 +716,6 @@
     var closeBtn = h('button', { class: 'oha-btn is-main', type: 'button', text: '닫기' });
     closeBtn.onclick = close;
     var legend = h('span', { class: 'oha-legend' });
-    legend.innerHTML = '<span class="hl-t">&lt;회색&gt;</span> 코드 · <span class="hl-l">파랑</span> 링크 · 검정 본문';
     var head = h('div', { class: 'oha-pop-head' }, [h('h3', { text: label + ' 편집' }), legend, h('span', { class: 'oha-sp' }), closeBtn]);
     var bar = snipBar(function () { return area.ta; });
     var left = h('div', { class: 'oha-pop-col' }, [h('header', { text: '미리보기 (실제 사이트 표시)' }), pvIn]);
