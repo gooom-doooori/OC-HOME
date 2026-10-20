@@ -490,7 +490,7 @@
       '.oha-panel{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px}' +
       '.oha-panel h2{margin:0 0 12px;font-size:18px}' +
       '.oha-row{display:grid;grid-template-columns:130px 1fr;gap:10px;margin:8px 0;align-items:start}' +
-      '.oha-lab{font-weight:700;font-size:12px;color:#555;padding-top:8px;word-break:keep-all}' +
+      '.oha-lab{font-weight:700;font-size:14px;color:#555;padding-top:8px;word-break:keep-all}' +
       '.oha-in,.oha-ta{width:100%;border:1px solid #ccc;border-radius:8px;padding:8px 10px;font:inherit;background:#fff}' +
       '.oha-ta{min-height:76px;resize:vertical}' +
       '.oha-img{display:flex;gap:8px;align-items:center}.oha-img img{width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #ddd;background:#eee}' +
