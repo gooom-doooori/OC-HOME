@@ -3962,3 +3962,211 @@ body:has(.rl.open) .bgm { display: none !important; }
   color: inherit;
   cursor: inherit;
 }
+
+/* =========================================================
+   페어 페이지: 그리드 뷰 (캐릭터 SD 선택 팝업)
+   ========================================================= */
+.pr-gridbar {
+  width: 78%;
+  align-self: center;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.pr-grid-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1.5px solid var(--deco);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--deco);
+  cursor: pointer;
+  transition: background-color .25s, color .25s, transform .25s;
+}
+.pr-grid-btn svg { width: 18px; height: 18px; }
+.pr-grid-btn:hover { background: var(--deco); color: var(--bg); transform: translateY(-2px); }
+
+.pg {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  background: rgba(10, 10, 14, .5);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s, visibility 0s .25s;
+}
+.pg.open { opacity: 1; visibility: visible; transition: opacity .25s; }
+.pg-panel {
+  width: min(960px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg, #fff);
+  color: var(--deco);
+  border: 2px solid var(--deco);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .25);
+  transform: translateY(16px) scale(.97);
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+}
+.pg.open .pg-panel { transform: none; }
+.pg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px 10px 22px;
+  border-bottom: 1.5px solid var(--deco);
+}
+.pg-title {
+  margin: 0;
+  font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 4px;
+}
+.pg-close {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--deco);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .25s;
+}
+.pg-close:hover { transform: rotate(90deg); }
+.pg-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 12px;
+  padding: 18px 20px 22px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.pg-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px 10px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform .25s, border-color .25s, background-color .25s;
+}
+.pg.open .pg-item { animation: pgIn .38s calc(var(--n, 0) * .02s) cubic-bezier(.2, .8, .2, 1) backwards; }
+@keyframes pgIn { from { opacity: 0; transform: translateY(14px) scale(.9); } to { opacity: 1; transform: none; } }
+.pg-sd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rc, #888) 20%, #f4f4f4);
+  color: color-mix(in srgb, var(--rc, #888) 45%, #fff);
+}
+.pg-sd img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; -webkit-user-drag: none; user-select: none; }
+.pg-sd svg { width: 80%; height: 80%; }
+.pg-no {
+  margin-top: 4px;
+  font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  opacity: .7;
+}
+.pg-name { font-size: 13px; font-weight: 800; line-height: 1.2; text-align: center; word-break: keep-all; }
+.pg-item:hover { transform: translateY(-4px); border-color: var(--rc, var(--deco)); }
+.pg-item.on { border-color: var(--rc, var(--deco)); background: color-mix(in srgb, var(--rc, #888) 14%, transparent); }
+
+/* =========================================================
+   캐릭터 상세 프로필: 옷장 (경계선의 옷걸이 버튼 + 의상 목록)
+   ========================================================= */
+/* 전신 · 설정 글 옆 일러스트가 바뀔 때 부드럽게 */
+.fb-img, .dt-story-art > img { transition: opacity .16s; }
+
+.wd { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.wd.none { display: none; }
+
+/* 옷걸이 버튼: 상세 프로필이 열린 뒤에 톡 나타나요 */
+.wd-btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--c, #222);
+  color: var(--ct, #fff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s, opacity .2s, background-color .25s, color .25s;
+}
+.wd-btn svg { width: 25px; height: 25px; }
+.is-flipped .wd-btn { opacity: 1; pointer-events: auto; animation: wdPop .45s .85s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.is-flipped .wd-btn:hover { transform: scale(1.1) rotate(-6deg); }
+.wd.open .wd-btn { background: var(--ct, #fff); color: var(--c, #222); border-color: var(--c, #222); }
+@keyframes wdPop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+
+/* 의상 목록: 배경 없이 의상마다 외곽선만 · 스크롤바 숨김 · 위아래 끝은 서서히 투명 */
+.wd-list {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 30px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 30px), transparent 100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .18s, visibility 0s .18s;
+}
+.wd-list::-webkit-scrollbar { display: none; }
+.wd.open .wd-list { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .12s; }
+
+.wd-item { flex: none; width: 72px; }      /* 위치(대각선)는 JS 가 translateX 로 맞춰요 */
+.wd-thumb {
+  display: block;
+  width: 72px;
+  height: 104px;
+  padding: 4px;
+  border: 2px solid var(--c, #222);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .35);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 4px 10px rgba(0, 0, 0, .18);
+  cursor: pointer;
+  transition: transform .2s, background-color .2s, box-shadow .2s;
+}
+.wd-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+.wd.open .wd-thumb { animation: wdIn .42s calc(var(--d, 0) * .045s) cubic-bezier(.3, 1.5, .5, 1) backwards; }
+.wd-thumb:hover { transform: translateX(-4px) scale(1.06); }
+.wd-thumb.on {
+  background: color-mix(in srgb, var(--c, #222) 26%, #fff);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--c, #222), 0 6px 14px rgba(0, 0, 0, .25);
+}
+@keyframes wdIn { from { opacity: 0; transform: translate(14px, -22px) scale(.55); } to { opacity: 1; transform: none; } }
