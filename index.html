@@ -2706,6 +2706,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
     if (t && t.nodeType !== 1) t = t.parentElement;
     if (!t || !t.closest) return;
     if (t.closest(".fn-tip")) return;                  // 각주 팝업 안 스포일러는 호버로 보여요 (클릭으로 토글 안 함)
+    var rtEl = t.closest("rt");                        // 요미가나(rt)를 눌러도 같은 ruby 의 스포일러를 누른 것처럼
+    if (rtEl && !t.closest(".spoil") && rtEl.parentElement) {
+      var rsp = rtEl.parentElement.querySelector(":scope > .spoil");
+      if (rsp) t = rsp;
+    }
 
     var fn = t.closest(".fn");
     var chain = [], p = t.closest(".spoil");           // 안쪽 → 바깥쪽 스포일러
@@ -2766,6 +2771,24 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
     hideTip(); if (curFn) hideFn();
   }, true);
   window.addEventListener("resize", function () { hideTip(); hideFn(); });
+
+  /* ----- 요미가나 묶음: 글자 쪽 스포일러와 rt 안 스포일러가 항상 같이 열리고 닫히게 ----- */
+  function rubyOf(sp) {
+    var ru = sp.parentElement && sp.parentElement.tagName === "RUBY" ? sp.parentElement : null;
+    if (!ru) { var rt = sp.closest("rt"); ru = rt && rt.parentElement && rt.parentElement.tagName === "RUBY" ? rt.parentElement : null; }
+    return ru;
+  }
+  new MutationObserver(function (list) {
+    list.forEach(function (m) {
+      var sp = m.target;
+      if (!sp.classList || !sp.classList.contains("spoil") || sp.closest(".fn-tip")) return;
+      var ru = rubyOf(sp); if (!ru) return;
+      var on = sp.classList.contains("open");
+      [].forEach.call(ru.querySelectorAll(":scope > .spoil, :scope > rt .spoil"), function (o) {
+        if (o !== sp && o.classList.contains("open") !== on) o.classList.toggle("open", on);
+      });
+    });
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 })();
 </script>
 </body>
