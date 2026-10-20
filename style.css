@@ -3859,14 +3859,14 @@ body:has(.rl.open) .bgm { display: none !important; }
   color: var(--title);
   font: 700 14px/1 var(--font-body), sans-serif;
   cursor: pointer;
-  transition: background .2s;
+  transition: filter .2s;
 }
-.spoil-ask-btns button:hover { background: color-mix(in srgb, var(--bg) 85%, #fbfbfd); }
+.spoil-ask-btns button:hover { filter: brightness(1.25); }   /* 호버 : 배경이 약간 밝아져요 */
 .spoil-ask-btns button:focus-visible { outline: 2px solid var(--title); outline-offset: 3px; }
 
 .spoil-banner {
   position: fixed;
-  bottom: 1%;
+  bottom: 1%;                               /* 화면 위에서 8% */
   left: 50%;
   z-index: 9000;
   display: flex;
@@ -3875,7 +3875,7 @@ body:has(.rl.open) .bgm { display: none !important; }
   padding: 6px 14px 6px 8px;
   border: 1.5px solid var(--deco);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  background: color-mix(in srgb, var(--bg) 40%, transparent);   /* 반투명 bg 색 */
   color: var(--deco);
   font: 400 15px/1.5 'Sukmyung', sans-serif';
   white-space: nowrap;
@@ -3943,3 +3943,22 @@ body:has(.rl.open) .bgm { display: none !important; }
   background: center / contain no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d93025' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1z'/><path d='M15 9a4 4 0 0 1 0 6'/><path d='M18 6.5a8 8 0 0 1 0 11'/></svg>");
 }
 .spoil-box-body { padding: 12px 14px; border-top: 1px dashed rgba(217, 48, 37, .45); }
+
+/* =========================================================
+   이름에 건 링크 : 밑줄 없음 / 상세 프로필에서만 이동
+   ========================================================= */
+.dt-name a,
+.dt-name .ch-link {
+  border-bottom: 0;
+  text-decoration: none;
+  color: inherit;
+}
+/* 타일 · 카드 · 페어 화면의 이름은 혹시 링크가 남아 있어도 눌리지 않아요 */
+.ch-tile-name a, .cd-name a, .tk-name a, .tk-stub-label a, .wt-name a,
+.pr-name a, .rc-name a, .rv-name a {
+  pointer-events: none;
+  border-bottom: 0;
+  text-decoration: none;
+  color: inherit;
+  cursor: inherit;
+}
