@@ -1264,7 +1264,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         btn.style.top = (by - btn.offsetHeight / 2) + "px";
         const first = lst.querySelector(".wd-item");
         const iw = first ? first.offsetWidth : 72;
-        const top = by + btn.offsetHeight / 2 + 8;
+        const top = by + btn.offsetHeight * 0.71 + 4;      // 마름모 아래 꼭짓점 아래부터
         lst.style.left = (wdL() - iw / 2 - 10) + "px";
         lst.style.width = (WD_SLOPE + iw + 20) + "px";
         lst.style.top = top + "px";
@@ -1301,7 +1301,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         swapSrc(holder.querySelector(".fb-img"), b[n]);                  // 전신 보기
         swapSrc(detail.querySelector(".dt-story-art > img"), b[n]);      // 카드 보기 (설정 글 옆)
         Array.prototype.forEach.call(wd.querySelectorAll(".wd-thumb"), function (t) {
-          t.classList.toggle("on", +t.getAttribute("data-n") === n);
+          const on = +t.getAttribute("data-n") === n;
+          t.classList.toggle("on", on);
+          t.parentNode.classList.toggle("on", on);
         });
       }
 
@@ -1309,7 +1311,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const ch = list[i];
         const b = ch ? bodiesOf(ch) : [];
         wd.classList.remove("open");
-        if (!ch || !(ch.outfits || []).some(Boolean) || b.length < 2) { wd.innerHTML = ""; wd.classList.add("none"); return; }
+        if (!ch || b.length < 1) { wd.innerHTML = ""; wd.classList.add("none"); return; }
         wd.classList.remove("none");
         wd.style.setProperty("--c", cardColor(ch.color));
         wd.style.setProperty("--ct", cardText(ch.textColor, ch.color));
@@ -1317,8 +1319,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         wd.innerHTML =
           '<button type="button" class="wd-btn" aria-label="옷장" title="옷장" aria-expanded="false">' + ICON_HANGER + '</button>' +
           '<div class="wd-list">' + b.map(function (src, n) {
-            return '<div class="wd-item"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="의상 ' + (n + 1) + '">' +
-                   '<img src="' + src + '" alt="" draggable="false"></button></div>';
+            return '<div class="wd-item' + (n === sel ? " on" : "") + '"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="의상 ' + (n + 1) + '">' +
+                   '<span class="wd-in"><img src="' + src + '" alt="" draggable="false"></span></button></div>';
           }).join("") + '</div>';
         const btn = wd.querySelector(".wd-btn"), lst = wd.querySelector(".wd-list");
         btn.addEventListener("click", function () { wdSetOpen(!wd.classList.contains("open")); btn.blur(); });
