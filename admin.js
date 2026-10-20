@@ -590,6 +590,10 @@
       '.oha-pop-col{display:flex;flex-direction:column;min-height:0;min-width:0;background:#fff;border:1px solid #ddd;border-radius:10px;overflow:hidden}' +
       '.oha-pop-col>header{flex:none;padding:8px 12px;font-size:12px;font-weight:700;color:#555;border-bottom:1px solid #eee;background:#fafafa}' +
       '.oha-pop-col .oha-hl{flex:1;min-height:0;border:0;border-radius:0}' +
+      '.oha-pop-col>header.has-tg{display:flex;align-items:center;gap:10px}.oha-pop-col>header small{font-weight:400;color:#999}' +
+      '.oha-seg{margin-left:auto;display:inline-flex;border:1px solid #ccc;border-radius:999px;overflow:hidden;background:#fff}' +
+      '.oha-seg button{border:0;background:transparent;padding:3px 14px;font:600 12px inherit;cursor:pointer;color:#555}' +
+      '.oha-seg button.is-on{background:' + point + ';color:#fff}' +
       '.oha-pop-pvin.dt-story{flex:1;margin:0;opacity:1;overflow:auto;padding:16px 18px;color:#222}.oha-pop-pvin img{max-width:100%;height:auto}' +
       '@media(max-width:760px){.oha-pop-body{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}' +
       '@media(max-width:760px){.oha-main{grid-template-columns:1fr}.oha-nav{position:static;flex-direction:row;flex-wrap:wrap}.oha-row{grid-template-columns:1fr}}';
@@ -712,15 +716,30 @@
   }
 
   /* 크게 편집 : 왼쪽 미리보기 / 오른쪽 편집 */
-  function openEditor(label, hl, set, autoBr) {
+  function openEditor(label, hl, set, autoBr, ctx) {
     var old = $('.oha-pop'); if (old) old.remove();
     var pvIn = h('div', { class: 'oha-pop-pvin dt-story' });
+    /* 설정 글(story)은 사이트와 똑같이 카드 모드(전신 일러스트 2단) / 전신 모드(글만) 로 골라서 볼 수 있어요 */
+    var view = st.storyView || 'card';
+    function paintPv(v) {
+      if (!ctx) { pvIn.innerHTML = v; return; }
+      if (view === 'card' && ctx.fullBody) {
+        var tmp = document.createElement('div'), toggles = [];
+        tmp.innerHTML = v || '';
+        [].forEach.call(tmp.querySelectorAll('details.tg'), function (d) {
+          if (d.parentElement && d.parentElement.closest('details.tg')) return;
+          toggles.push(d.outerHTML); d.remove();
+        });
+        pvIn.innerHTML = '<div class="dt-story dt-story-art"><div>' + tmp.innerHTML + '</div><img src="' + escH(ctx.fullBody) + '" alt=""></div>' +
+          (toggles.length ? '<div class="dt-story dt-story-tg">' + toggles.join('') + '</div>' : '');
+      } else pvIn.innerHTML = v;
+    }
     var area = hlArea(hl.ta.value, function (v) {
       hl.ta.value = v; hl.refresh();                   /* 원래 칸 · 저장할 값 · 미리보기에 바로 반영 */
       set(v); touch();
-      pvIn.innerHTML = v;
+      paintPv(v);
     }, { fill: true, autoBr: autoBr });
-    pvIn.innerHTML = area.ta.value;
+    paintPv(area.ta.value);
 
     function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
     function close() { pop.remove(); document.removeEventListener('keydown', onKey, true); hl.refresh(); }
@@ -732,7 +751,24 @@
     legend.innerHTML = '<span class="hl-t">&lt;회색&gt;</span> 코드 · <span class="hl-l">파랑</span> 링크 · 검정 본문';
     var head = h('div', { class: 'oha-pop-head' }, [h('h3', { text: label + ' 편집' }), legend, h('span', { class: 'oha-sp' }), closeBtn]);
     var bar = snipBar(function () { return area.ta; });
-    var left = h('div', { class: 'oha-pop-col' }, [h('header', { text: '미리보기 (실제 사이트 표시)' }), pvIn]);
+    var pvHead = h('header', { text: '미리보기 (실제 사이트 표시)' });
+    if (ctx) {
+      pvHead.className = 'has-tg';
+      if (!ctx.fullBody) pvHead.appendChild(h('small', { text: '전신 일러스트가 없으면 두 모드가 같아요' }));
+      var seg = h('div', { class: 'oha-seg', role: 'group', 'aria-label': '보기 모드' });
+      [['card', '카드 모드'], ['full', '전신 모드']].forEach(function (m) {
+        var b = h('button', { type: 'button', text: m[1] });
+        b.classList.toggle('is-on', view === m[0]);
+        b.onclick = function () {
+          view = st.storyView = m[0];
+          [].forEach.call(seg.children, function (x, i) { x.classList.toggle('is-on', ['card', 'full'][i] === view); });
+          paintPv(area.ta.value);
+        };
+        seg.appendChild(b);
+      });
+      pvHead.appendChild(seg);
+    }
+    var left = h('div', { class: 'oha-pop-col' }, [pvHead, pvIn]);
     var right = h('div', { class: 'oha-pop-col' }, [h('header', { text: '편집' }), area.el]);
     var pop = h('div', { class: 'oha-pop' }, [h('div', { class: 'oha-pop-panel' }, [head, bar, h('div', { class: 'oha-pop-body' }, [left, right])])]);
     st.root.appendChild(pop);
@@ -740,7 +776,7 @@
     area.ta.focus();
   }
 
-  function stringEd(val, set, key, pkey) {
+  function stringEd(val, set, key, pkey, obj) {
     var wrap = h('div');
     /* 고르는 칸 */
     var opts = SELECTS[pkey + '.' + key];
@@ -772,7 +808,8 @@
       var hl = hlArea(val, function (v) { set(v); touch(); }, { autoBr: autoBr });
       var phl = PH[pkey + '.' + key] || PH[key]; if (phl) hl.ta.placeholder = phl;
       var ex = h('button', { class: 'oha-btn oha-xs', type: 'button', text: '⤢ 크게 편집 · 미리보기' });
-      ex.onclick = function () { openEditor(LABEL[key] || key, hl, set, autoBr); };
+      var ctx = (key === 'story' && obj && /^(characters|floormasters|others)$/.test(pkey)) ? obj : null;
+      ex.onclick = function () { openEditor(LABEL[key] || key, hl, set, autoBr, ctx); };
       var lg = h('span', { class: 'oha-legend' });
       lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크' + (autoBr ? ' · 엔터 = 줄바꿈(&lt;br&gt; 자동)' : '');
       wrap.appendChild(hl.el);
@@ -805,7 +842,7 @@
     return wrap;
   }
 
-  function valueEd(val, set, key, pkey) {
+  function valueEd(val, set, key, pkey, obj) {
     if (Array.isArray(val)) return arrayEd(val, key, pkey);
     if (val && typeof val === 'object') return objectEd(val, key);
     if (typeof val === 'boolean') {
@@ -833,7 +870,7 @@
       n.oninput = function () { set(n.value === '' ? 0 : Number(n.value)); touch(); };
       return n;
     }
-    return stringEd(val == null ? '' : String(val), set, key, pkey);
+    return stringEd(val == null ? '' : String(val), set, key, pkey, obj);
   }
 
   /* ==========================================================
@@ -1012,7 +1049,7 @@
     function rowFor(k) {
       var v = obj[k];
       var complex = v && typeof v === 'object';
-      var ed = valueEd(v, function (nv) { obj[k] = nv; refresh(); }, k, key);
+      var ed = valueEd(v, function (nv) { obj[k] = nv; refresh(); }, k, key, obj);
       if (complex && !Array.isArray(v) && INLINE[k]) {
         return h('div', { class: 'oha-inline' }, [h('div', { class: 'oha-subhead', text: LABEL[k] || k }), ed]);
       }
