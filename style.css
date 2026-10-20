@@ -3877,7 +3877,7 @@ body:has(.rl.open) .bgm { display: none !important; }
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg) 80%, transparent);   /* 반투명 bg 색 */
   color: var(--deco);
-  font: 400 12px/1.5 var(--font-body), sans-serif;
+  font: 400 15px/1.5 'Sukmyung', sans-serif';
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
