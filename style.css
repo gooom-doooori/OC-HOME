@@ -3436,9 +3436,8 @@ a[href]:hover .spoil.open {
 }
 .spoil-tip.on { opacity: 1; }
 
-/* 각주 */
+/* 각주 (원래 span 은 숨기고, 내용은 JS 가 body 에 띄우는 .fn-tip 으로 보여줘요 → 어떤 영역에서도 안 잘려요) */
 .fn {
-  --fy: 4px;
   position: relative;
   display: inline-block;
   margin-left: 2px;
@@ -3448,52 +3447,37 @@ a[href]:hover .spoil.open {
   cursor: help;
   outline: none;
 }
-.fn > span {
-  position: fixed;                 /* 스크롤 · overflow 영역에 잘리지 않게 (위치는 JS가 계산) */
+.fn > span { display: none; }
+
+.fn-tip {
+  position: fixed;
   left: 0;
   top: 0;
-  transform: translateY(var(--fy));
+  z-index: 100004;
   width: max-content;
   max-width: 220px;
   padding: 8px 10px;
   border-radius: 8px;
   background: #222;
   color: #fff;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.6;
+  font: 400 12px/1.6 var(--font-body), sans-serif;
   text-align: left;
   white-space: normal;
   cursor: default;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity .2s, transform .2s, visibility 0s .2s;
-  z-index: 999;
+  transition: opacity .2s, visibility 0s .2s;
+  -webkit-user-select: text;
+  user-select: text;
 }
-/* 마커 ↔ 팝업 사이 틈: 마우스가 지나가도 팝업이 안 닫히게 */
-.fn > span::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 14px; }
-.fn.down { --fy: -4px; }
-.fn.down > span::before { bottom: auto; top: 100%; }
-.fn:hover > span,
-.fn:focus > span,
-.fn:focus-within > span {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;            /* 팝업 안의 링크 · 스포일러를 누를 수 있게 */
-  transform: none;
-  transition: opacity .2s, transform .2s;
-}
-/* 팝업 안 내용 */
-.fn > span a { color: #9fd0ff; text-decoration: underline; cursor: pointer; font-weight: 700; }
-.fn > span .ch-link { color: #9fd0ff; border-bottom-color: #9fd0ff; }
-.fn > span .spoil:not(.open) { filter: blur(5px); }
-/* 닫힌 스포일러 안의 각주는 내용이 새지 않게 팝업을 막아요 */
-.spoil:not(.open) .fn > span {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
+.fn-tip.on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .2s; }
+/* 마커 ↔ 팝업 사이 틈: 마우스가 지나가도 안 닫히게 */
+.fn-tip::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 14px; }
+.fn-tip.down::before { bottom: auto; top: 100%; }
+.fn-tip a { color: #9fd0ff; text-decoration: underline; cursor: pointer; font-weight: 700; }
+.fn-tip .ch-link { color: #9fd0ff; border-bottom-color: #9fd0ff; }
+.fn-tip .spoil:not(.open) { filter: blur(5px); }
 
 /* 상세 프로필 2단 설정글 (왼쪽 글 / 오른쪽 이미지) */
 .story-2col { display: flex; gap: 5px; align-items: flex-start; }
