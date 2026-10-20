@@ -3853,30 +3853,32 @@ body:has(.rl.open) .bgm { display: none !important; }
 .spoil-ask-btns button {
   flex: 1;
   padding: 11px 0;
-  border: 2px solid var(--btn, var(--deco));
+  border: 2px solid var(--title);        /* 팝업 바탕(--bg)과 항상 대비되는 글자색을 써요 */
   border-radius: 999px;
   font: 700 14px/1 var(--font-body), sans-serif;
   cursor: pointer;
-  transition: transform .2s, background .2s, color .2s;
+  transition: transform .2s, background .2s, color .2s, filter .2s;
 }
 .spoil-ask-btns button:hover { transform: translateY(-2px); }
-.spoil-ask-btns button:focus-visible { outline: 2px solid var(--btn, var(--deco)); outline-offset: 3px; }
-.spoil-yes { background: var(--btn, var(--deco)); color: var(--btn-text, #fff); }
-.spoil-no  { background: transparent; color: var(--btn, var(--deco)); }
-.spoil-no:hover { background: var(--btn, var(--deco)); color: var(--btn-text, #fff); }
+.spoil-ask-btns button:focus-visible { outline: 2px solid var(--title); outline-offset: 3px; }
+.spoil-yes { background: var(--title); color: var(--bg); }
+.spoil-no  { background: transparent; color: var(--title); }
+.spoil-yes:hover { filter: brightness(1.18); }                                          /* 호버 : 약간 밝게 */
+.spoil-no:hover  { background: color-mix(in srgb, var(--title) 14%, transparent); }
 
 .spoil-banner {
   position: fixed;
-  top: 8px;                              /* BGM 플레이어(top: 40px) 위쪽 */
+  top: 8%;                               /* 화면 위에서 8% */
   left: 50%;
   z-index: 9000;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 14px 6px 8px;
+  border: 1.5px solid var(--deco);
   border-radius: 8px;
-  background: #222;
-  color: #fff;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);   /* 반투명 bg 색 */
+  color: var(--deco);
   font: 400 12px/1.5 var(--font-body), sans-serif;
   white-space: nowrap;
   pointer-events: none;
@@ -3893,9 +3895,9 @@ body:has(.rl.open) .bgm { display: none !important; }
   flex: none;
   width: 16px;
   height: 16px;
+  border: 1.5px solid var(--deco);
   border-radius: 50%;
-  background: #fff;
-  color: #222;
+  color: var(--deco);
   font: 900 11px/1 var(--font-body), sans-serif;
 }
 .spoil-banner.on {
