@@ -4110,10 +4110,10 @@ body:has(.rl.open) .bgm { display: none !important; }
   width: 40px;
   height: 40px;
   padding: 0;
-  border: 2px solid #fff;
+  border: 2px solid var(--ct, #222);
   border-radius: 6px;
-  background: var(--c, #222);
-  color: var(--ct, #fff);
+  background: var(--c, #fff);
+  color: var(--bg, #222);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .28);
   cursor: pointer;
   transform: rotate(45deg);
