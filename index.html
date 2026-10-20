@@ -2664,7 +2664,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         if (orig) { e.preventDefault(); passing = true; try { orig.click(); } finally { passing = false; } hideFn(); }
       });
     }
-    if (curFn !== fn) { ftip.innerHTML = src.innerHTML; ftip.__src = src; curFn = fn; }
+    if (curFn !== fn) {
+      ftip.innerHTML = src.innerHTML; ftip.__src = src; curFn = fn;
+      [].forEach.call(ftip.querySelectorAll("[onclick]"), function (n) { n.removeAttribute("onclick"); });
+    }
     placeFn(fn);
     ftip.classList.add("on");
   }
@@ -2702,6 +2705,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
     var t = e.target;
     if (t && t.nodeType !== 1) t = t.parentElement;
     if (!t || !t.closest) return;
+    if (t.closest(".fn-tip")) return;                  // 각주 팝업 안 스포일러는 호버로 보여요 (클릭으로 토글 안 함)
 
     var fn = t.closest(".fn");
     var chain = [], p = t.closest(".spoil");           // 안쪽 → 바깥쪽 스포일러
