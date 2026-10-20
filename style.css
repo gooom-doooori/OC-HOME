@@ -3853,18 +3853,16 @@ body:has(.rl.open) .bgm { display: none !important; }
 .spoil-ask-btns button {
   flex: 1;
   padding: 11px 0;
-  border: 2px solid var(--title);        /* 팝업 바탕(--bg)과 항상 대비되는 글자색을 써요 */
+  border: 0;
   border-radius: 999px;
+  background: var(--bg);
+  color: var(--title);
   font: 700 14px/1 var(--font-body), sans-serif;
   cursor: pointer;
-  transition: transform .2s, background .2s, color .2s, filter .2s;
+  transition: filter .2s;
 }
-.spoil-ask-btns button:hover { transform: translateY(-2px); }
+.spoil-ask-btns button:hover { filter: brightness(1.25); }   /* 호버 : 배경이 약간 밝아져요 */
 .spoil-ask-btns button:focus-visible { outline: 2px solid var(--title); outline-offset: 3px; }
-.spoil-yes { background: var(--title); color: var(--bg); }
-.spoil-no  { background: transparent; color: var(--title); }
-.spoil-yes:hover { filter: brightness(1.18); }                                          /* 호버 : 약간 밝게 */
-.spoil-no:hover  { background: color-mix(in srgb, var(--title) 14%, transparent); }
 
 .spoil-banner {
   position: fixed;
