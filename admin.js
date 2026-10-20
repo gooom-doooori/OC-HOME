@@ -578,6 +578,7 @@
       '.oha-hl textarea{position:relative;z-index:1;display:block;width:100%;min-height:76px;resize:none;outline:none;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#111}' +
       '.oha-hl textarea::selection{background:rgba(60,120,255,.28)}' +
       '.oha-hl textarea::placeholder{color:#999;-webkit-text-fill-color:#999}' +
+      '.oha-hl.is-one textarea{min-height:0;overflow:hidden;scrollbar-gutter:auto}.oha-hl.is-one pre{overflow:hidden;scrollbar-gutter:auto}' +
       '.oha-hl.is-fill{height:100%}.oha-hl.is-fill textarea{height:100%}' +
       '.hl-t{color:#aeaeb8}.hl-l{color:#0b66d6;text-decoration:underline}' +
       '.oha-xrow{display:flex;gap:8px;align-items:center;margin-top:4px}.oha-xs{padding:4px 10px;font-size:12px}' +
@@ -591,6 +592,9 @@
       '.oha-pop-col>header{flex:none;padding:8px 12px;font-size:12px;font-weight:700;color:#555;border-bottom:1px solid #eee;background:#fafafa}' +
       '.oha-pop-col .oha-hl{flex:1;min-height:0;border:0;border-radius:0}' +
       '.oha-pop-col>header.has-tg{display:flex;align-items:center;gap:10px}.oha-pop-col>header small{font-weight:400;color:#999}' +
+      '.oha-linkmenu{position:fixed;z-index:100002;display:flex;gap:6px;padding:6px;background:#fff;border:1px solid #ccc;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18)}' +
+      '.oha-lm{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 10px;border:1px solid #e2e2e2;border-radius:8px;background:#fafafa;font:600 11px inherit;color:#222;cursor:pointer}' +
+      '.oha-lm:hover{border-color:' + point + ';background:#fff}.oha-lm svg{width:20px;height:20px}' +
       '.oha-seg{margin-left:auto;display:inline-flex;border:1px solid #ccc;border-radius:999px;overflow:hidden;background:#fff}' +
       '.oha-seg button{border:0;background:transparent;padding:3px 14px;font:600 12px inherit;cursor:pointer;color:#555}' +
       '.oha-seg button.is-on{background:' + point + ';color:#fff}' +
@@ -655,9 +659,9 @@
   function hlArea(value, onChange, opt) {
     opt = opt || {};
     var pre = h('pre', { class: 'oha-hl-pre', 'aria-hidden': 'true' });
-    var ta = h('textarea', { spellcheck: 'false' });
+    var ta = h('textarea', { spellcheck: 'false', rows: opt.one ? '1' : null });
     ta.value = value;
-    var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') }, [pre, ta]);
+    var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') + (opt.one ? ' is-one' : '') }, [pre, ta]);
     var lastW = -1;
     function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; }
     function fit() {
@@ -666,7 +670,15 @@
       ta.style.height = Math.min(ta.scrollHeight, opt.max || 260) + 'px';
     }
     function refresh() { fit(); paint(); }
-    ta.addEventListener('input', function () { refresh(); if (onChange) onChange(ta.value); });
+    ta.addEventListener('input', function () {
+      if (opt.one && /[\r\n]/.test(ta.value)) {          /* 한 줄 칸: 붙여넣은 줄바꿈은 띄어쓰기로 */
+        var p = ta.selectionStart;
+        ta.value = ta.value.replace(/[\r\n]+/g, ' ');
+        ta.setSelectionRange(p, p);
+      }
+      refresh(); if (onChange) onChange(ta.value);
+    });
+    if (opt.one) ta.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });   /* 한 줄 칸: 엔터 막기 */
     ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; });
     /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
     function insertAt(t) {
@@ -816,10 +828,10 @@
       wrap.appendChild(h('div', { class: 'oha-xrow' }, [ex, lg]));
       return wrap;
     }
-    var inp = long ? h('textarea', { class: 'oha-ta' }) : h('input', { class: 'oha-in', type: 'text' });
-    inp.value = val;
+    /* 일반 입력칸도 코드(회색) · 링크(파랑) · 본문(검정) 색으로 구분해요 */
+    var hl1 = hlArea(val, function (v) { set(v); touch(); if (prev) prev.src = v; }, { one: !long });
+    var inp = hl1.ta;
     var ph = PH[pkey + '.' + key] || PH[key]; if (ph) inp.placeholder = ph;
-    inp.oninput = function () { set(inp.value); touch(); if (prev) prev.src = inp.value; };
     var prev = null;
     if (isImg) {
       prev = h('img', { alt: '' }); prev.src = val || '';
@@ -832,13 +844,14 @@
         var f = file.files[0]; if (!f) return;
         up.innerHTML = ICON_BUSY; up.classList.add('is-busy'); up.disabled = true;
         upload(f).then(function (url) {
-          inp.value = url; set(url); touch(); prev.src = url; toast('올렸어요. 저장을 눌러 주세요.');
+          inp.value = url; hl1.refresh(); set(url); touch(); prev.src = url; toast('올렸어요. 저장을 눌러 주세요.');
         }).catch(function (e) { toast('올리지 못했어요: ' + (e.message || e), true); })
           .then(function () { up.innerHTML = ICON_UP; up.classList.remove('is-busy'); up.disabled = false; file.value = ''; });
       };
-      var row = h('div', { class: 'oha-img' }, [prev, inp, up, file]);
+      hl1.el.style.cssText = 'flex:1;min-width:0';
+      var row = h('div', { class: 'oha-img' }, [prev, hl1.el, up, file]);
       wrap.appendChild(row);
-    } else wrap.appendChild(inp);
+    } else wrap.appendChild(hl1.el);
     return wrap;
   }
 
@@ -1283,12 +1296,25 @@
       return { text: t, from: t.length, to: t.length };
     };
   }
+  var ICON_NEWTAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>';
+  var ICON_SAMETAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 15h8"/><path d="M13 12l3 3-3 3"/></svg>';
+  function linkSnip(newTab) {
+    return function (sel) {
+      var o = '<a href="', url = 'https://';
+      return { text: o + url + '"' + (newTab ? ' target="_blank" rel="noopener"' : '') + '>' + (sel || '링크 글') + '</a>', from: o.length, to: o.length + url.length };
+    };
+  }
   var SNIPS = [
     { html: '<i class="k">↵</i>줄바꿈', tip: '<br>',
       make: function (sel) { var t = sel + '<br>'; return { text: t, from: t.length, to: t.length }; } },
     { html: '<i class="k"><b>B</b></i>볼드체', tip: '<b>내용</b>', make: wrapSnip('<b>', '</b>', '내용') },
     { html: '<i class="k"><em>I</em></i>기울임체', tip: '<i>내용</i>', make: wrapSnip('<i>', '</i>', '내용') },
     { html: '<i class="k"><s>S</s></i>취소선', tip: '<s>내용</s>', make: wrapSnip('<s>', '</s>', '내용') },
+    { html: '<i class="k">↗</i>링크 ▾', tip: '링크 걸기 (새 탭 / 현재 탭 선택)',
+      choices: [
+        { icon: ICON_NEWTAB, label: '새 탭', tip: '<a href="주소" target="_blank" rel="noopener">내용</a>', make: linkSnip(true) },
+        { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
+      ] },
     { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
       make: function (sel) {
         var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
@@ -1320,6 +1346,40 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));     /* 저장할 값에 반영 + 미리보기 갱신 */
   }
 
+  /* 링크 버튼처럼 "선택지"가 있는 코드 버튼 : 버튼 아래에 아이콘 메뉴가 떠요 */
+  var choiceMenu = null, choiceBtn = null;
+  function closeChoices() {
+    if (!choiceMenu) return;
+    choiceMenu.remove(); choiceMenu = null; choiceBtn = null;
+    document.removeEventListener('mousedown', onChoiceOutside, true);
+    document.removeEventListener('keydown', onChoiceKey, true);
+    window.removeEventListener('resize', closeChoices);
+  }
+  function onChoiceOutside(e) {
+    if (choiceMenu && !choiceMenu.contains(e.target) && !(choiceBtn && choiceBtn.contains(e.target))) closeChoices();
+  }
+  function onChoiceKey(e) { if (e.key === 'Escape') closeChoices(); }
+  function toggleChoices(btn, it, getTarget) {
+    if (choiceBtn === btn) { closeChoices(); return; }
+    closeChoices();
+    var menu = h('div', { class: 'oha-linkmenu', role: 'menu' });
+    it.choices.forEach(function (c) {
+      var b = h('button', { class: 'oha-lm', type: 'button', title: c.tip, role: 'menuitem' });
+      b.innerHTML = c.icon + '<span>' + c.label + '</span>';
+      b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   /* 글 선택이 풀리지 않게 */
+      b.addEventListener('click', function () { closeChoices(); applySnippet(c, getTarget()); });
+      menu.appendChild(b);
+    });
+    st.root.appendChild(menu);
+    var r = btn.getBoundingClientRect();
+    menu.style.top = (r.bottom + 6) + 'px';
+    menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + 'px';
+    choiceMenu = menu; choiceBtn = btn;
+    document.addEventListener('mousedown', onChoiceOutside, true);
+    document.addEventListener('keydown', onChoiceKey, true);
+    window.addEventListener('resize', closeChoices);
+  }
+
   function snipBar(getTarget, twoRows) {
     var btns = h('div', { class: 'oha-snip-b' + (twoRows ? ' is-two' : '') });
     if (twoRows) btns.style.gridTemplateColumns = 'repeat(' + Math.ceil(SNIPS.length / 2) + ', max-content)';
@@ -1327,9 +1387,14 @@
       var b = h('button', { class: 'oha-snipbtn', type: 'button', title: it.tip });
       b.innerHTML = it.html;
       b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   /* 눌러도 글 선택이 풀리지 않게 */
-      b.addEventListener('click', function () { applySnippet(it, getTarget()); });
+      b.addEventListener('click', function () {
+        if (it.choices) { toggleChoices(b, it, getTarget); return; }
+        closeChoices();
+        applySnippet(it, getTarget());
+      });
       btns.appendChild(b);
     });
+    btns.addEventListener('scroll', closeChoices);
     /* 버튼이 넘치면 마우스 휠(세로)로도 좌우로 스크롤돼요. 끝에 닿으면 페이지가 스크롤돼요 */
     btns.addEventListener('wheel', function (e) {
       var max = btns.scrollWidth - btns.clientWidth;
