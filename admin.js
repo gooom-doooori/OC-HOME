@@ -523,7 +523,7 @@
       '.oha-gb.is-secret{background:#fff7f5;border-color:#efc9c3}.oha-gb small{color:#777}' +
       '.oha-tag{display:inline-block;background:#b3261e;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-left:6px}' +
       '.oha-obj{display:block}' +
-      '.oha-sec{margin:0 0 18px; padding: 10px 5px 1px 7px; border-radius: 10px; border: solid 1px #b1b1b9;}.oha-sec.is-bare{margin:0 0 8px}' +
+      '.oha-sec{margin:0 0 18px; padding: 13px 8px 3px 10px; border-radius: 10px; border: solid 1px #b1b1b9;}.oha-sec.is-bare{margin:0 0 8px}' +
       '.oha-sec-h{display:flex;align-items:center;gap:8px;margin:0 0 4px;padding:0 0 6px;border-bottom:2px solid #e4e4e8}' +
       '.oha-sec-h b{font-size:16px;color:#222}' +
       '.oha-pill{font-size:11px;font-weight:700;line-height:1.6;padding:0 8px;border-radius:999px;background:#ececf0;color:#666}' +
