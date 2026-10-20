@@ -527,8 +527,8 @@
       '.oha-link>.oha-row{position:relative;margin:6px 0}' +
       '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
       '.oha-link>details.oha-box{margin:6px 0}' +
-      'details.oha-box{padding:0;background:#e6e6ea;border:1px solid #cfcfd6;overflow:hidden}' +
-      'details.oha-box details.oha-box{background:#f3f3f3}' +
+      'details.oha-box{padding:0;background:#f3f3f3;border:1px solid #cfcfd6;overflow:hidden}' +
+      'details.oha-box details.oha-box{background:#eeeef1}' +
       'details.oha-box>summary{list-style:none;padding:9px 12px;user-select:none}' +
       'details.oha-box>summary::-webkit-details-marker{display:none}' +
       'details.oha-box>summary:hover{background:rgba(0,0,0,.04)}' +
@@ -668,11 +668,23 @@
         e.preventDefault();
         insertAt('<br>\n');
       });
-      ta.addEventListener('paste', function (e) {          /* 여러 줄을 붙여넣어도 줄마다 <br> 가 들어가요 */
+      ta.addEventListener('paste', function (e) {          /* 이미 쓴 글을 붙여넣어도 엔터 친 곳마다 <br> 가 붙어요 */
         var t = e.clipboardData && e.clipboardData.getData('text');
-        if (!t || !/\n/.test(t) || /</.test(t)) return;
+        if (!t || !/\n/.test(t)) return;
+        var before = ta.value.slice(0, ta.selectionStart);
+        if (before.lastIndexOf('<') > before.lastIndexOf('>')) return;   /* 태그 안쪽에 붙여넣을 땐 그대로 */
+        var BLOCK = /<\/?(?:ul|ol|li|details|summary|div|p|h[1-6])\b[^>]*>\s*$/i;
+        var lines = t.replace(/\r\n?/g, '\n').split('\n'), prevBlock = false;
+        var out = lines.map(function (ln, i) {
+          if (i === lines.length - 1) return ln;                       /* 마지막 줄은 뒤에 이어지는 글과 붙어요 */
+          var tr = ln.replace(/\s+$/, '');
+          var isBlock = BLOCK.test(tr);
+          var skip = /<br\s*\/?>$/i.test(tr) || isBlock || (tr === '' && prevBlock);   /* 이미 <br> 가 있거나 블록 태그 뒤면 줄바꿈만 */
+          prevBlock = isBlock || (tr === '' && prevBlock);
+          return ln + (skip ? '' : '<br>');
+        }).join('\n');
         e.preventDefault();
-        insertAt(t.replace(/\r?\n/g, '<br>\n'));
+        insertAt(out);
       });
     }
     paint();
@@ -741,7 +753,7 @@
       return wrap;
     }
     var isImg = !!(IMAGE_KEYS[key] || IMAGE_KEYS[pkey]);
-    var long = LONG_KEYS[key] || String(val).indexOf('\n') >= 0;
+    var long = LONG_KEYS[key] || (key === 'value' && pkey === 'profile') || String(val).indexOf('\n') >= 0;
     if (long && !isImg) {
       var autoBr = key !== 'code' && key !== 'message';
       var hl = hlArea(val, function (v) { set(v); touch(); }, { autoBr: autoBr });
