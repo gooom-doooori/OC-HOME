@@ -2649,9 +2649,9 @@ a { text-decoration: none; color: inherit; }
 }
 .ow-sd {
   display: block;
-  height: 150px;
+  height: 50px;
   width: auto;
-  max-width: 160px;
+  max-width: 60px;
   object-fit: contain;
   filter: grayscale(1) drop-shadow(0 6px 10px rgba(0,0,0,.2));
   opacity: .7;
@@ -2688,6 +2688,7 @@ a { text-decoration: none; color: inherit; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: 'Sukmyung';
   font-size: 12px;
   font-weight: 700;
   opacity: .6;
