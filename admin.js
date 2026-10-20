@@ -761,7 +761,7 @@
       var ex = h('button', { class: 'oha-btn oha-xs', type: 'button', text: '⤢ 크게 편집 · 미리보기' });
       ex.onclick = function () { openEditor(LABEL[key] || key, hl, set, autoBr); };
       var lg = h('span', { class: 'oha-legend' });
-      lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크' + (autoBr ? ' · 엔터 = 줄바꿈(&lt;br&gt; 자동)' : '');
+      lg.innerHTML = '<span class="hl-t">회색</span> 코드 · <span class="hl-l">파랑</span> 링크';
       wrap.appendChild(hl.el);
       wrap.appendChild(h('div', { class: 'oha-xrow' }, [ex, lg]));
       return wrap;
