@@ -79,7 +79,7 @@
     };
     const go = function (e) {
       if (engine && engine.playing()) { off(); return; }          // 이미 재생 중이면 끝
-      if (!want || !engine) return;
+      if (!want || !engine || inAdmin) return;
       if (e && el && el.contains(e.target)) return;
       if (e && e.target && e.target.closest && e.target.closest("[data-bgm-btn]")) return;   // 페어 상세의 BGM 버튼도 마찬가지
       engine.play();
@@ -435,7 +435,27 @@
   });
 
   // 편집기(#admin) · 설치 화면(#setup) 에서는 숨겨요
-  function route() { el.style.display = /^#\/?(admin|setup)/.test(location.hash) ? "none" : ""; }
+  // 편집기에서는 플레이어만 숨기는 게 아니라 소리도 멈춰요. (편집기 안 미리보기 화면은 그대로 재생돼요)
+  // 사이트로 돌아오면, 재생 중이었거나 자동 재생이 켜져 있던 경우 다시 이어서 틀어요.
+  let inAdmin = false, wasWant = false;
+  function route() {
+    const adm = /^#\/?(admin|setup)/.test(location.hash);
+    el.style.display = adm ? "none" : "";
+    if (adm === inAdmin) return;
+    inAdmin = adm;
+    if (adm) {
+      wasWant = wasWant || want;
+      want = false;
+      if (engine) engine.pause();
+      setTimeout(refresh, 60);
+    } else if (wasWant) {
+      wasWant = false;
+      want = true;
+      if (engine) engine.play();
+      wait();
+      setTimeout(refresh, 60);
+    }
+  }
   window.addEventListener("hashchange", route);
   route();
 
@@ -478,7 +498,10 @@
      시작
      ===================================================== */
   paintVol();
-  if (CFG.autoplay && !PREVIEW) { want = true; wait(); unlockFrame(); }     // 자동 재생 : 막히면 처음 누를 때 재생
+  if (CFG.autoplay && !PREVIEW) {
+    if (inAdmin) wasWant = true;                                  // 편집기로 바로 들어온 경우: 사이트로 나갈 때 재생
+    else { want = true; wait(); unlockFrame(); }
+  }     // 자동 재생 : 막히면 처음 누를 때 재생
   apply();
   setInterval(refresh, 250);
 })();
