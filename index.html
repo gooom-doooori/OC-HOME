@@ -443,10 +443,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         keyHandlers.forEach(function (fn) { fn(e); });
       });
 
-      // 상세 프로필에 표시할 이름: 본명이 있고 "본명 표시"가 켜져 있으면 본명, 아니면 기존 이름(가명)
-      function detailName(ch) {
-        const real = String((ch && ch.realName) || "").trim();
-        return (real && ch.useRealName !== false) ? ch.realName : ((ch && ch.name) || "");
+      // 이름 속 HTML 태그(스포일러 · 링크 · 각주 등)를 떼고 글자만 남겨요
+      // → 타일 · 카드 · 페어 화면에서는 이름이 링크/스포일러 없이 평범하게 보여요
+      function plainName(name) {
+        const d = document.createElement("div");
+        d.innerHTML = String(name == null ? "" : name);
+        d.querySelectorAll("rt, .fn").forEach(function (n) { n.remove(); });   // 요미가나 · 각주 내용은 제외
+        return (d.textContent || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       }
 
       // 상세 프로필에 표시할 이름: "본명 표시"가 켜져 있고 본명이 있으면 본명, 아니면 가명
