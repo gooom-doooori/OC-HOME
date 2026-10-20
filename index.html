@@ -2623,7 +2623,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
   /* ----- 안내 말풍선 (열린 스포일러의 "링크 위"에 마우스를 올렸을 때만) ----- */
   function showTip(sp, anchor) {
     if (!tip) { tip = document.createElement("div"); tip.className = "spoil-tip"; document.body.appendChild(tip); }
-    tip.textContent = "더블클릭으로 링크 열기";
+    tip.textContent = "더블클릭: 링크 열기";
     tip.__sp = sp; tip.__a = anchor;
     tip.classList.add("on");
     var r = anchor.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
@@ -2778,15 +2778,27 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
     if (!ru) { var rt = sp.closest("rt"); ru = rt && rt.parentElement && rt.parentElement.tagName === "RUBY" ? rt.parentElement : null; }
     return ru;
   }
+  /* ----- 프로필 항목: 제목(dt)과 내용(dd) 둘 다 스포일러가 있으면 같이 열리고 닫히게 ----- */
+  function rowGroup(sp) {
+    var row = sp.closest(".dt-row"); if (!row) return null;
+    var dt = row.querySelector(":scope > dt"), dd = row.querySelector(":scope > dd");
+    if (!dt || !dd || !dt.querySelector(".spoil") || !dd.querySelector(".spoil")) return null;
+    return [].filter.call(row.querySelectorAll(".spoil"), function (x) { return !x.closest(".fn"); });
+  }
+  function syncTo(group, sp, on) {
+    group.forEach(function (o) {
+      if (o !== sp && o.classList.contains("open") !== on) o.classList.toggle("open", on);
+    });
+  }
   new MutationObserver(function (list) {
     list.forEach(function (m) {
       var sp = m.target;
-      if (!sp.classList || !sp.classList.contains("spoil") || sp.closest(".fn-tip")) return;
-      var ru = rubyOf(sp); if (!ru) return;
+      if (!sp.classList || !sp.classList.contains("spoil") || sp.closest(".fn-tip") || sp.closest(".fn")) return;
       var on = sp.classList.contains("open");
-      [].forEach.call(ru.querySelectorAll(":scope > .spoil, :scope > rt .spoil"), function (o) {
-        if (o !== sp && o.classList.contains("open") !== on) o.classList.toggle("open", on);
-      });
+      var ru = rubyOf(sp);
+      if (ru) syncTo(ru.querySelectorAll(":scope > .spoil, :scope > rt .spoil"), sp, on);
+      var g = rowGroup(sp);
+      if (g) syncTo(g, sp, on);
     });
   }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 })();
