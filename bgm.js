@@ -184,7 +184,14 @@
               if (e.data === 0) { player.seekTo(0, true); player.playVideo(); }   // 끝나면 처음부터 반복
               refresh();
             },
-            onError: function () { note = "이 영상은 재생할 수 없어요"; refresh(); }
+            onError: function (e) {
+              const c = e && e.data;
+              const why = { 2: "주소(영상 ID)가 올바르지 않아요", 5: "브라우저에서 재생 중 오류가 났어요", 100: "영상이 삭제됐거나 비공개예요",
+                            101: "영상 주인이 외부 사이트 재생을 막아뒀어요", 150: "영상 주인이 외부 사이트 재생을 막아뒀어요", 153: "재생에 필요한 사이트 정보(referrer)가 없어요" }[c];
+              note = "이 영상은 재생할 수 없어요" + (c != null ? " (오류 " + c + (why ? " · " + why : "") + ")" : "");
+              if (window.console) console.warn("[BGM] YouTube 오류 코드:", c);
+              refresh();
+            }
           }
         });
       });
