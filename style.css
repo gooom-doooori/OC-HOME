@@ -2605,25 +2605,106 @@ a { text-decoration: none; color: inherit; }
 
 .ow-page .ch-holder { transition: transform .7s cubic-bezier(.6,0,.2,1), opacity .2s; }
 .ow-page .ch-holder.ow-out { opacity: 0; }
-.ow-page.ow-multi .ch-stage { bottom: 110px; }
-.ow-switch {
-  position: absolute; left: 40px; right: 40px; bottom: 52px; z-index: 2;
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-  transition: left .7s cubic-bezier(.6,0,.2,1), right .7s cubic-bezier(.6,0,.2,1);
+/* 오너 선택 타일 (오른쪽 세로 목록) */
+.ow-page.ow-multi .ch-stage { right: calc(40px + 190px); }
+.is-flipped .ow-page.ow-multi .ch-stage { right: 40px; }   /* 뒤집으면 타일은 숨고 카드가 오른쪽으로 */
+
+.ow-tiles {
+  position: absolute;
+  right: 40px;
+  top: 110px;
+  bottom: 40px;
+  width: 170px;
+  z-index: 2;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+          mask: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+  transition: opacity .45s, transform .45s;
 }
-.is-flipped .ow-page .ow-switch { left: 54vw; right: 40px; }
-.ow-sw {
-  display: inline-flex; align-items: center; height: 30px; padding: 0 14px 0 0;
-  border: 1.5px solid var(--btn, #222); background: #fff; color: var(--deco, #222);
-  font: inherit; font-size: 12px; cursor: pointer; transition: background .25s, color .25s;
+.ow-tiles::-webkit-scrollbar { display: none; }
+.is-flipped .ow-tiles { opacity: 0; transform: translateX(40px); pointer-events: none; }
+.ow-tiles-in {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px 8px;
 }
-.ow-sw i {
-  display: flex; align-items: center; height: 100%; margin-right: 9px; padding: 0 8px;
-  background: var(--btn, #111); color: var(--btn-text, #fff); font-style: normal;
-  font-family: 'Sukmyung'; font-size: 10px; letter-spacing: .5px;
+.ow-tile {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--deco);
+  animation: slideIn .6s cubic-bezier(.2,.8,.2,1) both;
 }
-.ow-sw:hover, .ow-sw.on { background: var(--btn, #111); color: var(--btn-text, #fff); }
-.ow-sw.on i, .ow-sw:hover i { background: #fff; color: var(--btn, #111); }
+.ow-sd {
+  display: block;
+  height: 150px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  filter: grayscale(1) drop-shadow(0 6px 10px rgba(0,0,0,.2));
+  opacity: .7;
+  transition: filter .4s, opacity .4s, transform .35s;
+  -webkit-user-drag: none;
+}
+.ow-ava {
+  width: 110px;
+  height: 110px;
+  margin: 20px 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--c);
+  color: var(--ct, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: grayscale(1);
+  opacity: .7;
+  box-shadow: 0 6px 12px rgba(0,0,0,.18);
+  transition: filter .4s, opacity .4s, transform .35s, box-shadow .35s;
+}
+.ow-ava img { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+.ow-ava b { font-family: var(--font-body), sans-serif; font-size: 46px; font-weight: 900; line-height: 1; }
+.ow-tile:hover .ow-sd, .ow-tile.on .ow-sd,
+.ow-tile:hover .ow-ava, .ow-tile.on .ow-ava { filter: none; opacity: 1; }
+.ow-tile:hover .ow-sd, .ow-tile:hover .ow-ava { transform: translateX(-5px); }
+.ow-tile.on .ow-ava { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--deco); }
+.ow-tile.on .ow-sd { filter: drop-shadow(0 8px 12px rgba(0,0,0,.28)); }
+.ow-tile-name {
+  position: relative;
+  max-width: 150px;
+  padding-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: .6;
+  transition: opacity .3s;
+}
+.ow-tile-name::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  background: var(--deco);
+  transform: scaleX(0);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.ow-tile:hover .ow-tile-name, .ow-tile.on .ow-tile-name { opacity: 1; }
+.ow-tile.on .ow-tile-name::after { transform: scaleX(1); }
+
 
 /* 목걸이 줄 + 집게 */
 .ow-strap {
