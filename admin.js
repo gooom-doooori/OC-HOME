@@ -90,6 +90,10 @@
      - *_DEFAULTS : 예전에 "+ 항목 추가"로 꺼내던 칸을 처음부터 넣어두기
      ========================================================== */
   var ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';
+  var ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+  var ICON_ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+  var ICON_ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  var ICON_GRIP = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg>';
   var ICON_BUSY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>';
 
   var PH_CARD = {
@@ -108,7 +112,7 @@
     sdSize: '기본 230px',
     tile: '왼쪽 목록 타일 이미지',
     tilePosition: 'top | center | bottom 숫자% 형식으로 작성',
-    fullBody: ',
+    fullBody: '',
     portraits: '포트레이트 이미지',
     quote: '대표 대사',
     story: '설정 글',
@@ -523,7 +527,7 @@
       '.oha-link>.oha-row{position:relative;margin:6px 0}' +
       '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
       '.oha-link>details.oha-box{margin:6px 0}' +
-      'details.oha-box{padding:0;background:#f5f5f5;border:1px solid #cfcfd6;overflow:hidden}' +
+      'details.oha-box{padding:0;background:#e6e6ea;border:1px solid #cfcfd6;overflow:hidden}' +
       'details.oha-box details.oha-box{background:#eeeef1}' +
       'details.oha-box>summary{list-style:none;padding:9px 12px;user-select:none}' +
       'details.oha-box>summary::-webkit-details-marker{display:none}' +
@@ -545,6 +549,13 @@
       '.oha-snipbtn{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;color:#222}' +
       '.oha-snipbtn:hover{border-color:' + point + '}.oha-snipbtn:active{transform:translateY(1px)}' +
       '.oha-snipbtn .k{font-style:normal;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:4px;background:#ececf0;font-size:11px}' +
+      '.oha-ico{width:26px;height:26px;padding:0;display:inline-grid;place-items:center;flex:none;color:#444}' +
+      '.oha-ico svg{width:14px;height:14px}.oha-ico[disabled]{opacity:.3;cursor:default}' +
+      '.oha-ico.is-del:hover:not([disabled]){border-color:#b3261e;color:#b3261e;background:#fdeceb}' +
+      '.oha-grip{cursor:grab;background:#fff;border:1px solid #ccc;border-radius:6px}.oha-grip:active{cursor:grabbing}' +
+      '.oha-li{position:relative;margin:6px 0}.oha-img.oha-li{align-items:center}' +
+      '.oha-li.is-dragging{opacity:.4}' +
+      '.oha-li.drop-before{box-shadow:0 -3px 0 0 ' + point + '}.oha-li.drop-after{box-shadow:0 3px 0 0 ' + point + '}' +
       '.oha-nav{top:124px}.oha-split .oha-nav{top:68px}' +
       '@media(max-width:760px){.oha-main{grid-template-columns:1fr}.oha-nav{position:static;flex-direction:row;flex-wrap:wrap}.oha-row{grid-template-columns:1fr}}';
     document.head.appendChild(h('style', { id: 'oha-css', text: css }));
@@ -591,7 +602,7 @@
       pick.value = hex6(val);
       pick.oninput = function () { txt.value = pick.value; set(pick.value); touch(); };
       txt.oninput = function () { set(txt.value); touch(); pick.value = hex6(txt.value); };
-      var clr = h('button', { class: 'oha-mini', type: 'button', text: '비우기' });
+      var clr = h('button', { class: 'oha-btn oha-icobtn is-bad', type: 'button', title: '비우기', 'aria-label': '비우기' }); clr.innerHTML = ICON_TRASH;
       clr.onclick = function () { txt.value = ''; set(''); touch(); };
       wrap.appendChild(h('div', { class: 'oha-img oha-color' }, [pick, txt, clr]));
       return wrap;
@@ -901,34 +912,115 @@
     return box;
   }
 
+  /* 목록 항목 순서 바꾸기 (끌어서 이동은 한 번에 한 목록 안에서만) */
+  var dragState = null;
+  function arrKind(arr) { return { c: arr === chars(), f: arr === floors(), o: arr === others() }; }
+  function swapAdj(arr, a, b) {
+    var k = arrKind(arr), t = arr[a]; arr[a] = arr[b]; arr[b] = t;
+    if (k.c) swapRefs(a, b);            /* 캐릭터 번호로 연결된 페어 · 리뷰 · 관계도 같이 따라가요 */
+    if (k.f) swapFRefs(a, b);
+    if (k.o) swapORefs(a, b);
+  }
+  function moveItem(arr, from, to) {
+    if (from === to || to < 0 || to >= arr.length) return false;
+    var step = from < to ? 1 : -1;
+    for (var k = from; k !== to; k += step) swapAdj(arr, k, k + step);
+    return true;
+  }
+
   function arrayEd(arr, key, pkey) {
     var box = h('div');
+    var openItems = [];                                  /* 순서를 바꿔도 펼쳐 둔 항목은 그대로 펼쳐져 있게 */
     function draw() {
       box.innerHTML = '';
       var simple = arr.every(function (x) { return typeof x !== 'object'; });
       arr.forEach(function (item, i) {
+        var holder = null, headOf = null;                /* holder: 이 항목 전체, headOf: 위 / 아래 판정에 쓸 줄 */
+        function icoBtn(cls, icon, tip, fn, off) {
+          var b = h('button', { class: 'oha-mini oha-ico ' + cls, type: 'button', title: tip, 'aria-label': tip });
+          b.innerHTML = icon;
+          if (off) b.disabled = true;
+          b.onclick = function (e) { e.preventDefault(); e.stopPropagation(); fn(); };
+          return b;
+        }
         var ctl = function () {
-          var up = h('button', { class: 'oha-mini', type: 'button', text: '↑' });
-          var dn = h('button', { class: 'oha-mini', type: 'button', text: '↓' });
-          var rm = h('button', { class: 'oha-mini', type: 'button', text: '✕' });
-                    up.onclick = function (e) { e.preventDefault(); if (i > 0) { var isC = arr === chars(), isF = arr === floors(), isO = arr === others(); arr.splice(i - 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i - 1); if (isF) swapFRefs(i, i - 1); if (isO) swapORefs(i, i - 1); touch(); draw(); } };
-          dn.onclick = function (e) { e.preventDefault(); if (i < arr.length - 1) { var isC = arr === chars(), isF = arr === floors(), isO = arr === others(); arr.splice(i + 1, 0, arr.splice(i, 1)[0]); if (isC) swapRefs(i, i + 1); if (isF) swapFRefs(i, i + 1); if (isO) swapORefs(i, i + 1); touch(); draw(); } };
-          rm.onclick = function (e) { e.preventDefault(); var isC = arr === chars(), isF = arr === floors(), isO = arr === others(); if (confirm((isC || isF || isO) ? '이 캐릭터를 지울까요? 이 캐릭터가 들어간 페어 멤버 · 리뷰' + (isC ? ' · 관계 링크' : '') + '도 같이 정리돼요.' : '이 항목을 지울까요?')) { arr.splice(i, 1); if (isC) removeRefs(i); if (isF) removeFRefs(i); if (isO) removeORefs(i); touch(); draw(); } };
+          var grip = h('span', { class: 'oha-mini oha-ico oha-grip', draggable: 'true', title: '끌어서 순서 바꾸기', role: 'button', 'aria-label': '끌어서 순서 바꾸기' });
+          grip.innerHTML = ICON_GRIP;
+          grip.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
+          grip.addEventListener('dragstart', function (e) {
+            dragState = { box: box, from: i };
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = 'move';
+              try { e.dataTransfer.setData('text/plain', String(i)); } catch (x) {}
+              try { e.dataTransfer.setDragImage(headOf(), 12, 12); } catch (x) {}
+            }
+            holder.classList.add('is-dragging');
+            e.stopPropagation();
+          });
+          grip.addEventListener('dragend', function () {
+            dragState = null; holder.classList.remove('is-dragging');
+            [].forEach.call(box.querySelectorAll(':scope > .drop-before, :scope > .drop-after'), function (x) { x.classList.remove('drop-before', 'drop-after'); });
+          });
+          var up = icoBtn('', ICON_ARROW_UP, '위로', function () { if (moveItem(arr, i, i - 1)) { touch(); draw(); } }, i === 0);
+          var dn = icoBtn('', ICON_ARROW_DOWN, '아래로', function () { if (moveItem(arr, i, i + 1)) { touch(); draw(); } }, i === arr.length - 1);
+          var rm = icoBtn('is-del', ICON_TRASH, '삭제', function () {
+            var k = arrKind(arr), isObj = item && typeof item === 'object';
+            var msg = (k.c || k.f || k.o) ? '이 캐릭터를 지울까요? 이 캐릭터가 들어간 페어 멤버 · 리뷰' + (k.c ? ' · 관계 링크' : '') + '도 같이 정리돼요.' : '이 항목을 지울까요?';
+            if (isObj && !confirm(msg)) return;
+            arr.splice(i, 1);
+            if (k.c) removeRefs(i);
+            if (k.f) removeFRefs(i);
+            if (k.o) removeORefs(i);
+            touch(); draw();
+          });
+          return [grip, up, dn, rm];
         };
         if (simple) {                                   /* 문자열 / 숫자 목록 : 한 줄 */
           var ed = valueEd(item, function (nv) { arr[i] = nv; }, key, key);
-          var line = h('div', { class: 'oha-img' }, [h('div', { style: 'flex:1' }, [ed])].concat(ctl()));
-          box.appendChild(line);
+          holder = h('div', { class: 'oha-img oha-li' }, [h('div', { style: 'flex:1' }, [ed])].concat(ctl()));
+          headOf = function () { return holder; };
         } else if (Array.isArray(item) && item.every(function (x) { return typeof x !== 'object'; })) {   /* 표 한 줄 [항목, 내용] */
           var cells = item.map(function (c, j) {
             return h('div', { style: 'flex:1' }, [valueEd(c, function (nv) { item[j] = nv; }, key, key)]);
           });
-          box.appendChild(h('div', { class: 'oha-img' }, cells.concat(ctl())));
+          holder = h('div', { class: 'oha-img oha-li' }, cells.concat(ctl()));
+          headOf = function () { return holder; };
         } else {                                        /* 객체 목록 : 카드 */
           var sum = h('summary', null, [h('span', { text: title(item, i) }), h('span', { class: 'oha-sp' })].concat(ctl()));
-          var d = h('details', { class: 'oha-box' }, [sum, valueEd(item, function (nv) { arr[i] = nv; }, key, key)]);
-          box.appendChild(d);
+          holder = h('details', { class: 'oha-box oha-li' }, [sum, valueEd(item, function (nv) { arr[i] = nv; }, key, key)]);
+          if (openItems.indexOf(item) > -1) holder.open = true;
+          holder.addEventListener('toggle', function () {
+            if (!item || typeof item !== 'object') return;
+            var at = openItems.indexOf(item);
+            if (holder.open && at < 0) openItems.push(item);
+            if (!holder.open && at > -1) openItems.splice(at, 1);
+          });
+          headOf = function () { return sum; };
         }
+        /* 끌어서 놓기 : 이 항목 위쪽 절반이면 앞에, 아래쪽 절반이면 뒤에 들어가요 */
+        function side(e) { var r = headOf().getBoundingClientRect(); return e.clientY > r.top + r.height / 2 ? 'after' : 'before'; }
+        holder.addEventListener('dragover', function (e) {
+          if (!dragState || dragState.box !== box) return;
+          e.preventDefault(); e.stopPropagation();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+          var sd = side(e);
+          holder.classList.toggle('drop-before', sd === 'before');
+          holder.classList.toggle('drop-after', sd === 'after');
+        });
+        holder.addEventListener('dragleave', function (e) {
+          if (e.relatedTarget && holder.contains(e.relatedTarget)) return;
+          holder.classList.remove('drop-before', 'drop-after');
+        });
+        holder.addEventListener('drop', function (e) {
+          if (!dragState || dragState.box !== box) return;
+          e.preventDefault(); e.stopPropagation();
+          var from = dragState.from, at = i + (side(e) === 'after' ? 1 : 0);
+          dragState = null;
+          var to = at > from ? at - 1 : at;               /* 뺀 뒤의 자리 번호로 바꿔요 */
+          if (moveItem(arr, from, to)) { touch(); draw(); }
+          else holder.classList.remove('drop-before', 'drop-after');
+        });
+        box.appendChild(holder);
       });
       var tpls = templatesFor(key, pkey);
       var add = h('button', { class: 'oha-btn oha-add', type: 'button', text: tpls.length > 1 ? '+ 추가 ▾' : '+ 추가' });
