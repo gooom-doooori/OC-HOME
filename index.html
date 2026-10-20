@@ -157,6 +157,9 @@
     <!-- 뒤집으면 나타나는 상세 프로필 -->
     <section class="ch-detail" id="chDetail"></section>
 
+    <!-- 상세 프로필 경계의 옷장 (옷걸이 버튼 + 의상 목록) -->
+    <div class="wd none" id="chWd"></div>
+
     <!-- 오른쪽: 카드 -->
     <div class="ch-stage">
       <div class="ch-holder" id="chHolder"></div>
@@ -196,6 +199,17 @@
 
   <!-- 리뷰를 누르면 열리는 관계 화면 -->
   <div class="rl" id="rl"></div>
+
+  <!-- 그리드 뷰: 캐릭터 SD 로 골라서 이동 -->
+  <div class="pg" id="prGrid" aria-hidden="true">
+    <div class="pg-panel" role="dialog" aria-label="캐릭터 선택">
+      <header class="pg-head">
+        <h3 class="pg-title">CHARACTER SELECT</h3>
+        <button type="button" class="pg-close" aria-label="닫기">×</button>
+      </header>
+      <div class="pg-body"></div>
+    </div>
+  </div>
 
   <!-- TRPG 로그 보기 -->
   <div class="lv" id="logView">
@@ -442,6 +456,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       document.addEventListener("keydown", function (e) {
         keyHandlers.forEach(function (fn) { fn(e); });
       });
+      // 페이지별 리사이즈 · 바깥 클릭 처리 (페이지가 바뀌면 show() 가 비워요)
+      let onResize = null, onDocDown = null;
+      window.addEventListener("resize", function () { if (onResize) onResize(); });
+      document.addEventListener("mousedown", function (e) { if (onDocDown) onDocDown(e); });
 
       // 이름 속 HTML 태그(스포일러 · 링크 · 각주 등)를 떼고 글자만 남겨요
       // → 타일 · 카드 · 페어 화면에서는 이름이 링크/스포일러 없이 평범하게 보여요
@@ -476,6 +494,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       }
       let CH_START = null;
       const spoilSeen = {};     // "예" 한 스포일러 캐릭터 (새로고침 전까지, 페이지를 오가도 기억해요)
+      const outfitSel = {};     // 옷장에서 고른 의상 (새로고침 전까지, 프로필을 열고 닫거나 오가도 기억해요)
 
       /* ##################################################### */
       /* ##### 페이지: home ##### */
@@ -838,9 +857,18 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       const TABS = P.tabs || { profile: "PROFILE", gallery: "GALLERY", relation: "RELATION" };
       const num2 = function (n) { return String(n).padStart(2, "0"); };
 
+      // 옷장: 기본 전신 일러스트 + 의상들. 고른 의상은 outfitSel 에 기억해요
+      function bodiesOf(ch) { return [ch && ch.fullBody].concat((ch && ch.outfits) || []).filter(Boolean); }
+      function bodyIdx(ch) {
+        const n = bodiesOf(ch).length;
+        const v = outfitSel[PAGE + ":" + list.indexOf(ch)] || 0;
+        return v < n ? v : 0;
+      }
+      function curBody(ch) { const b = bodiesOf(ch); return b.length ? b[bodyIdx(ch)] : ""; }
+
       // 설정 글: 카드 보기일 때는 전신 일러스트를 글 옆에 2단으로 같이 보여줘요
       function storyBlock(ch) {
-        if (modeOf(ch) === "card" && ch.fullBody) {
+        if (modeOf(ch) === "card" && curBody(ch)) {
           const tmp = document.createElement("div");
           tmp.innerHTML = ch.story || "";
           const toggles = [];
@@ -850,7 +878,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             d.remove();
           });
           return '<div class="dt-story dt-story-art"><div>' + tmp.innerHTML + '</div>' +
-                 '<img src="' + ch.fullBody + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '" draggable="false"></div>' +
+                 '<img src="' + curBody(ch) + '" alt="' + String(ch.name || "").replace(/"/g, "&quot;") + '" draggable="false"></div>' +
                  (toggles.length ? '<div class="dt-story dt-story-tg">' + toggles.join("") + '</div>' : "");
         }
         return ch.story ? '<div class="dt-story">' + ch.story + '</div>' : "";
@@ -988,7 +1016,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         // 설정 글 옆 전신 일러스트: 누르면 크게 보기
         const art = detail.querySelector(".dt-story-art > img");
         if (art) art.addEventListener("click", function () {
-          openBox([{ image: ch.fullBody, caption: ch.name || "" }], 0);
+          openBox([{ image: curBody(ch), caption: ch.name || "" }], 0);
         });
         // 관계: 연결된 캐릭터로 이동
         detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
@@ -1051,6 +1079,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const next = (on === undefined) ? !was : on;
         f.classList.toggle("flipped", next);
         document.body.classList.toggle("is-flipped", next);
+        if (!next) closeWd();
         if (next !== was) {
           clearTimeout(morphDelay);
           if (next) morphDelay = setTimeout(runMorph, 550);
@@ -1069,13 +1098,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       viewBox.innerHTML = '<span class="vw-thumb"></span><span class="vw-l">CARD</span><span class="vw-l">FULL</span>';
 
       // 전신 일러스트가 있는 캐릭터만 전신 보기가 돼요 (없으면 카드로 보여요)
-      function modeOf(ch) { return (view === "full" && ch && ch.fullBody) ? "full" : "card"; }
+      function modeOf(ch) { return (view === "full" && ch && curBody(ch)) ? "full" : "card"; }
 
       function syncView(ch) {
         const full = modeOf(ch) === "full";
         viewBox.classList.toggle("is-full", full);
         viewBox.setAttribute("aria-checked", full ? "true" : "false");
-        viewBox.disabled = !(ch && ch.fullBody);
+        viewBox.disabled = !(ch && curBody(ch));
         viewBox.title = viewBox.disabled ? "전신 일러스트가 없어요" : "카드 ↔ 전신 전환";
       }
 
@@ -1102,7 +1131,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '<div class="fb-flip' + cls + '" id="cdFlip">' +
                 '<div class="fb-stack">' +
                   '<div class="fb-art">' +
-                    '<img class="fb-img" src="' + ch.fullBody + '" alt="">' +
+                    '<img class="fb-img" src="' + curBody(ch) + '" alt="">' +
                   '</div>' +
                   (ports.length
                     ? '<div class="fb-ports">' + ports.map(function (p, n) {
@@ -1146,7 +1175,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       // 토글을 누르면: 카드가 빙글 돌면서 전신 ↔ 카드로 바뀌어요
       function setView(v) {
         const ch = list[current];
-        if (spinning || !ch || v === modeOf(ch) || (v === "full" && !ch.fullBody)) return;
+        if (spinning || !ch || v === modeOf(ch) || (v === "full" && !curBody(ch))) return;
         spinning = true;
         view = v;
         syncView(ch);
@@ -1202,6 +1231,111 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         viewBox.blur();             // 스페이스바가 카드 뒤집기로 가도록
       });
 
+      /* =====================================================
+         옷장 (상세 프로필 경계의 옷걸이 버튼)
+         - 누르면 의상 목록이 경계선을 따라 대각선 아래로 펼쳐져요
+         - 고른 의상은 outfitSel 에 기억 → 프로필을 닫았다 열어도, 다른 캐릭터를 다녀와도 그대로예요
+         ===================================================== */
+      const wd = document.getElementById("chWd");
+      const ICON_HANGER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8.6V7.3a2.4 2.4 0 1 0-2.4-2.4"/><path d="M12 8.6 3.5 15a1.6 1.6 0 0 0 1 2.9h15a1.6 1.6 0 0 0 1-2.9L12 8.6z"/></svg>';
+      const WD_SLOPE = 120;                                           // .ch-detail-bg clip-path 의 기울기(px) — style.css 와 같은 값
+      const wdL = function () { return window.innerWidth * 0.48 - 170; };   // .ch-detail-bg 의 left
+      const wdBx = function (y, H) { return wdL() + WD_SLOPE * (1 - y / H); };   // 높이 y 에서 경계선의 x
+
+      function wdSetOpen(on) {
+        wd.classList.toggle("open", !!on);
+        const btn = wd.querySelector(".wd-btn");
+        if (btn) btn.setAttribute("aria-expanded", on ? "true" : "false");
+        if (!on) return;
+        placeWd();
+        const lst = wd.querySelector(".wd-list"), cur = wd.querySelector(".wd-thumb.on");
+        if (lst && cur) lst.scrollTop = Math.max(0, cur.parentNode.offsetTop - 60);
+        slantWd();
+      }
+      function closeWd() { wdSetOpen(false); }
+
+      // 버튼 · 목록 위치 (경계선 기준)
+      function placeWd() {
+        const btn = wd.querySelector(".wd-btn"), lst = wd.querySelector(".wd-list");
+        if (!btn || !lst) return;
+        const H = wd.clientHeight || window.innerHeight;
+        const by = Math.max(130, Math.min(170, H * 0.22));
+        btn.style.left = (wdBx(by, H) - btn.offsetWidth / 2) + "px";
+        btn.style.top = (by - btn.offsetHeight / 2) + "px";
+        const first = lst.querySelector(".wd-item");
+        const iw = first ? first.offsetWidth : 72;
+        const top = by + btn.offsetHeight / 2 + 8;
+        lst.style.left = (wdL() - iw / 2 - 10) + "px";
+        lst.style.width = (WD_SLOPE + iw + 20) + "px";
+        lst.style.top = top + "px";
+        lst.style.maxHeight = Math.max(120, H - 36 - top) + "px";
+        slantWd();
+      }
+      // 각 의상을 경계선 높이에 맞춰 옆으로 밀어줘요 (스크롤해도 선을 따라가요)
+      function slantWd() {
+        const lst = wd.querySelector(".wd-list");
+        if (!lst) return;
+        const H = wd.clientHeight || window.innerHeight;
+        Array.prototype.forEach.call(lst.querySelectorAll(".wd-item"), function (it) {
+          const y = lst.offsetTop + it.offsetTop - lst.scrollTop + it.offsetHeight / 2;
+          it.style.transform = "translateX(" + (wdBx(y, H) - it.offsetWidth / 2 - lst.offsetLeft) + "px)";
+        });
+      }
+
+      // 그림이 부드럽게 바뀌게
+      function swapSrc(img, src) {
+        if (!img || img.getAttribute("src") === src) return;
+        const pre = new Image();
+        const done = function () {
+          img.style.opacity = "0";
+          setTimeout(function () { img.src = src; img.style.opacity = ""; }, 160);
+        };
+        pre.onload = done; pre.onerror = done;
+        pre.src = src;
+      }
+      function pickOutfit(n) {
+        const ch = list[current];
+        const b = bodiesOf(ch);
+        if (!ch || !b[n]) return;
+        outfitSel[PAGE + ":" + current] = n;
+        swapSrc(holder.querySelector(".fb-img"), b[n]);                  // 전신 보기
+        swapSrc(detail.querySelector(".dt-story-art > img"), b[n]);      // 카드 보기 (설정 글 옆)
+        Array.prototype.forEach.call(wd.querySelectorAll(".wd-thumb"), function (t) {
+          t.classList.toggle("on", +t.getAttribute("data-n") === n);
+        });
+      }
+
+      function buildWd(i) {
+        const ch = list[i];
+        const b = ch ? bodiesOf(ch) : [];
+        wd.classList.remove("open");
+        if (!ch || !(ch.outfits || []).some(Boolean) || b.length < 2) { wd.innerHTML = ""; wd.classList.add("none"); return; }
+        wd.classList.remove("none");
+        wd.style.setProperty("--c", cardColor(ch.color));
+        wd.style.setProperty("--ct", cardText(ch.textColor, ch.color));
+        const sel = bodyIdx(ch);
+        wd.innerHTML =
+          '<button type="button" class="wd-btn" aria-label="옷장" title="옷장" aria-expanded="false">' + ICON_HANGER + '</button>' +
+          '<div class="wd-list">' + b.map(function (src, n) {
+            return '<div class="wd-item"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="의상 ' + (n + 1) + '">' +
+                   '<img src="' + src + '" alt="" draggable="false"></button></div>';
+          }).join("") + '</div>';
+        const btn = wd.querySelector(".wd-btn"), lst = wd.querySelector(".wd-list");
+        btn.addEventListener("click", function () { wdSetOpen(!wd.classList.contains("open")); btn.blur(); });
+        lst.addEventListener("scroll", slantWd);
+        lst.addEventListener("click", function (e) {
+          const t = e.target.closest(".wd-thumb");
+          if (!t) return;
+          pickOutfit(+t.getAttribute("data-n"));
+          t.blur();
+        });
+        placeWd();
+      }
+      onResize = placeWd;
+      onDocDown = function (e) {
+        if (wd.classList.contains("open") && !(e.target.closest && e.target.closest(".wd-btn, .wd-list"))) closeWd();
+      };
+
       function render(i) {
         const ch = list[i];
         if (!ch) return;
@@ -1212,6 +1346,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         drawStage(ch, modeOf(ch), false);
         syncView(ch);
         renderDetail(ch, i);
+        buildWd(i);
 
         count.textContent = String(i + 1 + OFFSET).padStart(2, "0") + " / " + String(list.length + OFFSET).padStart(2, "0");
         Array.prototype.forEach.call(tilesBox.querySelectorAll(".ch-tile-row"), function (t) {
@@ -1366,6 +1501,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           if (e.key === "ArrowRight") moveBox(1);
           return;
         }
+        // 옷장이 열려 있으면 Esc 는 옷장부터 닫아요
+        if (e.key === "Escape" && wd.classList.contains("open")) { closeWd(); return; }
         if (e.key === "ArrowUp" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); step(-1); }
         if (e.key === "ArrowDown" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); step(1); }
         if (e.key === " ") { e.preventDefault(); flip(); }
@@ -1426,6 +1563,12 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const src = ch && (ch.pairImage || ch.image || ch.tile);
         return src ? '<img src="' + src + '" alt="">' : silhouette;
       };
+      // 그리드 뷰용: SD 가 없으면 페어 이미지 · 타일 순으로 대신 보여줘요
+      const sdPic = function (ch) {
+        const src = ch && (ch.sd || ch.pairImage || ch.image || ch.tile);
+        return src ? '<img src="' + src + '" alt="" draggable="false">' : silhouette;
+      };
+      const ICON_GRID = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>';
       const stars = function (n) {
         n = Math.max(0, Math.min(5, Math.round(+n || 0)));
         let s = "";
@@ -1481,6 +1624,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         void center.offsetWidth;
         center.classList.add("in");
         center.innerHTML =
+          '<div class="pr-gridbar"><button type="button" class="pr-grid-btn" id="prGridBtn" aria-label="그리드 보기 (캐릭터 목록)" title="그리드 보기">' + ICON_GRID + '</button></div>' +
           '<div class="pr-frame">' +
             '<div class="pr-photo">' + pic(ch) + '</div>' +
             '<span class="pr-no">No. ' + num2(dispNo(c)) + '</span>' +
@@ -1495,6 +1639,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<span class="pr-idx">' + num2(c) + ' / ' + num2(chars.length) + '</span>' +
             '<button class="pr-arrow next" id="prNext" aria-label="다음"><i></i><i></i><i></i></button>' +
           '</nav>';
+        document.getElementById("prGridBtn").addEventListener("click", function () { openGrid(); });
         document.getElementById("prPrev").addEventListener("click", function () { go(current - 1, -1); });
         document.getElementById("prNext").addEventListener("click", function () { go(current + 1, 1); });
         count.textContent = num2(c) + " / " + num2(chars.length);
@@ -1568,6 +1713,38 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         current = (i + chars.length) % chars.length;
         render(dir || 0);
       }
+
+      /* =====================================================
+         그리드 뷰: 캐릭터 SD 를 한눈에 보고, 누르면 그 캐릭터로 이동
+         (기존 < > 화살표 · 키보드 ← → 는 그대로예요)
+         ===================================================== */
+      const pg = document.getElementById("prGrid");
+      const pgBody = pg.querySelector(".pg-body");
+      function openGrid() {
+        pgBody.innerHTML = chars.map(function (ch, i) {
+          return '<button type="button" class="pg-item' + (i === current ? " on" : "") + '" data-i="' + i + '" style="--rc:' + cardColor(ch.color) + ';--n:' + Math.min(i, 24) + '">' +
+            '<span class="pg-sd">' + sdPic(ch) + '</span>' +
+            '<span class="pg-no">' + num2(dispNo(i + 1)) + '</span>' +
+            '<span class="pg-name">' + plainName(ch.name) + '</span>' +
+          '</button>';
+        }).join("");
+        pg.setAttribute("aria-hidden", "false");
+        pg.classList.add("open");
+        const on = pgBody.querySelector(".pg-item.on");
+        if (on && on.scrollIntoView) on.scrollIntoView({ block: "center" });
+      }
+      function closeGrid() {
+        pg.classList.remove("open");
+        pg.setAttribute("aria-hidden", "true");
+      }
+      pgBody.addEventListener("click", function (e) {
+        const b = e.target.closest(".pg-item");
+        if (!b) return;
+        const i = +b.getAttribute("data-i");
+        closeGrid();
+        if (i !== current) go(i, i > current ? 1 : -1);
+      });
+      pg.addEventListener("click", function (e) { if (e.target === pg || e.target.closest(".pg-close")) closeGrid(); });
 
       /* =====================================================
          관계 화면
@@ -1815,6 +1992,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function closeRelation() { rl.classList.remove("open"); BGM.item(""); }
 
       addKey( function (e) {
+        if (pg.classList.contains("open")) { if (e.key === "Escape") closeGrid(); return; }   // 그리드가 열려 있으면 그것부터
         if (box.classList.contains("open")) {
           if (e.key === "Escape") closeBox();
           if (e.key === "ArrowLeft") moveBox(-1);
@@ -2690,6 +2868,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function show(route) {
         if (ROUTES.indexOf(route) < 0) route = "home";
         keyHandlers = [];
+        onResize = null; onDocDown = null;
         BGM.reset();
         document.querySelectorAll("#spoilBanner, .spoil-ask").forEach(function (n) { n.remove(); });
         document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
@@ -2720,7 +2899,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       var v = view(); if (!v) return;
       if (window.OHAdmin) return window.OHAdmin.mount(v);
       var s = document.createElement('script');
-      s.src = 'admin.js?v=1';
+      s.src = 'admin.js?v=2';
       s.onload = function () { window.OHAdmin.mount(v); };
       document.body.appendChild(s);
     }
