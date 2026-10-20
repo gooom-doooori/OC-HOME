@@ -548,7 +548,7 @@
       '.oha-split .oha-snip-wrap{top:0}.oha-split .oha-snip{max-width:none;padding:8px 12px}' +
       '.oha-snip-l{flex:none;display:flex;flex-direction:column;line-height:1.25}' +
       '.oha-snip-l b{font-size:12px}.oha-snip-l small{font-size:11px;color:#777}' +
-      '.oha-snip-b{display:flex;flex:1;min-width:0;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:thin}' +
+      '.oha-snip-b{display:flex;flex-wrap:wrap;flex:1;min-width:0;gap:6px;padding:2px 0}' +
       '.oha-snipbtn{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;color:#222}' +
       '.oha-snipbtn:hover{border-color:' + point + '}.oha-snipbtn:active{transform:translateY(1px)}' +
       '.oha-snipbtn .k{font-style:normal;display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:4px;background:#ececf0;font-size:11px}' +
@@ -559,7 +559,7 @@
       '.oha-li{position:relative;margin:6px 0}.oha-img.oha-li{align-items:center}' +
       '.oha-li.is-dragging{opacity:.4}' +
       '.oha-li.drop-before{box-shadow:0 -3px 0 0 ' + point + '}.oha-li.drop-after{box-shadow:0 3px 0 0 ' + point + '}' +
-      '.oha-snip-b.is-two{display:grid;gap:6px;align-content:center}' +
+      '.oha-snip-b.is-two{align-content:center}' +
       '#oha.is-editor{display:flex;flex-direction:column;overflow:hidden}' +
       '#oha.is-editor>.oha-top,#oha.is-editor .oha-snip-wrap{flex:none;position:relative;top:auto}' +
       '#oha.is-editor .oha-main{flex:1;min-height:0;width:100%;margin:12px auto;grid-template-rows:minmax(0,1fr)}' +
@@ -1432,7 +1432,6 @@
 
   function snipBar(getTarget, twoRows) {
     var btns = h('div', { class: 'oha-snip-b' + (twoRows ? ' is-two' : '') });
-    if (twoRows) btns.style.gridTemplateColumns = 'repeat(' + Math.ceil(SNIPS.length / 2) + ', max-content)';
     SNIPS.forEach(function (it) {
       var b = h('button', { class: 'oha-snipbtn', type: 'button', title: it.tip });
       b.innerHTML = it.html;
