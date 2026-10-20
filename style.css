@@ -3866,7 +3866,7 @@ body:has(.rl.open) .bgm { display: none !important; }
 
 .spoil-banner {
   position: fixed;
-  top: 8%;                               /* 화면 위에서 8% */
+  bottom: 1%;                               /* 화면 위에서 8% */
   left: 50%;
   z-index: 9000;
   display: flex;
