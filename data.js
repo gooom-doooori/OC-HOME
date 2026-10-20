@@ -367,6 +367,9 @@ const SITE = {
      portraits: 포트레이트 이미지 주소 최대 3개. 전신 보기에서 상세 프로필을 열었을 때만
                 전신 왼쪽 아래에 네모로 세로 정렬돼요. 안 쓰면 ["", "", ""] 그대로 두세요.
      name     : 이름
+     realName : 본명 (비우면 기존 이름이 그대로 나와요)
+     useRealName : true → 상세 프로필에 본명 표시 / false → 기존 이름(가명) 표시
+                   (타일 · 카드 앞면 · 페어 화면에는 항상 기존 이름이 나와요)
      nameEn   : 이름 아래 작은 영어 글자 (직책, 영문 이름 등)
      faction  : 적으면 왼쪽 타일 목록에서 같은 진영끼리 묶이고 진영 이름이 제목으로 나와요.
      비워두거나 줄 자체가 없으면 지금처럼 번호 순서대로 나와요.
@@ -419,6 +422,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -461,6 +466,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -498,6 +505,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -538,6 +547,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -582,6 +593,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -622,6 +635,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -657,6 +672,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -695,6 +712,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
+      realName: "",
+      useRealName: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -742,6 +761,8 @@ const SITE = {
       portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "OTHER",
+      realName: "",
+      useRealName: true,
       faction: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
