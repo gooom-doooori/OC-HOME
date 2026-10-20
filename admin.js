@@ -579,6 +579,7 @@
       '.oha-hl textarea::selection{background:rgba(60,120,255,.28)}' +
       '.oha-hl textarea::placeholder{color:#999;-webkit-text-fill-color:#999}' +
       '.oha-hl.is-one textarea{min-height:0;overflow:hidden;scrollbar-gutter:auto}.oha-hl.is-one pre{overflow:hidden;scrollbar-gutter:auto}' +
+      '.oha-hl.is-nowrap pre,.oha-hl.is-nowrap textarea{white-space:pre;overflow-wrap:normal;word-break:normal;overflow:hidden}' +
       '.oha-hl.is-fill{height:100%}.oha-hl.is-fill textarea{height:100%}' +
       '.hl-t{color:#aeaeb8}.hl-l{color:#0b66d6;text-decoration:underline}' +
       '.oha-xrow{display:flex;gap:8px;align-items:center;margin-top:4px}.oha-xs{padding:4px 10px;font-size:12px}' +
@@ -661,9 +662,9 @@
     var pre = h('pre', { class: 'oha-hl-pre', 'aria-hidden': 'true' });
     var ta = h('textarea', { spellcheck: 'false', rows: opt.one ? '1' : null });
     ta.value = value;
-    var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') + (opt.one ? ' is-one' : '') }, [pre, ta]);
+    var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') + (opt.one ? ' is-one' : '') + (opt.nowrap ? ' is-nowrap' : '') }, [pre, ta]);
     var lastW = -1;
-    function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; }
+    function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; }
     function fit() {
       if (opt.fill) return;
       ta.style.height = 'auto';
@@ -679,7 +680,7 @@
       refresh(); if (onChange) onChange(ta.value);
     });
     if (opt.one) ta.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });   /* 한 줄 칸: 엔터 막기 */
-    ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; });
+    ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; });
     /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
     function insertAt(t) {
       ta.focus();
@@ -829,7 +830,7 @@
       return wrap;
     }
     /* 일반 입력칸도 코드(회색) · 링크(파랑) · 본문(검정) 색으로 구분해요 */
-    var hl1 = hlArea(val, function (v) { set(v); touch(); if (prev) prev.src = v; }, { one: !long });
+    var hl1 = hlArea(val, function (v) { set(v); touch(); if (prev) prev.src = v; }, { one: !long, nowrap: isImg && !long });   /* 이미지 · 음악 주소 칸은 줄바꿈 없이 한 줄 높이 그대로 */
     var inp = hl1.ta;
     var ph = PH[pkey + '.' + key] || PH[key]; if (ph) inp.placeholder = ph;
     var prev = null;
