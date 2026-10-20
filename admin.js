@@ -1342,8 +1342,8 @@
         var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
         return { text: o + rt + '</rt></ruby>', from: o.length, to: o.length + rt.length };
       } },
-    { html: '<i class="k">▒</i>스포일러', tip: '<span class="spoil" onclick="this.classList.toggle(\'open\')">숨길 내용</span>',
-      make: wrapSnip('<span class="spoil" onclick="this.classList.toggle(\'open\')">', '</span>', '숨길 내용') },
+    { html: '<i class="k">▒</i>스포일러', tip: '<span class="spoil">숨길 내용</span>',
+      make: wrapSnip('<span class="spoil">', '</span>', '숨길 내용') },
     { html: '<i class="k">¹</i>각주', tip: '각주<sup class="fn" tabindex="0">1<span>각주 내용</span></sup>',
       make: function (sel) {
         var o = (sel || '각주 달 글') + '<sup class="fn" tabindex="0">1<span>', c = '각주 내용';
