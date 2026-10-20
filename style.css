@@ -3861,7 +3861,7 @@ body:has(.rl.open) .bgm { display: none !important; }
   cursor: pointer;
   transition: background .2s;
 }
-.spoil-ask-btns button:hover { background: color-mix(in srgb, var(--bg) 5%, #fbfbfd); }
+.spoil-ask-btns button:hover { background: color-mix(in srgb, var(--bg) 85%, #fbfbfd); }
 .spoil-ask-btns button:focus-visible { outline: 2px solid var(--title); outline-offset: 3px; }
 
 .spoil-banner {
