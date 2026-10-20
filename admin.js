@@ -22,7 +22,7 @@
     owner: '오너 페이지', guest: '방명록 안내', colors: '색상', background: '배경', fonts: '글꼴'
   };
   var LABEL = {
-    themeColor: '대표 색 (이 색 하나로 사이트 전체 색이 바뀌어요)', pageTitle: '브라우저 탭 이름',
+    themeColor: '전체 테마색', pageTitle: '브라우저 탭 이름',
     type: '종류', text: '글', image: '이미지', imageWidth: '로고 가로 크기', subText: '작은 글씨',
     num: '숫자', title: '이름 / 제목', desc: '설명', link: '링크', icon: '아이콘 이미지', newTab: '새 탭으로 열기', left: '왼쪽에 띄우기',
     badge: '왼쪽 위 동그라미 글자', topLabel: '왼쪽 위 라벨', topRight: '오른쪽 위 글자', sideText: '세로 글자',
@@ -44,7 +44,7 @@
     emptyText: '비었을 때 글', reviewTitle: '리뷰 목록 제목', sortText: '정렬 글자', replyButton: '답글 버튼 글자',
     bestCount: 'BEST 표시 개수', relationTabs: '관계 화면 탭 이름', timelineEmpty: '타임라인 비었을 때 글',
     trpgEmpty: 'TRPG 비었을 때 글', logButton: '로그 버튼 글자', logEmpty: '로그 없을 때 글',
-    members: '멤버 (캐릭터 번호)', pairName: '페어 이름', pairNameSub: '페어 이름 아래 글', titleImage: '페어 로고 이미지',
+    members: '페어 멤버', pairName: '페어 이름', pairNameSub: '페어 이름 아래 글', titleImage: '페어 로고 이미지',
     sides: '캐릭터 칸', catchphrase: '캐치프레이즈', reviews: '리뷰', from: '리뷰 쓴 캐릭터', to: '리뷰 받은 캐릭터',
     call: '호칭', review: '리뷰 내용', likes: '좋아요 수', date: '날짜', replies: '답글 대화',
     timeline: '타임라인', trpg: 'TRPG 백업', system: '룰', role: '역할', file: '로그 파일 위치',
@@ -93,51 +93,51 @@
   var ICON_BUSY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>';
 
   var PH_CARD = {
-    nameEn: '이름 아래 작은 글자 (직책 · 영문 이름 등)',
-    faction: '같은 진영끼리 왼쪽 목록에서 묶여요 (비우면 번호 순서)',
-    intro: '카드 앞면에 나오는 한 줄 소개',
-    number: '카드 번호 (학생증 ID No. · 티켓 코드 · 수배지 현상금)',
-    cardTitle: '카드 위쪽 큰 글자 (예: STUDENT ID)',
-    cardSub: '카드 위쪽 작은 글자 (소속 · 학교 이름 등)',
-    color: '#222222 · 비우면 사이트 대표 색',
-    subColor: '#888888 · 비우면 대표색을 연하게 자동 적용',
-    textColor: '#ffffff · 비우면 대표색에 맞춰 자동',
-    image: '카드에 들어갈 캐릭터 사진 (비우면 기본 실루엣)',
-    pairImage: '페어 페이지에서만 쓸 사진 (비우면 카드 사진)',
-    sd: '카드 오른쪽 아래에 붙는 작은 SD 이미지 (투명 png)',
-    sdSize: '이 캐릭터 SD 가로 크기만 바꿀 때 (숫자 · 비우면 페이지 설정)',
-    tile: '왼쪽 목록 타일 사진 (비우면 카드 사진)',
-    tilePosition: '타일에서 보일 부분 (예: center 30%)',
-    fullBody: '전신 일러스트 (있으면 CARD / FULL 전환이 생겨요)',
-    portraits: '포트레이트 이미지 (전신 보기 왼쪽 아래 · 최대 3개)',
-    quote: '대표 대사 (수배지는 뒷면 메모로도 나와요)',
-    story: '설정 글 · 줄바꿈은 위쪽 [줄바꿈] 버튼',
-    customFront: '카드 앞면 이미지 주소',
-    customBack: '카드 뒷면 이미지 주소',
-    customRatio: '가로 / 세로 (예: 2 / 3) · 비우면 앞면 이미지 비율',
-    bgm: '이 캐릭터 테마곡 (음악 파일 · 유튜브 링크)',
-    bgmTitle: '곡 제목 (비우면 자동)'
+    nameEn: '직책 · 영문 이름 등',
+    faction: '같은 진영끼리 왼쪽 목록에서 묶여요.',
+    intro: '카드 앞면 한 줄 소개',
+    number: '학생증 - ID No. · 티켓 - 코드 · 수배지 - 현상금',
+    cardTitle: '예: STUDENT ID',
+    cardSub: '소속 · 학교 이름 등',
+    color: 'HEX코드 입력',
+    subColor: 'HEX코드 입력',
+    textColor: 'HEX코드 입력',
+    image: '카드에 들어갈 캐릭터 이미지',
+    pairImage: '페어 상세 페이지용 프로필 이미지',
+    sd: '',
+    sdSize: '기본 230px',
+    tile: '왼쪽 목록 타일 이미지',
+    tilePosition: 'top | center | bottom 숫자% 형식으로 작성',
+    fullBody: ',
+    portraits: '포트레이트 이미지',
+    quote: '대표 대사',
+    story: '설정 글',
+    customFront: '커스텀 앞면 이미지',
+    customBack: '커스텀 뒷면 이미지',
+    customRatio: '가로 / 세로 (예: 2 / 3)',
+    bgm: '음악 파일 · 유튜브 링크',
+    bgmTitle: ''
   };
   var PH = {
-    'tags.tags': '태그 하나 (# 없이)', 'likes.likes': '좋아하는 것 하나', 'dislikes.dislikes': '싫어하는 것 하나 (지뢰 등)',
-    'notice.notice': '주의사항 한 줄', 'ticketTerms.ticketTerms': '약관 한 줄', 'replies.replies': '답글 한 줄 (첫 답은 리뷰 받은 캐릭터)',
-    'profile.label': '항목 이름 (예: 나이)', 'profile.value': '내용',
-    'gallery.image': '이미지 주소', 'gallery.caption': '이미지 설명 (크게 볼 때 아래에 나와요)',
-    'relations.name': '상대 이름', 'relations.label': '관계 (친구 · 라이벌 등)', 'relations.text': '관계 설명',
-    'relations.image': '상대 사진 (비우면 연결된 캐릭터 사진)',
-    'seat.gate': '입구 (예: A)', 'seat.row': '열 (예: 07)', 'seat.seat': '좌석 번호 (예: 12)',
-    'menus.num': '비우면 자동 번호 (01, 02 …)', 'menus.desc': '제목 아래 작은 설명', 'menus.link': '#character 또는 다른 사이트 주소',
-    'menus.icon': '메뉴 오른쪽 아이콘 (비우면 기본 아이콘)',
-    'deco.badge': '왼쪽 위 동그라미 안 글자 (예: OC)', 'deco.topLabel': '왼쪽 위 뱃지 옆 글자', 'deco.topRight': '오른쪽 위 글자',
-    'deco.sideText': '왼쪽에 세로로 나오는 글자', 'deco.titleTag': '타이틀 위 작은 글자',
-    'info.heading': '큰 영어 제목', 'info.text': '소개 문장 · 줄바꿈은 위쪽 [줄바꿈] 버튼',
-    'title.text': '메인 큰 글자 (줄바꿈은 위쪽 [줄바꿈] 버튼)', 'title.image': '로고 이미지 주소', 'title.imageWidth': '로고 가로 크기 (예: 480px)',
-    'title.subText': '타이틀 아래 작은 글씨 (비워도 돼요)',
-    'pairs.pairName': '관계 화면 맨 위 큰 이름', 'pairs.pairNameSub': '이름 아래 작은 글자 (영문 이름 등)',
-    'pairs.titleImage': '이름 대신 넣을 로고 이미지 (비우면 글자)', 'pairs.label': '관계 (친구 · 연인 · 라이벌 등)',
-    'pairs.bgm': '이 페어 테마곡 (음악 파일 · 유튜브 링크)', 'pairs.bgmTitle': '곡 제목 (비우면 자동)',
-    'sides.catchphrase': '이름 위 작은 태그에 들어가는 한마디', 'sides.desc': '간단한 서사 (3~4줄)', 'sides.image': '이 칸에만 쓸 이미지 (투명 png 추천)',
-    'reviews.call': '상대를 부르는 호칭', 'reviews.review': '리뷰 내용', 'reviews.date': '리뷰 아래 작은 글씨 (날짜 등)',
+    'tags.tags': '# 없이 작성', 'likes.likes': '', 'dislikes.dislikes': '',
+    'notice.notice': '주의사항', 'ticketTerms.ticketTerms': '주의사항', 'replies.replies': '답글',
+    'profile.label': '제목', 'profile.value': '내용',
+    'gallery.image': '', 'gallery.caption': '이미지 설명 혹은 제목',
+    'relations.name': '상대 이름', 'relations.label': '', 'relations.text': '상세 설명',
+    'relations.image': '상대 사진',
+    'seat.gate': '', 'seat.row': '', 'seat.seat': '',
+    'menus.num': '', 'menus.desc': '제목 아래 작은 설명', 'menus.link': '#character 또는 다른 사이트 주소',
+    'menus.icon': '',
+    'deco.badge': '', 'deco.topLabel': '', 'deco.topRight': '',
+    'deco.sideText': '', 'deco.titleTag': '',
+    'info.heading': '', 'info.text': '',
+    'title.text': '', 'title.image': '', 'title.imageWidth': '',
+    'title.subText': '',
+    'pairs.pairName': '페어 상세 페이지 제목', 'pairs.pairNameSub': '',
+    'pairs.titleImage': '이름 대신 넣을 로고 이미지', 'pairs.label': '관계 (친구 · 연인 · 라이벌 등)',
+    'pairs.bgm': '페어 테마곡 파일 · 유튜브 링크', 'pairs.bgmTitle': '',
+    'sides.catchphrase': '', 'sides.desc': '3~4줄 내외의 간단한 서사', 'sides.image': '상세 페이지용 캐릭터 이미지 (투명 png 추천)',
+    'reviews.call': '상대를 부르는 호칭', 'reviews.review': '', 'reviews.date': '리뷰 아래 작은 글씨 (날짜 등)',
     'timeline.date': '날짜', 'timeline.title': '제목', 'timeline.text': '내용', 'timeline.image': '이미지 주소 (선택)',
     'trpg.title': '시나리오 제목', 'trpg.system': '룰 (예: CoC 7th)', 'trpg.date': '날짜', 'trpg.role': '역할 (KPC · PC 등)',
     'trpg.text': '후기', 'trpg.file': '로그 파일 위치 (예: logs/log1.html)', 'trpg.link': '파일 대신 쓸 외부 링크',
@@ -145,17 +145,17 @@
     'links.desc': '아래 작은 설명 (방명록 링크만)',
     'mine.image': '배너 이미지 주소', 'mine.size': '이미지 없을 때 표시할 크기 (예: 200 × 40)',
     'friends.name': '친구 이름', 'friends.image': '친구 배너 이미지', 'friends.url': '친구 홈페이지 주소',
-    'banner.mineTitle': '내 배너 제목 (비우면 MY BANNER)', 'banner.siteUrl': '배너 클릭 시 이동할 내 홈 주소 (비우면 현재 주소)',
-    'banner.note': '내 배너 아래 안내 글', 'banner.copyText': '복사 버튼 글자 (비우면 COPY)',
-    'banner.copiedText': '복사 완료 글자 (비우면 COPIED!)', 'banner.friendsTitle': '친구 링크 제목 (비우면 LINK)',
-    'bgmPlayer.bgm': '기본 BGM (음악 파일 · 유튜브 링크)', 'bgmPlayer.bgmTitle': '곡 제목 (비우면 자동)',
-    'background.image': '배경 사진 주소', 'background.position': '사진 위치 (예: center)', 'background.width': '사진 가로 크기 (예: 1200px · 비우면 자동)',
+    'banner.mineTitle': '내 배너 제목', 'banner.siteUrl': '내 홈 주소',
+    'banner.note': '내 배너 아래 안내 글', 'banner.copyText': '복사 버튼 글자',
+    'banner.copiedText': '복사 완료 글자', 'banner.friendsTitle': '친구 링크 제목',
+    'bgmPlayer.bgm': '기본 BGM 파일 · 유튜브 링크', 'bgmPlayer.bgmTitle': '',
+    'background.image': '', 'background.position': 'top | center | bottom 숫자% 형식으로 작성', 'background.width': '',
     'background.frontImage': '격자무늬 위에 올라오는 이미지', 'background.frontPosition': '이미지 위치 (예: center)',
-    'background.frontWidth': '이미지 가로 크기 (예: 600px)',
+    'background.frontWidth': '',
     'guest.label': '왼쪽 위 뱃지 옆 글자', 'guest.title': '가운데 큰 제목', 'guest.intro': '제목 아래 안내 글',
-    'guest.ownerName': '답글 쓴 사람 이름', 'guest.ownerImage': '답글 프로필 사진 (비우면 이름 첫 글자)',
+    'guest.ownerName': '답글 쓴 사람 이름', 'guest.ownerImage': '답글 프로필 사진',
     'form.formLink': '구글 폼의 "미리 채워진 링크"', 'form.sheetCsv': '시트를 웹에 게시해서 받은 csv 주소',
-    'widget.url': '외부 위젯 주소 (주소 형태일 때)', 'widget.code': '외부 위젯 코드 (코드 형태일 때)',
+    'widget.url': '주소 형태일 때 작성', 'widget.code': '코드 형태일 때 작성',
     'pairPage.label': '왼쪽 위 뱃지 옆 글자', 'pairPage.reviewTitle': '리뷰 목록 위 글자 (옆에 개수가 붙어요)',
     'pairPage.sortText': '오른쪽 위 정렬 글자', 'pairPage.replyButton': '리뷰 아래 답글 버튼 글자',
     'pairPage.logButton': 'TRPG 백업 카드 버튼 글자', 'pairPage.logEmpty': '로그 파일이 없을 때 안내 글',
@@ -168,30 +168,30 @@
   });
   ['characterPage', 'floormasterPage', 'otherPage'].forEach(function (k) {
     PH[k + '.label'] = '왼쪽 위 뱃지 옆 글자';
-    PH[k + '.idNotice'] = '학생증 뒷면 안내 글 (줄바꿈은 위쪽 [줄바꿈] 버튼)';
+    PH[k + '.idNotice'] = '학생증 뒷면 안내 글';
     PH[k + '.idIssued'] = '발급일 (예: 2026.03.02)';
     PH[k + '.idValid'] = '유효기간 (예: 2029.02.28)';
-    PH[k + '.wantedPaper'] = '수배지 종이 질감 이미지 (비우면 기본)';
+    PH[k + '.wantedPaper'] = '수배지 종이 질감 이미지 변경';
     PH[k + '.galleryEmpty'] = '갤러리가 비었을 때 보여줄 글';
     PH[k + '.relationEmpty'] = '관계가 비었을 때 보여줄 글';
-    PH[k + '.bgm'] = '이 페이지 테마곡 (음악 파일 · 유튜브 링크)';
-    PH[k + '.bgmTitle'] = '곡 제목 (비우면 자동)';
+    PH[k + '.bgm'] = '이 페이지 테마곡 파일 · 유튜브 링크';
+    PH[k + '.bgmTitle'] = '';
   });
-  ['title', 'menu', 'body', 'mono', 'hand', 'sign', 'jet', 'MU'].forEach(function (f) { PH['fonts.' + f] = '구글 폰트 이름 (예: Noto Sans KR)'; });
+  ['title', 'menu', 'body', 'mono', 'hand', 'sign', 'jet', 'MU'].forEach(function (f) { PH['fonts.' + f] = '구글 폰트 이름(영문)'; });
   PH['owner.label'] = '왼쪽 위 뱃지 옆 글자';
   PH['owner.hint'] = '화면 아래 안내 글';
-  PH['owner.image'] = '프로필 사진 (비우면 기본 실루엣)';
-  PH['owner.sd'] = '카드를 뒤집었을 때 모서리에 붙는 SD 이미지';
-  PH['owner.cardTitle'] = '카드 위쪽 큰 글자 (예: OWNER ID)';
-  PH['owner.number'] = '카드 번호 (티켓 코드 · 수배지 현상금)';
-  PH['owner.strap'] = '목걸이 줄에 들어가는 글자 (사원증 카드만)';
+  PH['owner.image'] = '프로필 사진';
+  PH['owner.sd'] = '';
+  PH['owner.cardTitle'] = '카드 위쪽 큰 글자';
+  PH['owner.number'] = '카드 번호 · 티켓 코드 · 수배지 현상금';
+  PH['owner.strap'] = '사원증 카드만 적용';
   PH['owner.backNotice'] = '카드 뒷면 안내 글';
-  PH['owner.sign'] = '서명란 글씨 (비우면 영문 이름)';
-  PH['owner.since'] = '활동 시작일 (예: 2026.01.01)';
-  PH['owner.valid'] = '유효기간 (예: ∞)';
-  PH['owner.about'] = '자기소개 · 줄바꿈은 위쪽 [줄바꿈] 버튼';
-  PH['owner.likeTitle'] = '좋아하는 것 제목 (비우면 LIKE)';
-  PH['owner.dislikeTitle'] = '싫어하는 것 제목 (비우면 DISLIKE)';
+  PH['owner.sign'] = '서명란 텍스트';
+  PH['owner.since'] = '';
+  PH['owner.valid'] = '';
+  PH['owner.about'] = '';
+  PH['owner.likeTitle'] = '비우면 LIKE';
+  PH['owner.dislikeTitle'] = '비우면 DISLIKE';
 
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
   var CARD_DEFAULTS = {
@@ -523,7 +523,7 @@
       '.oha-link>.oha-row{position:relative;margin:6px 0}' +
       '.oha-link>.oha-row::before{content:"";position:absolute;left:-16px;top:13px;width:8px;height:8px;border-radius:50%;background:' + point + ';box-shadow:0 0 0 2px #fff}' +
       '.oha-link>details.oha-box{margin:6px 0}' +
-      'details.oha-box{padding:0;background:#e6e6ea;border:1px solid #cfcfd6;overflow:hidden}' +
+      'details.oha-box{padding:0;background:#f5f5f5;border:1px solid #cfcfd6;overflow:hidden}' +
       'details.oha-box details.oha-box{background:#eeeef1}' +
       'details.oha-box>summary{list-style:none;padding:9px 12px;user-select:none}' +
       'details.oha-box>summary::-webkit-details-marker{display:none}' +
