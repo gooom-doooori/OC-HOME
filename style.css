@@ -3806,3 +3806,140 @@ ruby:has(> .spoil.open) rt { filter: none; }
 /* 페어 상세(관계 화면)가 열려 있을 때만 기존 BGM 플레이어를 숨기고, 이름 아래 재생 버튼만 보여요
    (.rl.open 이 실제로 있을 때만 적용되니, 다른 페이지에서는 영향이 없어요) */
 body:has(.rl.open) .bgm { display: none !important; }
+
+/* =========================================================
+   스포일러 캐릭터 : 열람 확인 팝업 + 상단 안내 툴팁
+   ========================================================= */
+.spoil-ask {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, .62);
+  animation: spoilAskFade .25s ease both;
+}
+.spoil-ask-box {
+  width: min(420px, calc(100vw - 48px));
+  padding: 30px 30px 26px;
+  border: 2px solid var(--deco);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--title);
+  text-align: center;
+  font-family: var(--font-body), sans-serif;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+  animation: spoilAskPop .3s cubic-bezier(.2, .8, .2, 1) both;
+}
+.spoil-ask-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font: 900 20px/1 var(--font-body), sans-serif;
+}
+.spoil-ask-msg {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.spoil-ask-btns { display: flex; gap: 10px; margin-top: 24px; }
+.spoil-ask-btns button {
+  flex: 1;
+  padding: 11px 0;
+  border: 2px solid var(--btn, var(--deco));
+  border-radius: 999px;
+  font: 700 14px/1 var(--font-body), sans-serif;
+  cursor: pointer;
+  transition: transform .2s, background .2s, color .2s;
+}
+.spoil-ask-btns button:hover { transform: translateY(-2px); }
+.spoil-ask-btns button:focus-visible { outline: 2px solid var(--btn, var(--deco)); outline-offset: 3px; }
+.spoil-yes { background: var(--btn, var(--deco)); color: var(--btn-text, #fff); }
+.spoil-no  { background: transparent; color: var(--btn, var(--deco)); }
+.spoil-no:hover { background: var(--btn, var(--deco)); color: var(--btn-text, #fff); }
+
+.spoil-banner {
+  position: fixed;
+  top: 8px;                              /* BGM 플레이어(top: 40px) 위쪽 */
+  left: 50%;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 8px;
+  background: #222;
+  color: #fff;
+  font: 400 12px/1.5 var(--font-body), sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -6px);
+  transition: opacity .25s, transform .25s, visibility 0s .25s;
+}
+.spoil-banner::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  font: 900 11px/1 var(--font-body), sans-serif;
+}
+.spoil-banner.on {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity .25s, transform .25s;
+}
+
+@keyframes spoilAskFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spoilAskPop  { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* =========================================================
+   편집기 코드 버튼용 : 이미지 · 2단 뷰 · 스포일러 주의 안내칸
+   ========================================================= */
+.st-img { display: block; max-width: 100%; height: auto; margin: 10px 0; }
+.st-two { display: flex; gap: 16px; align-items: flex-start; margin: 10px 0; }
+.st-two > div { flex: 1; min-width: 0; }
+.st-two > img { width: 45%; max-width: 420px; height: auto; flex-shrink: 0; }
+@media (max-width: 760px) { .st-two { flex-direction: column; } .st-two > img { width: 100%; max-width: none; } }
+
+.spoil-box {
+  margin: 12px 0;
+  border: 1.5px solid #d93025;
+  border-radius: 8px;
+  background: rgba(217, 48, 37, .06);
+  overflow: hidden;
+}
+.spoil-box-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 14px;
+  color: #d93025;
+  font-size: .95em;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.spoil-box-head::before {              /* 붉은 확성기 아이콘 */
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: center / contain no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d93025' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1z'/><path d='M15 9a4 4 0 0 1 0 6'/><path d='M18 6.5a8 8 0 0 1 0 11'/></svg>");
+}
+.spoil-box-body { padding: 12px 14px; border-top: 1px dashed rgba(217, 48, 37, .45); }
