@@ -443,6 +443,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         keyHandlers.forEach(function (fn) { fn(e); });
       });
 
+      // 이름에 걸린 링크(<a>, 캐릭터 링크)를 벗겨내고 글자만 남겨요. 타일 · 카드 · 페어 화면용 (상세 프로필은 그대로 링크 유지)
+      function plainName(v) {
+        return String(v == null ? "" : v).replace(/<a\b[^>]*>/gi, "").replace(/<\/a>/gi, "");
+      }
+
       const PAGES = {};
 
       function chRef(v) {
@@ -626,7 +631,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return '<div class="cd-slot"></div>' +
           '<div class="cd-head"><strong>' + (ch.cardTitle || "") + '</strong><span>' + (ch.cardSub || "") + '</span></div>' +
           photo(ch) +
-          '<h3 class="cd-name">' + (ch.name || "") + '</h3>' +
+          '<h3 class="cd-name">' + plainName(ch.name) + '</h3>' +
           '<p class="cd-en">' + (ch.nameEn || "") + '</p>' +
           '<p class="cd-intro">' + (ch.intro || "") + '</p>' +
           '<div class="cd-tags">' + tags(ch) + '</div>' +
@@ -667,7 +672,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       /* ----- 앞면: 티켓 ----- */
       function frontTicket(ch) {
-        const name = String(ch.name || "");
+        const name = plainName(ch.name);
         const d = digits(ch.number, 15);
 
         return '<div class="tk-body">' +
@@ -706,7 +711,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         };
         return '<div class="wt-inner">' +
           '<div class="wt-banner">' + (ch.cardTitle || "WANTED") + '</div>' +
-          '<h3 class="wt-name">' + (ch.name || "") + '</h3>' +
+          '<h3 class="wt-name">' + plainName(ch.name) + '</h3>' +
           (ch.cardSub ? '<p class="wt-sub">' + ch.cardSub + '</p>' : "") +
           '<div class="wt-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
           '<h4 class="wt-desc-title">DESCRIPTION</h4>' +
@@ -1269,7 +1274,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<span class="ch-tile-label"><i></i>: ' + num + '</span>' +
             '<span class="ch-tile' + (img ? "" : " empty") + '"' +
               (img ? ' style="background-image:url(\'' + img + '\');background-position:' + (ch.tilePosition || "center 30%") + '"' : "") + '>' +
-              '<span class="ch-tile-name"><b>' + (ch.name || "") + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
+              '<span class="ch-tile-name"><b>' + plainName(ch.name) + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
             '</span>';
           row.addEventListener("click", function () { enter(i); });
           tilesBox.appendChild(row);
@@ -1411,7 +1416,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<span class="pr-no">No. ' + num2(dispNo(c)) + '</span>' +
           '</div>' +
           '<div class="pr-info">' +
-            '<h2 class="pr-name">' + (ch.name || "") + '</h2>' +
+            '<h2 class="pr-name">' + plainName(ch.name) + '</h2>' +
             '<p class="pr-en">' + (ch.nameEn || "") + '</p>' +
             (ch.intro ? '<p class="pr-intro">' + ch.intro + '</p>' : "") +
           '</div>' +
@@ -1443,7 +1448,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             return '<div class="rp" style="--depth:' + depth + ';--rc:' + cardColor(speaker.color) + '">' +
               '<span class="rp-arrow">ㄴ</span>' +
               '<span class="rv-ava sm">' + pic(speaker) + '</span>' +
-              '<div class="rp-body"><b class="rv-name">' + (speaker.name || "") + '</b><p class="rp-text">' + t + '</p></div>' +
+              '<div class="rp-body"><b class="rv-name">' + plainName(speaker.name) + '</b><p class="rp-text">' + t + '</p></div>' +
             '</div>';
           }).join("");
           return '<div class="rv" data-pair="' + r.pair + '" style="--rc:' + cardColor(who.color) + ';--d:' + (n * 0.07 + 0.1) + 's">' +
@@ -1452,7 +1457,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '<div class="rv-main">' +
                 '<p class="rv-head">' +
                   (n < bestN && (+r.msg.likes || 0) > 0 ? '<span class="rv-best">BEST</span>' : "") +
-                  '<b class="rv-name">' + (who.name || "") + '</b>' +
+                  '<b class="rv-name">' + plainName(who.name) + '</b>' +
                 '</p>' +
                 '<p class="rv-text">' + (r.msg.review || "") + '</p>' +
                 (meta ? '<p class="rv-meta">' + meta + '</p>' : "") +
@@ -1511,7 +1516,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '<div class="rc-img">' + (img ? '<img src="' + img + '" alt="">' : silhouette) + '</div>' +
               ((info.catchphrase || info.title) ? '<span class="rc-tag">' + (info.catchphrase || info.title) + '</span>' : "") +
               '<div class="rc-text">' +
-                '<h3 class="rc-name"><b>' + (ch.name || "") + '</b><small>' + (ch.nameEn || "") + '</small></h3>' +
+                '<h3 class="rc-name"><b>' + plainName(ch.name) + '</b><small>' + (ch.nameEn || "") + '</small></h3>' +
                 (info.desc ? '<p class="rc-desc">' + info.desc + '</p>' : "") +
               '</div>' +
             '</div>' +
