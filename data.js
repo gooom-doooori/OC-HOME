@@ -370,6 +370,8 @@ const SITE = {
      realName : 본명 (비우면 기존 이름이 그대로 나와요)
      useRealName : true → 상세 프로필에 본명 표시 / false → 기존 이름(가명) 표시
                    (타일 · 카드 앞면 · 페어 화면에는 항상 기존 이름이 나와요)
+     realNameEn : 본명 영문 이름 (비우면 기존 영문 이름이 그대로 나와요)
+     useRealNameEn : true → 상세 프로필에 본명 영문 이름 표시 / false → 기존 영문 이름 표시
      nameEn   : 이름 아래 작은 영어 글자 (직책, 영문 이름 등)
      faction  : 적으면 왼쪽 타일 목록에서 같은 진영끼리 묶이고 진영 이름이 제목으로 나와요.
      비워두거나 줄 자체가 없으면 지금처럼 번호 순서대로 나와요.
@@ -424,6 +426,8 @@ const SITE = {
       nameEn: "CHARACTER",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -468,6 +472,8 @@ const SITE = {
       nameEn: "STAGE NAME",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -507,6 +513,8 @@ const SITE = {
       nameEn: "Outlaw",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -549,6 +557,8 @@ const SITE = {
       nameEn: "CUSTOM",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       bgm: "",
       bgmTitle: "",
@@ -595,6 +605,8 @@ const SITE = {
       nameEn: "CHARACTER",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -637,6 +649,8 @@ const SITE = {
       nameEn: "STAGE NAME",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -674,6 +688,8 @@ const SITE = {
       nameEn: "Outlaw",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -714,6 +730,8 @@ const SITE = {
       nameEn: "CUSTOM",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "진영이름",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
@@ -763,6 +781,8 @@ const SITE = {
       nameEn: "OTHER",
       realName: "",
       useRealName: true,
+      realNameEn: "",
+      useRealNameEn: true,
       faction: "",
       intro: "한 줄 소개를 적어주세요.",
       tags: ["태그", "키워드"],
