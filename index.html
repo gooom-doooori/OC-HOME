@@ -239,9 +239,9 @@
     <!-- 가운데: 오너 카드 -->
     <div class="ch-stage">
       <div class="ch-holder" id="chHolder"></div>
-      <!-- 오너가 2명 이상일 때만 채워져요 -->
-    <div class="ow-switch" id="owSwitch"></div>
     </div>
+    <!-- 오너가 2명 이상일 때만 채워져요 (오른쪽 타일 목록) -->
+    <div class="ow-tiles" id="owSwitch"></div>
 
     <p class="ow-hint" id="owHint"></p>
   </main>
@@ -2093,7 +2093,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       let current = 0, busy = false;
 
       function mark() {
-        sw.querySelectorAll(".ow-sw").forEach(function (b, n) { b.classList.toggle("on", n === current); });
+        sw.querySelectorAll(".ow-tile").forEach(function (b, n) { b.classList.toggle("on", n === current); });
       }
       function go(i) {
         if (!many || busy) return;
@@ -2112,13 +2112,19 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       if (many) {
         document.querySelector(".ow-page").classList.add("ow-multi");
-        sw.innerHTML = OWNERS.map(function (o, i) {
-          return '<button type="button" class="ow-sw" data-i="' + i + '">' +
-            '<i>' + String(i + 1).padStart(2, "0") + '</i>' +
-            '<span>' + esc(o.name || ("OWNER " + (i + 1))) + '</span></button>';
-        }).join("");
+        // 타일 얼굴: SD 이미지 → 프로필 이미지(원형) → 이름 첫 글자(원형, 대표색 배경)
+        const face = function (o) {
+          if (o.sd) return '<img class="ow-sd" src="' + esc(o.sd) + '" alt="" draggable="false">';
+          const first = Array.from(String(o.name || "?").trim())[0] || "?";
+          return '<span class="ow-ava" style="--c:' + cardColor(o.color) + ';--ct:' + cardText("", o.color) + '">' +
+            (o.image ? '<img src="' + esc(o.image) + '" alt="" draggable="false">' : '<b>' + esc(first) + '</b>') + '</span>';
+        };
+        sw.innerHTML = '<div class="ow-tiles-in">' + OWNERS.map(function (o, i) {
+          return '<button type="button" class="ow-tile" data-i="' + i + '" style="animation-delay:' + (0.05 + i * 0.07) + 's">' +
+            face(o) + '<span class="ow-tile-name">' + esc(o.name || ("OWNER " + (i + 1))) + '</span></button>';
+        }).join("") + '</div>';
         sw.addEventListener("click", function (e) {
-          const b = e.target.closest(".ow-sw");
+          const b = e.target.closest(".ow-tile");
           if (b) go(Number(b.getAttribute("data-i")));
         });
       }
@@ -2131,6 +2137,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         if (e.key === "Escape") flip(false);
         if (e.key === "ArrowLeft") go(current - 1);
         if (e.key === "ArrowRight") go(current + 1);
+        if (e.key === "ArrowUp" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); go(current - 1); }
+        if (e.key === "ArrowDown" && !document.body.classList.contains("is-flipped")) { e.preventDefault(); go(current + 1); }
       });
       };
 
