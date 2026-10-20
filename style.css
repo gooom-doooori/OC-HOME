@@ -3477,7 +3477,9 @@ a[href]:hover .spoil.open {
 .fn-tip.down::before { bottom: auto; top: 100%; }
 .fn-tip a { color: #9fd0ff; text-decoration: underline; cursor: pointer; font-weight: 700; }
 .fn-tip .ch-link { color: #9fd0ff; border-bottom-color: #9fd0ff; }
-.fn-tip .spoil:not(.open) { filter: blur(5px); }
+.fn-tip .spoil { filter: blur(5px); cursor: default; transition: filter .2s; }
+.fn-tip .spoil:hover { filter: none; }            /* 각주 안 스포일러는 마우스를 올리면 보여요 */
+.fn-tip .spoil a, .fn-tip .spoil .ch-link { pointer-events: auto; }
 
 /* 상세 프로필 2단 설정글 (왼쪽 글 / 오른쪽 이미지) */
 .story-2col { display: flex; gap: 5px; align-items: flex-start; }
