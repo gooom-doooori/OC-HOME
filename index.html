@@ -858,7 +858,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       /* ---------- 가명 → 본명 뒤섞기 효과 ---------- */
       let morphJobs = [], morphTimer = 0, morphDelay = 0;
-      const SCR_POOL = "가각간갈감강개거건걸검겨결경고곡공관광교구국군궁귀규균그극근금기김나난날남내너노녀능다단달담당대덕도독동두라란람랑래량려력련령로록론루류리림마만말망매명모목무문미민바박반발방배백범벽변별보복본봉부북분불비빈사산살삼상새서석선설성세소손송수순술스승시신실심아안알암앙애야약양어언얼여연열영예오옥온왕요용우운원월위유윤은을음의이인일임자작잔장재저전절정제조종주준중지진차찬창채천철청초최추춘충치탄태통파판평포표풍하한함해행허현형호홍화환황효후훈희ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#@%&*";
+      const SCR_POOL = "■⁕※¿?%‽^$៛₣₶৹▦▨◊▪◇◌◍◎#@%&*";
       const plainText = function (html) { const d = document.createElement("div"); d.innerHTML = html; return d.textContent || ""; };
       function stopMorph() { clearInterval(morphTimer); morphTimer = 0; }
       function resetMorph() {                       // 가명으로 되돌리기
