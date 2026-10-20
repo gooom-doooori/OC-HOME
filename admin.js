@@ -1354,17 +1354,6 @@
     { html: '<i class="k"><b>B</b></i>볼드체', tip: '<b>내용</b>', make: wrapSnip('<b>', '</b>', '내용') },
     { html: '<i class="k"><em>I</em></i>기울임체', tip: '<i>내용</i>', make: wrapSnip('<i>', '</i>', '내용') },
     { html: '<i class="k"><s>S</s></i>취소선', tip: '<s>내용</s>', make: wrapSnip('<s>', '</s>', '내용') },
-    { html: '<i class="k">↗</i>링크 ▾', tip: '링크 걸기 (새 탭 / 현재 탭 선택)',
-      choices: [
-        { icon: ICON_NEWTAB, label: '새 탭', tip: '<a href="주소" target="_blank" rel="noopener">내용</a>', make: linkSnip(true) },
-        { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
-      ] },
-    { html: '<i class="k">☺</i>캐릭터 링크 ▾', tip: '글을 누르면 그 캐릭터 상세 프로필이 열려요', listMenu: true, choices: charChoices },
-    { html: '<i class="k">▣</i>이미지 추가 ▾', tip: '이미지 넣기 (2단 뷰 / 일반 삽입) — 넣은 뒤 주소를 바로 붙여넣어요',
-      choices: [
-        { icon: ICON_IMG_TWO, label: '2단 뷰', tip: '선택한 글 + 이미지를 2단으로', make: imgTwo },
-        { icon: ICON_IMG_ONE, label: '일반 삽입', tip: '이미지만 삽입', make: imgOne }
-      ] },
     { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
       make: function (sel) {
         var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
@@ -1384,7 +1373,18 @@
         return { text: o + c + '</summary><div>' + (sel || '펼쳐질 내용') + '</div></details>', from: o.length, to: o.length + c.length };
       } },
     { html: '<i class="k">-</i>목록', tip: '<ul class="dash-list"><li>내용</li></ul>', make: listSnip('dash-list') },
-    { html: '<i class="k">•</i>목록', tip: '<ul class="dot-list"><li>내용</li></ul>', make: listSnip('dot-list') }
+    { html: '<i class="k">•</i>목록', tip: '<ul class="dot-list"><li>내용</li></ul>', make: listSnip('dot-list') },
+    { html: '<i class="k">▣</i>이미지 추가 ▾', tip: '이미지 넣기 (2단 뷰 / 일반 삽입) — 넣은 뒤 주소를 바로 붙여넣어요',
+      choices: [
+        { icon: ICON_IMG_TWO, label: '2단 뷰', tip: '선택한 글 + 이미지를 2단으로', make: imgTwo },
+        { icon: ICON_IMG_ONE, label: '일반 삽입', tip: '이미지만 삽입', make: imgOne }
+      ] },
+    { html: '<i class="k">↗</i>링크 ▾', tip: '링크 걸기 (새 탭 / 현재 탭 선택)',
+      choices: [
+        { icon: ICON_NEWTAB, label: '새 탭', tip: '<a href="주소" target="_blank" rel="noopener">내용</a>', make: linkSnip(true) },
+        { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
+      ] },
+    { html: '<i class="k">☺</i>캐릭터 링크 ▾', tip: '글을 누르면 그 캐릭터 상세 프로필이 열려요', listMenu: true, choices: charChoices }
   ];
 
   function applySnippet(it, el) {
