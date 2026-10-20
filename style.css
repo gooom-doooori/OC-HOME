@@ -394,7 +394,7 @@ a { text-decoration: none; color: inherit; }
   right: calc(100% + 30px);
   top: 50%;
   width: 60px;
-  border-top: 2px dotted var(--dots);
+  border-top: 2px dotted var(--menu-desc);
   opacity: .6;
 }
 
