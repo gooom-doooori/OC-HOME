@@ -280,6 +280,9 @@
     { t: '페이지 테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] }
   ];
   var SCHEMA = {
+     outfits: [
+      { t: '', rows: ['image', ['outfitName', 'outfitNameEn', 'useOutfitName']] }
+    ],
     characters: CARD_SECTIONS, floormasters: CARD_SECTIONS, others: CARD_SECTIONS,
     characterPage: PAGE_SECTIONS, floormasterPage: PAGE_SECTIONS, otherPage: PAGE_SECTIONS,
     owner: [
