@@ -640,6 +640,25 @@
     });
   }
 
+  /* ---------- 편집기에서 직접 올린 파일인지 확인 ---------- */
+  function uploadPath(url) {
+    var m = /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/([^\/]+)\/o\/([^?#]+)/.exec(String(url || '').trim());
+    if (!m) return '';
+    var cfg = window.SITE_FB || {};
+    if (cfg.storageBucket && m[1] !== cfg.storageBucket) return '';
+    var p;
+    try { p = decodeURIComponent(m[2]); } catch (e) { return ''; }
+    return /^uploads\/[^\/]+$/.test(p) ? p : '';
+  }
+  /* 같은 주소를 다른 칸에서도 쓰고 있는지 세기 */
+  function countUses(url) {
+    var needle = JSON.stringify(url).slice(1, -1);
+    return JSON.stringify(st.draft).split(needle).length - 1;
+  }
+  function deleteUpload(path) {
+    return fb().then(function (c) { return c.store.deleteObject(c.store.ref(c.sg, path)); });
+  }
+
   /* ---------- 값 편집기 (재귀) ---------- */
   function title(item, i) {
     if (item && typeof item === 'object') {
@@ -872,8 +891,28 @@
         }).catch(function (e) { toast('올리지 못했어요: ' + (e.message || e), true); })
           .then(function () { up.innerHTML = ICON_UP; up.classList.remove('is-busy'); up.disabled = false; file.value = ''; });
       };
+            var del = h('button', { class: 'oha-btn oha-icobtn is-bad', type: 'button', title: '삭제 (직접 올린 파일이면 Storage 에서도 지워요)', 'aria-label': '삭제' });
+      del.innerHTML = ICON_TRASH;
+      del.onclick = function () {
+        var url = inp.value.trim();
+        if (!url) return;
+        function clearField() { inp.value = ''; hl1.refresh(); set(''); touch(); prev.src = ''; }
+        var path = uploadPath(url);
+        if (!path) { clearField(); return; }          /* 직접 올린 파일이 아니면 링크만 지워요 */
+        var msg = countUses(url) > 1
+          ? '다른 칸에서도 사용중인 이미지입니다.\n 정말 지우시겠습니까?'
+          : '파일을 스토리지에서 완전히 삭제합니다. \n 되돌릴 수 없어요.';
+        if (!confirm(msg)) return;
+        del.innerHTML = ICON_BUSY; del.classList.add('is-busy'); del.disabled = true;
+        deleteUpload(path).then(function () {
+          clearField(); toast('제거 완료');
+        }).catch(function (e) {
+          if (e && e.code === 'storage/object-not-found') { clearField(); toast('이미 없는 파일이라 링크만 지웠어요.'); }
+          else toast('실패: ' + (e.message || e), true);
+        }).then(function () { del.innerHTML = ICON_TRASH; del.classList.remove('is-busy'); del.disabled = false; });
+      };
       hl1.el.style.cssText = 'flex:1;min-width:0';
-      var row = h('div', { class: 'oha-img' }, [prev, hl1.el, up, file]);
+      var row = h('div', { class: 'oha-img' }, [prev, hl1.el, up, del, file]);
       wrap.appendChild(row);
     } else wrap.appendChild(hl1.el);
     return wrap;
@@ -1710,10 +1749,11 @@
       "      allow read: if resource.data.secret == false || isAdmin();\n      allow update, delete: if isAdmin();\n    }\n\n" +
       "    // 사이트 설정 (편집기가 저장하는 곳)\n    match /site/{docId} {\n      allow read: if true;\n      allow write: if isAdmin();\n    }\n  }\n}\n";
   }
-  function storageRules(email) {
+ function storageRules(email) {
+    var who = "request.auth != null\n        && request.auth.token.email == '" + email + "'\n        && request.auth.token.email_verified == true";
     return "rules_version = '2';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /uploads/{allPaths=**} {\n      allow read: if true;\n" +
-      "      allow write: if request.auth != null\n        && request.auth.token.email == '" + email + "'\n        && request.auth.token.email_verified == true\n" +
-      "        && request.resource.size < 10 * 1024 * 1024\n        && request.resource.contentType.matches('image/.*|audio/.*');\n    }\n  }\n}\n";
+      "      allow create, update: if " + who + "\n        && request.resource.size < 10 * 1024 * 1024\n        && request.resource.contentType.matches('image/.*|audio/.*');\n" +
+      "      allow delete: if " + who + ";\n    }\n  }\n}\n";
   }
   function configFileText(cfg, email) {
     var keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
