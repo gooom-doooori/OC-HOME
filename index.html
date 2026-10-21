@@ -667,7 +667,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           '<div class="cd-head"><strong>' + (ch.cardTitle || "") + '</strong><span>' + (ch.cardSub || "") + '</span></div>' +
           photo(ch) +
           '<h3 class="cd-name">' + plainName(cardName(ch)) + '</h3>' +
-          '<p class="cd-en">' + (ch.nameEn || "") + '</p>' +
+          '<p class="cd-en">' + cardNameEn(ch) + '</p>' +
           '<p class="cd-intro">' + (ch.intro || "") + '</p>' +
           '<div class="cd-tags">' + tags(ch) + '</div>' +
           '<div class="cd-foot"><span>ID No. ' + (ch.number || "") + '</span>' + barcode(ch.number) + '</div>';
@@ -753,7 +753,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           '<div class="wt-desc"><div>' + col(pr.slice(0, half)) + '</div><div>' + col(pr.slice(half)) + '</div></div>' +
           '<div class="wt-rule"></div>' +
           '<div class="wt-bottom">' +
-            '<span class="wt-sign">' + (ch.nameEn || "") + '</span>' +
+            '<span class="wt-sign">' + cardNameEn(ch) + '</span>' +
             '<div class="wt-reward"><span>REWARD</span><strong>' + (ch.number || "") + '</strong></div>' +
             qr(ch.number) +
           '</div>' +
@@ -779,7 +779,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           '<div class="ib-body">' +
             '<p class="ib-notice">' + (P.idNotice || "본 카드는 아래 소유자 본인만 사용할 수 있으며, 타인에게 양도할 수 없습니다.<br>습득하신 분은 아래 기관으로 돌려주세요.") + '</p>' +
             '<p class="ib-org">' + (ch.cardSub || "") + '</p>' +
-            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (ch.nameEn || cardName(ch)) + '</b></div>' +
+            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (cardNameEn(ch) || cardName(ch)) + '</b></div>' +
             '<div class="ib-rows">' +
               '<div><span>ISSUED</span><b>' + (P.idIssued || "2026.03.02") + '</b></div>' +
               '<div><span>VALID THRU</span><b>' + (P.idValid || "2029.02.28") + '</b></div>' +
@@ -861,10 +861,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       // 옷장 항목: 기본 전신 일러스트 + 의상들. 의상은 주소 글자(예전 방식) 또는 { image, outfitName, useOutfitName }
       function outfitEntries(ch) {
         const out = [];
-        if (ch && ch.fullBody) out.push({ src: ch.fullBody, name: "", use: false });
+        if (ch && ch.fullBody) out.push({ src: ch.fullBody, name: "", en: "", use: false });
         ((ch && ch.outfits) || []).forEach(function (o) {
-          if (typeof o === "string") { if (o) out.push({ src: o, name: "", use: false }); return; }
-          if (o && o.image) out.push({ src: o.image, name: String(o.outfitName || "").trim(), use: o.useOutfitName === true });
+          if (typeof o === "string") { if (o) out.push({ src: o, name: "", en: "", use: false }); return; }
+          if (o && o.image) out.push({ src: o.image, name: String(o.outfitName || "").trim(), en: String(o.outfitNameEn || "").trim(), use: o.useOutfitName === true });
         });
         return out;
       }
@@ -874,6 +874,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const e = outfitEntries(ch)[bodyIdx(ch)];
         return (e && e.use && e.name) ? e.name : "";
       }
+      // 영문 이름: 의상 이름이 켜져 있고 의상 영문 이름이 있을 때만 바뀌어요 (없으면 원래 영문 이름)
+      function wornNameEn(ch) {
+        const e = outfitEntries(ch)[bodyIdx(ch)];
+        return (e && e.use && e.en) ? e.en : "";
+      }
+      function cardNameEn(ch) { return wornNameEn(ch) || (ch && ch.nameEn) || ""; }
+      function shownDetailNameEn(ch) { return wornNameEn(ch) || detailNameEn(ch); }
       function cardName(ch) { return wornName(ch) || (ch && ch.name) || ""; }              // 카드 · 타일
       function shownDetailName(ch) { return wornName(ch) || detailName(ch); }              // 상세 프로필
       function bodyIdx(ch) {
@@ -998,7 +1005,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '<span>No. ' + num2(i + 1 + OFFSET) + '</span>' +
             '</div>' +
             '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
-            '<p class="dt-en">' + detailNameEn(ch) + '</p>' +
+            '<p class="dt-en">' + shownDetailNameEn(ch) + '</p>' +
           '</header>' +
           '<div class="dt-panes">' +
             '<section class="dt-pane on" data-pane="profile">' + paneProfile + '</section>' +
@@ -1011,7 +1018,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         stopMorph();
         morphJobs = [];
         if (!document.body.classList.contains("is-flipped")) {   // 이미 열려 있는 상태에서 다시 그릴 땐 바로 본명
-          [[".dt-name", wornName(ch) || ch.name, shownDetailName(ch)], [".dt-en", ch.nameEn, detailNameEn(ch)]].forEach(function (a) {
+          [[".dt-name", wornName(ch) || ch.name, shownDetailName(ch)], [".dt-en", wornNameEn(ch) || ch.nameEn, shownDetailNameEn(ch)]].forEach(function (a) {
             const el = detail.querySelector(a[0]), from = a[1] || "", to = a[2] || "";
             if (el && from !== to) { el.innerHTML = from; morphJobs.push({ el: el, from: from, to: to }); }
           });
@@ -1315,18 +1322,28 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const nm = plainName(cardName(ch));
         const tn = tilesBox.querySelector('.ch-tile-row[data-i="' + i + '"] .ch-tile-name b');
         if (tn) tn.innerHTML = nm;
+        const en = cardNameEn(ch);
+        const ts = tilesBox.querySelector('.ch-tile-row[data-i="' + i + '"] .ch-tile-name small');
+        if (ts) ts.innerHTML = en;
+        Array.prototype.forEach.call(holder.querySelectorAll(".cd-front .cd-en, .cd-front .wt-sign"), function (el) { el.innerHTML = en; });
         Array.prototype.forEach.call(holder.querySelectorAll(".cd-front .cd-name, .cd-front .tk-name, .cd-front .tk-stub-label, .cd-front .wt-name"), function (el) { el.innerHTML = nm; });
         const sg = holder.querySelector(".ib-sign b");
-        if (sg && !ch.nameEn) sg.innerHTML = cardName(ch);
+        if (sg) sg.innerHTML = cardNameEn(ch) || cardName(ch);
         const dn = detail.querySelector(".dt-name");
         if (dn) {
           const flipped = document.body.classList.contains("is-flipped");
           const from = wornName(ch) || ch.name || "", to = shownDetailName(ch);
           stopMorph();
           morphJobs = morphJobs.filter(function (j) { return j.el !== dn; });
-          morphJobs.forEach(function (j) { if (j.el.isConnected) j.el.innerHTML = flipped ? j.to : j.from; });
           dn.innerHTML = flipped ? to : from;
           if (!flipped && from !== to) morphJobs.push({ el: dn, from: from, to: to });
+          const de = detail.querySelector(".dt-en");
+          if (de) {
+            const f2 = wornNameEn(ch) || ch.nameEn || "", t2 = shownDetailNameEn(ch);
+            morphJobs = morphJobs.filter(function (j) { return j.el !== de; });
+            de.innerHTML = flipped ? t2 : f2;
+            if (!flipped && f2 !== t2) morphJobs.push({ el: de, from: f2, to: t2 });
+          }
         }
       }
       function pickOutfit(n) {
@@ -1519,7 +1536,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<span class="ch-tile-label"><i></i>: ' + num + '</span>' +
             '<span class="ch-tile' + (img ? "" : " empty") + '"' +
               (img ? ' style="background-image:url(\'' + img + '\');background-position:' + (ch.tilePosition || "center 30%") + '"' : "") + '>' +
-              '<span class="ch-tile-name"><b>' + plainName(cardName(ch)) + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
+              '<span class="ch-tile-name"><b>' + plainName(cardName(ch)) + '</b><small>' + cardNameEn(ch) + '</small></span>' +
             '</span>';
           row.addEventListener("click", function () { enter(i); });
           tilesBox.appendChild(row);
