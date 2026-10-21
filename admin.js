@@ -199,8 +199,8 @@
   PH['owner.since'] = '';
   PH['owner.valid'] = '';
   PH['outfits.image'] = '의상 이미지';
-  PH['outfits.outfitName'] = '예: 교복, 여름 사복 (비워도 돼요)';
-  PH['outfits.outfitNameEn'] = '영문 이름 / 직책 (비우면 원래 영문 이름)';
+  PH['outfits.outfitName'] = '예: 교복, 여름 사복 (공란 O)';
+  PH['outfits.outfitNameEn'] = '영문 이름 / 직책';
   PH['owner.about'] = '';
   PH['owner.likeTitle'] = '비우면 LIKE';
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
