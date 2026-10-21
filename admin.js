@@ -118,7 +118,7 @@
     tilePosition: 'top | center | bottom 숫자% 형식으로 작성',
     fullBody: '',
     portraits: '포트레이트 이미지',
-    outfits: '의상 이미지 (옷장에 펼쳐져요. 위의 전신 일러스트가 "기본" 의상이 돼요)',
+    outfits: '의상 이미지',
     quote: '대표 대사',
     story: '설정 글',
     customFront: '커스텀 앞면 이미지',
@@ -199,8 +199,8 @@
   PH['owner.since'] = '';
   PH['owner.valid'] = '';
   PH['outfits.image'] = '의상 이미지';
-  PH['outfits.outfitName'] = '예: 교복, 여름 사복 (공란 O)';
-  PH['outfits.outfitNameEn'] = '영문 이름 / 직책';
+  PH['outfits.outfitName'] = 'AU / 의상 이름 작성';
+  PH['outfits.outfitNameEn'] = '의상용 영문 이름 / 직책';
   PH['owner.about'] = '';
   PH['owner.likeTitle'] = '비우면 LIKE';
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
