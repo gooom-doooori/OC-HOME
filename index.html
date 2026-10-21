@@ -2979,7 +2979,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       var v = view(); if (!v) return;
       if (window.OHAdmin) return window.OHAdmin.mount(v);
       var s = document.createElement('script');
-      s.src = 'admin.js?v=3';
+      s.src = 'admin.js?v=2';
       s.onload = function () { window.OHAdmin.mount(v); };
       document.body.appendChild(s);
     }
