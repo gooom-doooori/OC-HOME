@@ -666,7 +666,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return '<div class="cd-slot"></div>' +
           '<div class="cd-head"><strong>' + (ch.cardTitle || "") + '</strong><span>' + (ch.cardSub || "") + '</span></div>' +
           photo(ch) +
-          '<h3 class="cd-name">' + plainName(ch.name) + '</h3>' +
+          '<h3 class="cd-name">' + plainName(cardName(ch)) + '</h3>' +
           '<p class="cd-en">' + (ch.nameEn || "") + '</p>' +
           '<p class="cd-intro">' + (ch.intro || "") + '</p>' +
           '<div class="cd-tags">' + tags(ch) + '</div>' +
@@ -707,7 +707,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       /* ----- 앞면: 티켓 ----- */
       function frontTicket(ch) {
-        const name = plainName(ch.name);
+        const name = plainName(cardName(ch));
         const d = digits(ch.number, 15);
 
         return '<div class="tk-body">' +
@@ -746,7 +746,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         };
         return '<div class="wt-inner">' +
           '<div class="wt-banner">' + (ch.cardTitle || "WANTED") + '</div>' +
-          '<h3 class="wt-name">' + plainName(ch.name) + '</h3>' +
+          '<h3 class="wt-name">' + plainName(cardName(ch)) + '</h3>' +
           (ch.cardSub ? '<p class="wt-sub">' + ch.cardSub + '</p>' : "") +
           '<div class="wt-photo' + (ch.image ? " has-img" : "") + '">' + (ch.image ? '<img src="' + ch.image + '" alt="">' : silhouette) + '</div>' +
           '<h4 class="wt-desc-title">DESCRIPTION</h4>' +
@@ -779,7 +779,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           '<div class="ib-body">' +
             '<p class="ib-notice">' + (P.idNotice || "본 카드는 아래 소유자 본인만 사용할 수 있으며, 타인에게 양도할 수 없습니다.<br>습득하신 분은 아래 기관으로 돌려주세요.") + '</p>' +
             '<p class="ib-org">' + (ch.cardSub || "") + '</p>' +
-            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (ch.nameEn || ch.name || "") + '</b></div>' +
+            '<div class="ib-sign"><span>SIGNATURE</span><b>' + (ch.nameEn || cardName(ch)) + '</b></div>' +
             '<div class="ib-rows">' +
               '<div><span>ISSUED</span><b>' + (P.idIssued || "2026.03.02") + '</b></div>' +
               '<div><span>VALID THRU</span><b>' + (P.idValid || "2029.02.28") + '</b></div>' +
@@ -858,7 +858,24 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       const num2 = function (n) { return String(n).padStart(2, "0"); };
 
       // 옷장: 기본 전신 일러스트 + 의상들. 고른 의상은 outfitSel 에 기억해요
-      function bodiesOf(ch) { return [ch && ch.fullBody].concat((ch && ch.outfits) || []).filter(Boolean); }
+      // 옷장 항목: 기본 전신 일러스트 + 의상들. 의상은 주소 글자(예전 방식) 또는 { image, outfitName, useOutfitName }
+      function outfitEntries(ch) {
+        const out = [];
+        if (ch && ch.fullBody) out.push({ src: ch.fullBody, name: "", use: false });
+        ((ch && ch.outfits) || []).forEach(function (o) {
+          if (typeof o === "string") { if (o) out.push({ src: o, name: "", use: false }); return; }
+          if (o && o.image) out.push({ src: o.image, name: String(o.outfitName || "").trim(), use: o.useOutfitName === true });
+        });
+        return out;
+      }
+      function bodiesOf(ch) { return outfitEntries(ch).map(function (e) { return e.src; }); }
+      // 지금 입고 있는 의상의 이름 ("의상명으로 이름 변경" 이 켜져 있고 이름이 있을 때만)
+      function wornName(ch) {
+        const e = outfitEntries(ch)[bodyIdx(ch)];
+        return (e && e.use && e.name) ? e.name : "";
+      }
+      function cardName(ch) { return wornName(ch) || (ch && ch.name) || ""; }              // 카드 · 타일
+      function shownDetailName(ch) { return wornName(ch) || detailName(ch); }              // 상세 프로필
       function bodyIdx(ch) {
         const n = bodiesOf(ch).length;
         const v = outfitSel[PAGE + ":" + list.indexOf(ch)] || 0;
@@ -980,7 +997,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '</nav>' +
               '<span>No. ' + num2(i + 1 + OFFSET) + '</span>' +
             '</div>' +
-            '<h2 class="dt-name">' + detailName(ch) + '</h2>' +
+            '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
             '<p class="dt-en">' + detailNameEn(ch) + '</p>' +
           '</header>' +
           '<div class="dt-panes">' +
@@ -994,7 +1011,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         stopMorph();
         morphJobs = [];
         if (!document.body.classList.contains("is-flipped")) {   // 이미 열려 있는 상태에서 다시 그릴 땐 바로 본명
-          [[".dt-name", ch.name, detailName(ch)], [".dt-en", ch.nameEn, detailNameEn(ch)]].forEach(function (a) {
+          [[".dt-name", wornName(ch) || ch.name, shownDetailName(ch)], [".dt-en", ch.nameEn, detailNameEn(ch)]].forEach(function (a) {
             const el = detail.querySelector(a[0]), from = a[1] || "", to = a[2] || "";
             if (el && from !== to) { el.innerHTML = from; morphJobs.push({ el: el, from: from, to: to }); }
           });
@@ -1016,7 +1033,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         // 설정 글 옆 전신 일러스트: 누르면 크게 보기
         const art = detail.querySelector(".dt-story-art > img");
         if (art) art.addEventListener("click", function () {
-          openBox([{ image: curBody(ch), caption: ch.name || "" }], 0);
+          openBox([{ image: curBody(ch), caption: cardName(ch) }], 0);
         });
         // 관계: 연결된 캐릭터로 이동
         detail.querySelectorAll(".dt-rel-item.linked").forEach(function (li) {
@@ -1293,11 +1310,31 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         pre.onload = done; pre.onerror = done;
         pre.src = src;
       }
+      // 의상을 갈아입으면 이름도 바로 바뀌어요 (타일 · 카드 앞면 · 상세 프로필)
+      function refreshNames(ch, i) {
+        const nm = plainName(cardName(ch));
+        const tn = tilesBox.querySelector('.ch-tile-row[data-i="' + i + '"] .ch-tile-name b');
+        if (tn) tn.innerHTML = nm;
+        Array.prototype.forEach.call(holder.querySelectorAll(".cd-front .cd-name, .cd-front .tk-name, .cd-front .tk-stub-label, .cd-front .wt-name"), function (el) { el.innerHTML = nm; });
+        const sg = holder.querySelector(".ib-sign b");
+        if (sg && !ch.nameEn) sg.innerHTML = cardName(ch);
+        const dn = detail.querySelector(".dt-name");
+        if (dn) {
+          const flipped = document.body.classList.contains("is-flipped");
+          const from = wornName(ch) || ch.name || "", to = shownDetailName(ch);
+          stopMorph();
+          morphJobs = morphJobs.filter(function (j) { return j.el !== dn; });
+          morphJobs.forEach(function (j) { if (j.el.isConnected) j.el.innerHTML = flipped ? j.to : j.from; });
+          dn.innerHTML = flipped ? to : from;
+          if (!flipped && from !== to) morphJobs.push({ el: dn, from: from, to: to });
+        }
+      }
       function pickOutfit(n) {
         const ch = list[current];
         const b = bodiesOf(ch);
         if (!ch || !b[n]) return;
         outfitSel[PAGE + ":" + current] = n;
+        refreshNames(ch, current);
         swapSrc(holder.querySelector(".fb-img"), b[n]);                  // 전신 보기
         swapSrc(detail.querySelector(".dt-story-art > img"), b[n]);      // 카드 보기 (설정 글 옆)
         Array.prototype.forEach.call(wd.querySelectorAll(".wd-thumb"), function (t) {
@@ -1316,10 +1353,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         wd.style.setProperty("--c", cardColor(ch.color));
         wd.style.setProperty("--ct", cardText(ch.textColor, ch.color));
         const sel = bodyIdx(ch);
+        const ents = outfitEntries(ch);
         wd.innerHTML =
           '<button type="button" class="wd-btn" aria-label="옷장" title="옷장" aria-expanded="false">' + ICON_HANGER + '</button>' +
           '<div class="wd-list">' + b.map(function (src, n) {
-            return '<div class="wd-item' + (n === sel ? " on" : "") + '"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="의상 ' + (n + 1) + '">' +
+            return '<div class="wd-item' + (n === sel ? " on" : "") + '"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="' + (ents[n] && ents[n].name ? plainName(ents[n].name).replace(/"/g, "&quot;") : "의상 " + (n + 1)) + '"' + (ents[n] && ents[n].name ? ' title="' + plainName(ents[n].name).replace(/"/g, "&quot;") + '"' : "") + '>' +
                    '<span class="wd-in"><img src="' + src + '" alt="" draggable="false"></span></button></div>';
           }).join("") + '</div>';
         const btn = wd.querySelector(".wd-btn"), lst = wd.querySelector(".wd-list");
@@ -1481,7 +1519,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '<span class="ch-tile-label"><i></i>: ' + num + '</span>' +
             '<span class="ch-tile' + (img ? "" : " empty") + '"' +
               (img ? ' style="background-image:url(\'' + img + '\');background-position:' + (ch.tilePosition || "center 30%") + '"' : "") + '>' +
-              '<span class="ch-tile-name"><b>' + plainName(ch.name) + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
+              '<span class="ch-tile-name"><b>' + plainName(cardName(ch)) + '</b><small>' + (ch.nameEn || "") + '</small></span>' +
             '</span>';
           row.addEventListener("click", function () { enter(i); });
           tilesBox.appendChild(row);
