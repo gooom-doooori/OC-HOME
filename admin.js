@@ -35,7 +35,7 @@
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
-    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개 표시)', outfits: '의상', outfitName: '의상 이름', useOutfitName: '이름 변경',
+    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개까지 표시)', outfits: '의상', outfitName: '의상 이름', outfitNameEn: '의상 영문 이름', useOutfitName: '이름 변경',
     sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', realName: '본명', useRealName: '본명 표시', realNameEn: '본명 영문 이름', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
@@ -200,12 +200,13 @@
   PH['owner.valid'] = '';
   PH['outfits.image'] = '의상 이미지';
   PH['outfits.outfitName'] = '예: 교복, 여름 사복 (비워도 돼요)';
+  PH['outfits.outfitNameEn'] = '영문 이름 / 직책 (비우면 원래 영문 이름)';
   PH['owner.about'] = '';
   PH['owner.likeTitle'] = '비우면 LIKE';
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
 
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
-  var OUTFIT_DEFAULT = { image: '', outfitName: '', useOutfitName: false };
+  var OUTFIT_DEFAULT = { image: '', outfitName: '', outfitNameEn: '', useOutfitName: false };
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
     tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], outfits: [], name: '', realName: '', realName: '', useRealName: false, realNameEn: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
@@ -238,7 +239,7 @@
           /* 의상: 예전에는 이미지 주소만 있었어요 → { 이미지, 의상 이름, 이름 변경 } 로 바꿔 줘요 */
           c.outfits = (Array.isArray(c.outfits) ? c.outfits : []).map(function (o) {
             if (o && typeof o === 'object') { fillDefaults(o, OUTFIT_DEFAULT); return o; }
-            return { image: String(o == null ? '' : o), outfitName: '', useOutfitName: false };
+            return { image: String(o == null ? '' : o), outfitName: '', outfitNameEn: '', useOutfitName: false };
           });
         }
       });
@@ -833,7 +834,7 @@
       wrap.appendChild(h('div', { class: 'oha-img oha-color' }, [pick, txt, clr]));
       return wrap;
     }
-    var isImg = !!(IMAGE_KEYS[key] || (IMAGE_KEYS[pkey] && key !== 'outfitName'));
+    var isImg = !!(IMAGE_KEYS[key] || (IMAGE_KEYS[pkey] && key !== 'outfitName' && key !== 'outfitNameEn'));
     var long = LONG_KEYS[key] || (key === 'value' && pkey === 'profile') || String(val).indexOf('\n') >= 0;
     if (long && !isImg) {
       var autoBr = key !== 'code' && key !== 'message';
@@ -953,7 +954,7 @@
     return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', bgm: '', bgmTitle: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
   }
   var LIST_TPL = {
-    outfits: { image: '', outfitName: '', useOutfitName: false },
+    outfits: { image: '', outfitName: '', outfitNameEn: '', useOutfitName: false },
     gallery: { image: '', caption: '' }, relations: { name: '', label: '', text: '', image: '', link: 0 },
     profile: { label: '', value: '' }, reviews: { from: 1, to: 2, call: '', review: '', likes: 0, date: '', replies: [] },
     timeline: { date: '', title: '', text: '', image: '' },
