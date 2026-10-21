@@ -4196,3 +4196,25 @@ body:has(.rl.open) .bgm { display: none !important; }
   pointer-events: none;
 }
 @keyframes wdIn { from { opacity: 0; transform: translate(14px, -22px) scale(.55); } to { opacity: 1; transform: none; } }
+
+/* 의상 이름 툴팁: 썸네일 아래에 떠요 */
+.wd-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  max-width: 220px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: var(--c, #222);
+  color: var(--ct, #fff);
+  font-size: 12.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+.wd-tip.on { opacity: 1; }
+.wd:not(.open) .wd-tip { opacity: 0; }
