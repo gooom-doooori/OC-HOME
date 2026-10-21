@@ -35,7 +35,7 @@
     relationEmpty: '관계 비었을 때 글', panelStrength: '상세 배경 진하기(0~1)', sdShow: 'SD 보이는 때',
     sdSize: 'SD 크기', wantedPaper: '수배지 종이 이미지',
     color: '대표색', subColor: '보조색', textColor: '글자색', cardTitle: '카드 큰 글자', cardSub: '카드 작은 글자',
-    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)', outfits: '의상 (옷장 · 개수 제한 없음)',
+    fullBody: '전신 일러스트', portraits: '포트레이트 (최대 3개, 선택)', outfits: '의상 (옷장 · 개수 제한 없음)', outfitName: '의상 이름', useOutfitName: '이름 변경',
     sd: 'SD 이미지', tile: '타일 이미지', tilePosition: '타일 사진 위치', name: '이름', realName: '본명', useRealName: '본명 표시', realNameEn: '본명 영문 이름', nameEn: '영문 이름 / 직책', faction: '진영', spoiler: '스포일러 캐릭터',
     intro: '한 줄 소개', tags: '태그', seat: '좌석', gate: '입구', row: '열', number: '카드 번호',
     profile: '프로필 항목', value: '내용', quote: '대표 대사', story: '설정 글', gallery: '갤러리', caption: '이미지 설명',
@@ -73,7 +73,7 @@
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
   /* 체크 칸 옆에 붙는 글자 (없으면 "사용") */
-  var BOOL_TEXT = { useRealName: '본명 · 본명 영문 표시', spoiler: '스포일러 포함 여부' };
+  var BOOL_TEXT = { useRealName: '본명 · 본명 영문 표시', spoiler: '스포일러 포함 여부', useOutfitName: '의상명으로 이름 변경' };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
@@ -198,11 +198,14 @@
   PH['owner.sign'] = '서명란 텍스트';
   PH['owner.since'] = '';
   PH['owner.valid'] = '';
+  PH['outfits.image'] = '의상 이미지';
+  PH['outfits.outfitName'] = '예: 교복, 여름 사복 (비워도 돼요)';
   PH['owner.about'] = '';
   PH['owner.likeTitle'] = '비우면 LIKE';
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
 
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
+  var OUTFIT_DEFAULT = { image: '', outfitName: '', useOutfitName: false };
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
     tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], outfits: [], name: '', realName: '', realName: '', useRealName: false, realNameEn: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
@@ -230,7 +233,14 @@
   function ensureDefaults(d) {
     ['characters', 'floormasters', 'others'].forEach(function (k) {
       (d[k] || []).forEach(function (c) {
-        if (c && typeof c === 'object') { fillDefaults(c, CARD_DEFAULTS); delete c.useRealNameEn; }
+        if (c && typeof c === 'object') {
+          fillDefaults(c, CARD_DEFAULTS); delete c.useRealNameEn;
+          /* 의상: 예전에는 이미지 주소만 있었어요 → { 이미지, 의상 이름, 이름 변경 } 로 바꿔 줘요 */
+          c.outfits = (Array.isArray(c.outfits) ? c.outfits : []).map(function (o) {
+            if (o && typeof o === 'object') { fillDefaults(o, OUTFIT_DEFAULT); return o; }
+            return { image: String(o == null ? '' : o), outfitName: '', useOutfitName: false };
+          });
+        }
       });
     });
     (d.owner || []).forEach(function (o) { if (o && typeof o === 'object') fillDefaults(o, OWNER_DEFAULTS); });
@@ -629,7 +639,7 @@
   /* ---------- 값 편집기 (재귀) ---------- */
   function title(item, i) {
     if (item && typeof item === 'object') {
-      var k = ['name', 'pairName', 'title', 'label', 'catchphrase', 'call', 'id', 'date'].filter(function (x) { return item[x] && typeof item[x] === 'string'; })[0];
+      var k = ['name', 'outfitName', 'pairName', 'title', 'label', 'catchphrase', 'call', 'id', 'date'].filter(function (x) { return item[x] && typeof item[x] === 'string'; })[0];
       if (k) return (i + 1) + '. ' + item[k];
     }
     return (i + 1) + '번';
@@ -823,7 +833,7 @@
       wrap.appendChild(h('div', { class: 'oha-img oha-color' }, [pick, txt, clr]));
       return wrap;
     }
-    var isImg = !!(IMAGE_KEYS[key] || IMAGE_KEYS[pkey]);
+    var isImg = !!(IMAGE_KEYS[key] || (IMAGE_KEYS[pkey] && key !== 'outfitName'));
     var long = LONG_KEYS[key] || (key === 'value' && pkey === 'profile') || String(val).indexOf('\n') >= 0;
     if (long && !isImg) {
       var autoBr = key !== 'code' && key !== 'message';
@@ -943,6 +953,7 @@
     return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', bgm: '', bgmTitle: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
   }
   var LIST_TPL = {
+    outfits: { image: '', outfitName: '', useOutfitName: false },
     gallery: { image: '', caption: '' }, relations: { name: '', label: '', text: '', image: '', link: 0 },
     profile: { label: '', value: '' }, reviews: { from: 1, to: 2, call: '', review: '', likes: 0, date: '', replies: [] },
     timeline: { date: '', title: '', text: '', image: '' },
