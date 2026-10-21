@@ -1373,13 +1373,36 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const ents = outfitEntries(ch);
         wd.innerHTML =
           '<button type="button" class="wd-btn" aria-label="옷장" title="옷장" aria-expanded="false">' + ICON_HANGER + '</button>' +
+          '<div class="wd-tip" role="tooltip"></div>' +
           '<div class="wd-list">' + b.map(function (src, n) {
-            return '<div class="wd-item' + (n === sel ? " on" : "") + '"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="' + (ents[n] && ents[n].name ? plainName(ents[n].name).replace(/"/g, "&quot;") : "의상 " + (n + 1)) + '"' + (ents[n] && ents[n].name ? ' title="' + plainName(ents[n].name).replace(/"/g, "&quot;") + '"' : "") + '>' +
+            return '<div class="wd-item' + (n === sel ? " on" : "") + '"><button type="button" class="wd-thumb' + (n === sel ? " on" : "") + '" data-n="' + n + '" style="--d:' + Math.min(n, 10) + '" aria-label="' + (ents[n] && ents[n].name ? plainName(ents[n].name).replace(/"/g, "&quot;") : "의상 " + (n + 1)) + '">' +
                    '<span class="wd-in"><img src="' + src + '" alt="" draggable="false"></span></button></div>';
           }).join("") + '</div>';
         const btn = wd.querySelector(".wd-btn"), lst = wd.querySelector(".wd-list");
         btn.addEventListener("click", function () { wdSetOpen(!wd.classList.contains("open")); btn.blur(); });
         lst.addEventListener("scroll", slantWd);
+        // 의상 이름 툴팁: 썸네일 아래에 떠요 (목록이 잘라내는 영역이라 바깥 요소로 따로 그려요)
+        const tip = wd.querySelector(".wd-tip");
+        function hideTip() { tip.classList.remove("on"); }
+        function showTip(t) {
+          const e = ents[+t.getAttribute("data-n")];
+          if (!e || !e.name) { hideTip(); return; }
+          tip.innerHTML = plainName(e.name);
+          const r = t.parentNode.getBoundingClientRect(), w = wd.getBoundingClientRect();
+          const tw = tip.offsetWidth, th = tip.offsetHeight;
+          let left = r.left - w.left + r.width / 2 - tw / 2;
+          left = Math.max(6, Math.min(left, w.width - tw - 6));
+          let top = r.bottom - w.top + 8;
+          if (top + th > w.height - 6) top = r.top - w.top - th - 8;   // 아래 공간이 없으면 위로
+          tip.style.left = left + "px";
+          tip.style.top = top + "px";
+          tip.classList.add("on");
+        }
+        lst.addEventListener("mouseover", function (e) { const t = e.target.closest(".wd-thumb"); if (t) showTip(t); });
+        lst.addEventListener("mouseout", function (e) { const t = e.target.closest(".wd-thumb"); if (t && !t.contains(e.relatedTarget)) hideTip(); });
+        lst.addEventListener("focusin", function (e) { const t = e.target.closest(".wd-thumb"); if (t) showTip(t); });
+        lst.addEventListener("focusout", hideTip);
+        lst.addEventListener("scroll", hideTip);
         lst.addEventListener("click", function (e) {
           const t = e.target.closest(".wd-thumb");
           if (!t) return;
