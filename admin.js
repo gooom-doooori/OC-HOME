@@ -900,8 +900,8 @@
         var path = uploadPath(url);
         if (!path) { clearField(); return; }          /* 직접 올린 파일이 아니면 링크만 지워요 */
         var msg = countUses(url) > 1
-          ? '다른 칸에서도 사용중인 이미지입니다.\n 정말 지우시겠습니까?'
-          : '파일을 스토리지에서 완전히 삭제합니다. \n 되돌릴 수 없어요.';
+          ? '다른 칸에서도 사용중인 이미지입니다.\n정말 지우시겠습니까?'
+          : '파일을 스토리지에서 완전히 삭제합니다. \n이 행동은 되돌릴 수 없습니다.';
         if (!confirm(msg)) return;
         del.innerHTML = ICON_BUSY; del.classList.add('is-busy'); del.disabled = true;
         deleteUpload(path).then(function () {
