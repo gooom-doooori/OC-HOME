@@ -199,6 +199,7 @@
   PH['owner.since'] = '';
   PH['owner.valid'] = '';
   PH['outfits.image'] = '의상 이미지';
+  PH['outfits.sd'] = '이 의상용 SD이미지(선택)';
   PH['outfits.outfitName'] = 'AU / 의상 이름 작성';
   PH['outfits.outfitNameEn'] = '의상용 영문 이름 / 직책';
   PH['owner.about'] = '';
@@ -206,7 +207,7 @@
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
 
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
-  var OUTFIT_DEFAULT = { image: '', outfitName: '', outfitNameEn: '', useOutfitName: false };
+  var OUTFIT_DEFAULT = { image: '', sd: '', outfitName: '', outfitNameEn: '', useOutfitName: false };
   var CARD_DEFAULTS = {
     type: 'id', color: '', subColor: '', textColor: '', cardTitle: '', cardSub: '', image: '', pairImage: '', sd: '', sdSize: '',
     tile: '', tilePosition: 'center 30%', fullBody: '', portraits: ['', '', ''], outfits: [], name: '', realName: '', realName: '', useRealName: false, realNameEn: '', nameEn: '', faction: '', spoiler: false, intro: '', tags: [],
@@ -239,7 +240,7 @@
           /* 의상: 예전에는 이미지 주소만 있었어요 → { 이미지, 의상 이름, 이름 변경 } 로 바꿔 줘요 */
           c.outfits = (Array.isArray(c.outfits) ? c.outfits : []).map(function (o) {
             if (o && typeof o === 'object') { fillDefaults(o, OUTFIT_DEFAULT); return o; }
-            return { image: String(o == null ? '' : o), outfitName: '', outfitNameEn: '', useOutfitName: false };
+            return { image: String(o == null ? '' : o), sd: '', outfitName: '', outfitNameEn: '', useOutfitName: false };
           });
         }
       });
@@ -281,7 +282,7 @@
   ];
   var SCHEMA = {
      outfits: [
-      { t: '', rows: ['image', ['outfitName', 'outfitNameEn', 'useOutfitName']] }
+      { t: '', rows: ['image', 'sd', ['outfitName', 'outfitNameEn', 'useOutfitName']] }
     ],
     characters: CARD_SECTIONS, floormasters: CARD_SECTIONS, others: CARD_SECTIONS,
     characterPage: PAGE_SECTIONS, floormasterPage: PAGE_SECTIONS, otherPage: PAGE_SECTIONS,
@@ -900,8 +901,8 @@
         var path = uploadPath(url);
         if (!path) { clearField(); return; }          /* 직접 올린 파일이 아니면 링크만 지워요 */
         var msg = countUses(url) > 1
-          ? '다른 칸에서도 사용중인 이미지입니다.\n정말 지우시겠습니까?'
-          : '파일을 스토리지에서 완전히 삭제합니다. \n이 행동은 되돌릴 수 없습니다.';
+          ? '다른 칸에서도 사용중인 이미지입니다.\n 정말 지우시겠습니까?'
+          : '파일을 스토리지에서 완전히 삭제합니다. \n 되돌릴 수 없어요.';
         if (!confirm(msg)) return;
         del.innerHTML = ICON_BUSY; del.classList.add('is-busy'); del.disabled = true;
         deleteUpload(path).then(function () {
@@ -996,7 +997,7 @@
     return { members: m, pairName: '', pairNameSub: '', titleImage: '', label: '', bgm: '', bgmTitle: '', sides: sides, reviews: [], gallery: [], timeline: [], trpg: [] };
   }
   var LIST_TPL = {
-    outfits: { image: '', outfitName: '', outfitNameEn: '', useOutfitName: false },
+    outfits: { image: '', sd: '', outfitName: '', outfitNameEn: '', useOutfitName: false },
     gallery: { image: '', caption: '' }, relations: { name: '', label: '', text: '', image: '', link: 0 },
     profile: { label: '', value: '' }, reviews: { from: 1, to: 2, call: '', review: '', likes: 0, date: '', replies: [] },
     timeline: { date: '', title: '', text: '', image: '' },
