@@ -861,10 +861,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       // 옷장 항목: 기본 전신 일러스트 + 의상들. 의상은 주소 글자(예전 방식) 또는 { image, outfitName, useOutfitName }
       function outfitEntries(ch) {
         const out = [];
-        if (ch && ch.fullBody) out.push({ src: ch.fullBody, name: "", en: "", use: false });
+        if (ch && ch.fullBody) out.push({ src: ch.fullBody, sd: "", name: "", en: "", use: false });
         ((ch && ch.outfits) || []).forEach(function (o) {
-          if (typeof o === "string") { if (o) out.push({ src: o, name: "", en: "", use: false }); return; }
-          if (o && o.image) out.push({ src: o.image, name: String(o.outfitName || "").trim(), en: String(o.outfitNameEn || "").trim(), use: o.useOutfitName === true });
+          if (typeof o === "string") { if (o) out.push({ src: o, sd: "", name: "", en: "", use: false }); return; }
+          if (o && o.image) out.push({ src: o.image, sd: String(o.sd || "").trim(), name: String(o.outfitName || "").trim(), en: String(o.outfitNameEn || "").trim(), use: o.useOutfitName === true });
         });
         return out;
       }
@@ -889,6 +889,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return v < n ? v : 0;
       }
       function curBody(ch) { const b = bodiesOf(ch); return b.length ? b[bodyIdx(ch)] : ""; }
+      function curSd(ch) {   // 지금 입은 의상의 SD (없으면 캐릭터 기본 SD)
+        const e = outfitEntries(ch)[bodyIdx(ch)];
+        return (e && e.sd) || (ch && ch.sd) || "";
+      }
 
       // 설정 글: 카드 보기일 때는 전신 일러스트를 글 옆에 2단으로 같이 보여줘요
       function storyBlock(ch) {
@@ -1136,10 +1140,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function drawSd(ch, mode) {
         const old = holder.querySelector(".sd-fx");
         if (old) old.remove();
-        if (!ch.sd) return;
+        const sdSrc = curSd(ch);
+        if (!sdSrc) return;
         const el = document.createElement("img");
         el.className = "sd-fx " + (mode === "full" ? "at-full" : "at-card");
-        el.src = ch.sd;
+        el.src = sdSrc;
         el.alt = "";
         el.style.setProperty("--sd-w", sdW(ch));
         holder.appendChild(el);
@@ -1346,6 +1351,14 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           }
         }
       }
+      function updateSd(ch) {
+        const src = curSd(ch), el = holder.querySelector(".sd-fx");
+        if (!src) { if (el) el.remove(); return; }
+        if (el) { swapSrc(el, src); return; }
+        drawSd(ch, modeOf(ch));                       // 기본 SD 가 없던 캐릭터가 SD 있는 의상을 입은 경우
+        const nw = holder.querySelector(".sd-fx");
+        if (nw) { nw.classList.add("gone"); setTimeout(function () { nw.classList.remove("gone"); }, 30); }
+      }
       function pickOutfit(n) {
         const ch = list[current];
         const b = bodiesOf(ch);
@@ -1354,6 +1367,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         refreshNames(ch, current);
         swapSrc(holder.querySelector(".fb-img"), b[n]);                  // 전신 보기
         swapSrc(detail.querySelector(".dt-story-art > img"), b[n]);      // 카드 보기 (설정 글 옆)
+        updateSd(ch);
         Array.prototype.forEach.call(wd.querySelectorAll(".wd-thumb"), function (t) {
           const on = +t.getAttribute("data-n") === n;
           t.classList.toggle("on", on);
