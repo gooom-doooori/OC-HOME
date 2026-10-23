@@ -1182,6 +1182,18 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       const holder = document.getElementById("chHolder");
       const tilesBox = document.getElementById("chTilesIn");
       const statBox = document.getElementById("chStat");
+      // 전신 모드: 일러스트 왼쪽 ~ 화면 왼쪽 여백 사이의 빈 공간 가운데에 놓아요 (창 크기에 따라 자동)
+      function placeStat() {
+        if (document.body.getAttribute("data-chview") !== "full") { statBox.style.left = ""; statBox.style.width = ""; return; }
+        const img = holder.querySelector(".fb-img");
+        if (!img || !img.offsetWidth) return;
+        const L = 40, stageR = window.innerWidth * 0.46;      // 상세 프로필이 열렸을 때 무대의 왼쪽 · 오른쪽
+        const imgLeft = (L + stageR) / 2 - img.offsetWidth / 2;
+        const gap = 20, region = imgLeft - gap - L;
+        const w = Math.min(260, Math.max(180, region));
+        statBox.style.width = w + "px";
+        statBox.style.left = Math.max(L, L + (region - w) / 2) + "px";
+      }
       function renderStat(ch) {
         const html = statsBlock(ch);
         statBox.style.setProperty("--c", cardColor(ch.color));
@@ -1260,7 +1272,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
             '</div>';
           holder.setAttribute("data-type", "full");
           document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
+          const fimg = holder.querySelector(".fb-img");
+          if (fimg) fimg.addEventListener("load", placeStat);
           drawSd(ch, mode);
+          placeStat();
           return;
         }
         const type = ["id", "ticket", "wanted", "custom"].indexOf(ch.type) > -1 ? ch.type : "id";
@@ -1281,6 +1296,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
         if (type === "custom") sizeCustom(ch);
         drawSd(ch, mode);
+        placeStat();
       }
 
       // 토글을 누르면: 카드가 빙글 돌면서 전신 ↔ 카드로 바뀌어요
@@ -1500,7 +1516,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         });
         placeWd();
       }
-      onResize = placeWd;
+      onResize = function () { placeWd(); placeStat(); };
       onDocDown = function (e) {
         if (wd.classList.contains("open") && !(e.target.closest && e.target.closest(".wd-btn, .wd-list"))) closeWd();
       };
