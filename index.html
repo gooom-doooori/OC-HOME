@@ -977,7 +977,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
         let g = "";
         [5, 10, 15, 20].forEach(function (l) {
-          g += '<polygon class="stt-ring" points="' + items.map(function (_, i) { return f(pt(i, R * l / 20)); }).join(" ") + '"/>';
+          g += '<polygon class="stt-ring' + (l === 20 ? ' out' : '') + '" points="' + items.map(function (_, i) { return f(pt(i, R * l / 20)); }).join(" ") + '"/>';
         });
         items.forEach(function (_, i) {
           const p = pt(i, R);
@@ -990,14 +990,16 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
-          const p = pt(i, R + 8);
+          const p = pt(i, R + 10);
           const anchor = c > 0.3 ? "start" : c < -0.3 ? "end" : "middle";
           const dy = i === 0 ? "-0.25em" : i === 3 ? "0.9em" : "0.35em";
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
           return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
         }).join("");
-        return '<svg class="stt-svg" viewBox="0 14 320 210" role="img" aria-label="스테이터스 육각 그래프">' +
-          g + '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' + labels + '</svg>';
+        return '<svg class="stt-svg" viewBox="0 0 320 240" role="img" aria-label="스테이터스 육각 그래프">' +
+          '<g class="stt-frame">' + g + '</g>' +
+          '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' +
+          '<g class="stt-lab-g">' + labels + '</g></svg>';
       }
 
       function statsBlock(ch, re) {
@@ -1017,23 +1019,20 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               (d.free.d ? '<div class="stt-skill-d">' + d.free.d + '</div>' : "") + '</div>'
             : "");
         }
-        return '<section class="stt' + (re ? " re" : "") + '">' +
-          '<header class="stt-head"><span class="stt-title">STATUS</span>' +
-            '<div class="stt-tog" role="group" aria-label="보기 방식">' +
-              '<button type="button" data-v="hex" class="' + (bar ? "" : "on") + '">HEX</button>' +
-              '<button type="button" data-v="bar" class="' + (bar ? "on" : "") + '">BAR</button>' +
-            '</div></header>' + body + '</section>';
+        return '<section class="stt' + (re ? " re" : "") + '" role="button" tabindex="0" aria-label="스테이터스 (누르면 육각/막대 전환)">' + body + '</section>';
       }
 
       function bindStats(ch) {
-        statBox.querySelectorAll(".stt-tog button").forEach(function (b) {
-          b.addEventListener("click", function () {
-            statView = b.getAttribute("data-v");
-            const box = statBox.querySelector(".stt");
-            if (!box) return;
-            box.outerHTML = statsBlock(ch, true);
-            bindStats(ch);
-          });
+        const el = statBox.querySelector(".stt");
+        if (!el) return;
+        const toggle = function () {
+          statView = statView === "hex" ? "bar" : "hex";
+          el.outerHTML = statsBlock(ch, true);
+          bindStats(ch);
+        };
+        el.addEventListener("click", toggle);
+        el.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); toggle(); }
         });
       }
 
