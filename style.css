@@ -4207,7 +4207,7 @@ body.is-flipped.stat-on[data-chview="full"] .ch-stat { transition: opacity .6s .
 .stt:focus-visible { outline: 2px dashed currentColor; outline-offset: 6px; }
 
 /* 육각 */
-.stt-svg { display: block; width: 100%; margin: -11% -12.5%; overflow: visible; }
+.stt-svg { display: block; width: 100%; margin: 0 auto; overflow: visible; }
 body[data-chview="card"] .stt-svg { width: auto; height: var(--stt-h); }
 /* 막대 그래프: 육각형의 맨 윗부분(꼭짓점 · 글자) 높이에서 시작해서 전환해도 높이 차가 안 보여요 */
 body[data-chview="card"] .stt-bars { margin-top: calc(var(--stt-h) * .125); }
