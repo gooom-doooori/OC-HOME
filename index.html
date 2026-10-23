@@ -986,7 +986,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const poly = items.map(function (it, i) { return f(pt(i, R * it.v / 20)); }).join(" ");
         const dots = items.map(function (it, i) {
           const p = pt(i, R * it.v / 20);
-          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3"/>';
+          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="1.5"/>';
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
