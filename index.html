@@ -972,7 +972,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       }
 
       function hexSVG(items) {
-        const cx = 160, cy = 120, R = 78;
+        const full = document.body.getAttribute("data-chview") === "full";
+        const VW = full ? 260 : 320, VH = full ? 180 : 240;
+        const cx = VW / 2, cy = VH / 2, R = full ? 58 : 78;
         const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
         let g = "";
@@ -996,7 +998,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
           return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
         }).join("");
-        return '<svg class="stt-svg" viewBox="0 0 320 240" role="img" aria-label="스테이터스 육각 그래프">' +
+        return '<svg class="stt-svg" viewBox="0 0 ' + VW + ' ' + VH + '" role="img" aria-label="스테이터스 육각 그래프">' +
           '<g class="stt-frame">' + g + '</g>' +
           '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' +
           '<g class="stt-lab-g">' + labels + '</g></svg>';
