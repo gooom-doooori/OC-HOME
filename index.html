@@ -1184,14 +1184,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       const statBox = document.getElementById("chStat");
       // 전신 모드: 일러스트 왼쪽 ~ 화면 왼쪽 여백 사이의 빈 공간 가운데에 놓아요 (창 크기에 따라 자동)
       function placeStat() {
-        if (document.body.getAttribute("data-chview") !== "full") { statBox.style.left = ""; statBox.style.width = ""; return; }
+        if (document.body.getAttribute("data-chview") !== "full") { statBox.style.left = ""; return; }
         const img = holder.querySelector(".fb-img");
         if (!img || !img.offsetWidth) return;
         const L = 40, stageR = window.innerWidth * 0.46;      // 상세 프로필이 열렸을 때 무대의 왼쪽 · 오른쪽
         const imgLeft = (L + stageR) / 2 - img.offsetWidth / 2;
-        const gap = 20, region = imgLeft - gap - L;
-        const w = Math.min(260, Math.max(180, region));
-        statBox.style.width = w + "px";
+        const region = imgLeft - 20 - L;
+        const w = statBox.offsetWidth;                         // 크기는 그대로, 위치만 조정
         statBox.style.left = Math.max(L, L + (region - w) / 2) + "px";
       }
       function renderStat(ch) {
