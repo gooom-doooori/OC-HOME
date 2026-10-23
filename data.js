@@ -364,8 +364,6 @@ const SITE = {
                         "left top" / "right 50%"
      fullBody : 전신 일러스트 이미지 주소. 있으면 왼쪽 위 CARD / FULL 버튼으로 전환할 수 있어요.
                 (카드 보기일 땐 설정 글 옆에 같이 나와요)
-     portraits: 포트레이트 이미지 주소 최대 3개. 전신 보기에서 상세 프로필을 열었을 때만
-                전신 왼쪽 아래에 네모로 세로 정렬돼요. 안 쓰면 ["", "", ""] 그대로 두세요.
      name     : 이름
      realName : 본명
      realNameEn : 본명 영문 이름
@@ -419,7 +417,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
       realName: "",
@@ -433,7 +430,7 @@ const SITE = {
       tags: ["태그", "키워드"],
       number: "0001",
 
-      /* 스테이터스 (상세 프로필 PROFILE 탭에 육각 / 막대 그래프로 표시)
+      /* 스테이터스 (상세 프로필을 열면 카드 모드는 카드 아래, 전신 모드는 전신 왼쪽에 육각 / 막대 그래프로 표시)
          stUse : true → 표시 / false → 숨김
          신체 · 지능 · 언변 · 정신력 · 신뢰도 · 자유스탯 수치는 1 ~ 20
          stFreeName : 자유스탯 이름 / stFreeDesc : 부가 설명 (막대 모드에서만 글로 표시) */
@@ -475,7 +472,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
       realName: "",
@@ -516,7 +512,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
       realName: "",
@@ -560,7 +555,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
       realName: "",
@@ -608,7 +602,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CHARACTER",
       realName: "",
@@ -652,7 +645,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "STAGE NAME",
       realName: "",
@@ -691,7 +683,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "Outlaw",
       realName: "",
@@ -732,7 +723,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "CUSTOM",
       realName: "",
@@ -783,7 +773,6 @@ const SITE = {
       tile: "",
       tilePosition: "center 30%",
       fullBody: "",
-      portraits: ["", "", ""],
       name: "캐릭터 이름",
       nameEn: "OTHER",
       realName: "",
