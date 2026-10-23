@@ -973,7 +973,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       function hexSVG(items) {
         const full = document.body.getAttribute("data-chview") === "full";
-        const VW = full ? 260 : 320, VH = full ? 100 : 180;
+        const VW = full ? 180 : 320, VH = full ? 100 : 240;
         const cx = VW / 2, cy = VH / 2, R = full ? 58 : 78;
         const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
