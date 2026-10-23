@@ -983,7 +983,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const poly = items.map(function (it, i) { return f(pt(i, R * it.v / 20)); }).join(" ");
         const dots = items.map(function (it, i) {
           const p = pt(i, R * it.v / 20);
-          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="4"/>';
+          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3"/>';
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
@@ -992,7 +992,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           const y = p[1] + (i === 0 ? -2 : i === 3 ? 6 : 0);
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
           return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + anchor + '">' + name + '</text>' +
-                 '<text class="stt-num" x="' + p[0].toFixed(1) + '" y="' + (y + 14).toFixed(1) + '" text-anchor="' + anchor + '">' + it.v + '</text>';
+                 '<text class="stt-num" x="' + p[0].toFixed(1) + '" y="' + (y + 13).toFixed(1) + '" text-anchor="' + anchor + '">' + it.v + '</text>';
         }).join("");
         return '<svg class="stt-svg" viewBox="0 0 320 245" role="img" aria-label="스테이터스 육각 그래프">' +
           g + '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' + labels + '</svg>';
@@ -1047,7 +1047,6 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }).join("");
         const paneProfile =
           (ch.intro ? '<p class="dt-intro">' + ch.intro + '</p>' : "") +
-          statsBlock(ch) +
           (rows ? '<dl class="dt-list">' + rows + '</dl>' : "") +
           (ch.quote ? '<blockquote class="dt-quote">' + ch.quote + '</blockquote>' : "") +
           storyBlock(ch) +
@@ -1093,8 +1092,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '</nav>' +
               '<span>No. ' + num2(i + 1 + OFFSET) + '</span>' +
             '</div>' +
-            '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
-            '<p class="dt-en">' + shownDetailNameEn(ch) + '</p>' +
+            '<div class="dt-hgrid' + (statsData(ch).use ? "" : " solo") + '">' +
+              '<div class="dt-hl">' +
+                '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
+                '<p class="dt-en">' + shownDetailNameEn(ch) + '</p>' +
+              '</div>' +
+              (statsData(ch).use ? '<div class="dt-hr">' + statsBlock(ch) + '</div>' : "") +
+            '</div>' +
           '</header>' +
           '<div class="dt-panes">' +
             '<section class="dt-pane on" data-pane="profile">' + paneProfile + '</section>' +
