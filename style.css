@@ -1479,7 +1479,7 @@ a { text-decoration: none; color: inherit; }
    뒤집었을 때: 타일 사라짐 · 카드 작아지며 왼쪽 · 상세 프로필
    ========================================================= */
 .ch-tiles { transition: opacity .45s, transform .45s; }
-.ch-stage { transition: left .7s cubic-bezier(.6,0,.2,1), right .7s cubic-bezier(.6,0,.2,1); }
+.ch-stage { transition: left .7s cubic-bezier(.6,0,.2,1), right .7s cubic-bezier(.6,0,.2,1), bottom .7s cubic-bezier(.6,0,.2,1); }
 .ch-holder { transition: transform .7s cubic-bezier(.6,0,.2,1); }
 
 .is-flipped .ch-tiles {
@@ -3331,55 +3331,6 @@ input, textarea, select, [contenteditable="true"],
   transition-delay: 0s;
 }
 
-/* 포트레이트 */
-.fb-ports {
-  position: absolute;
-  right: 410px;
-  top: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  pointer-events: none;
-}
-.fb-ports span {
-  display: block;
-  width: clamp(85px, 20vw, 120px);
-  aspect-ratio: 1;
-  border: 2px solid var(--c);
-  background: var(--ct);
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, .18);
-  opacity: 0;
-  transform: translateX(-28px) scale(.5);
-  /* 사라질 때: 쇽 줄어들며 사라짐 (아래쪽부터 차례로) */
-  transition: opacity .15s, transform .25s cubic-bezier(.5, 0, .9, .6);
-  transition-delay: calc((2 - var(--i, 0)) * .05s);
-  pointer-events: none;   /* 안 보일 땐 클릭 안 되게 */
-  cursor: zoom-in;
-}
-.is-flipped .cd-fb:not(.hold) .fb-ports span {
-  opacity: 1;
-  transform: none;
-  /* 나타날 때: 뿅 (위쪽부터 차례로) */
-  transition: opacity .2s, transform .5s cubic-bezier(.3, 1.7, .5, 1);
-  transition-delay: calc(var(--pd, .7s) + var(--i, 0) * .09s);
-}
-.fb-ports img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
-
-/* 상세프로필이 열려 포트레이트가 보일 때만 클릭 가능 (눌러도 상세프로필은 안 닫혀요) */
-.is-flipped .cd-fb:not(.hold):not(.ports-out) .fb-ports span {
-  pointer-events: auto;
-}
-
-/* 보기 전환 시작: 포트레이트 먼저 뿅 사라짐 (상세가 열려 있어도) */
-.cd-fb.ports-out .fb-ports span,
-.is-flipped .cd-fb.ports-out .fb-ports span {
-  opacity: 0;
-  transform: translateX(-28px) scale(.5);
-  transition: opacity .15s, transform .25s cubic-bezier(.5, 0, .9, .6);
-  transition-delay: calc((2 - var(--i, 0)) * .05s);
-}
-
 /* 설정 글 2단 전신 일러스트 */
 .dt-story-art { display: flex; gap: 5px; align-items: flex-start; opacity: 1; }
 .dt-story-art > div { flex: 1; min-width: 0; opacity: .85; }
@@ -4220,31 +4171,42 @@ body:has(.rl.open) .bgm { display: none !important; }
 .wd:not(.open) .wd-tip { opacity: 0; }
 
 /* =========================================================
-   상세 프로필: 스테이터스 (헤더 2단 · 육각 ↔ 막대)
+   스테이터스 (육각 ↔ 막대)
+   - 카드 모드: 카드 아래 빈 공간 / 전신 모드: 전신 왼쪽 (옛 포트레이트 자리)
+   - 상세 프로필이 열렸을 때만 나타나요
    ========================================================= */
-.dt-hgrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: 24px;
-  align-items: center;
-  margin-top: 14px;
+.ch-stat {
+  position: absolute;
+  z-index: 2;
+  left: 40px;
+  display: flex;
+  justify-content: center;
+  color: var(--deco);
+  font-family: var(--font-body), sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .3s, visibility 0s .3s;
 }
-.dt-hgrid.solo { grid-template-columns: 1fr; }
-.dt-hgrid .dt-name {
-  margin-top: 0;
-  font-size: clamp(30px, 3vw, 44px);
-  word-break: keep-all;
+.is-flipped.stat-on .ch-stat {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity .6s .55s;
 }
-.dt-hr {
-  padding-left: 22px;
-  border-left: 1px solid color-mix(in srgb, var(--ct, var(--deco)) 28%, transparent);
-}
-.stt { margin: 0; }
+.ch-stat.swap, .is-flipped.stat-on .ch-stat.swap { opacity: 0; transition: opacity .2s; }
+
+body[data-chview="card"] .ch-stat { right: 54vw; bottom: 36px; }
+body[data-chview="full"] .ch-stat { top: 130px; width: clamp(200px, 15vw, 260px); }
+body.is-flipped.stat-on[data-chview="card"] .ch-stage { bottom: 300px; }
+
+.stt { width: min(100%, 300px); }
 .stt-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
 }
 .stt-title {
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
@@ -4255,7 +4217,7 @@ body:has(.rl.open) .bgm { display: none !important; }
 .stt-tog {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--ct, var(--deco));
+  border: 1px solid currentColor;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -4263,17 +4225,17 @@ body:has(.rl.open) .bgm { display: none !important; }
   padding: 2px 12px 1px;
   border: 0;
   background: transparent;
-  color: var(--ct, var(--deco));
+  color: inherit;
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
   font-size: 11px;
   letter-spacing: 2px;
   cursor: pointer;
   transition: background-color .3s, color .3s;
 }
-.stt-tog button.on { background: var(--ct, var(--deco)); color: var(--bg); }
+.stt-tog button.on { background: var(--deco); color: var(--bg); }
 
 /* 육각: 가는 선 */
-.stt-svg { display: block; width: 100%; max-width: 310px; margin: 0 auto; overflow: visible; }
+.stt-svg { display: block; width: 100%; max-width: 270px; margin: 4px auto 0; overflow: visible; }
 .stt-ring, .stt-axis { fill: none; stroke: currentColor; stroke-width: .6; stroke-opacity: .28; }
 .stt-ring:last-of-type { stroke-opacity: .55; }
 .stt-poly {
@@ -4290,22 +4252,16 @@ body:has(.rl.open) .bgm { display: none !important; }
   font-weight: 500;
   letter-spacing: .3px;
 }
-.stt-num {
-  fill: var(--c, #222);
-  font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
 
-/* 막대 (헤더용 컴팩트) */
-.stt-bars { list-style: none; }
+/* 막대 */
+.stt-bars { list-style: none; margin-top: 4px; }
 .stt-bars li {
   display: grid;
   grid-template-columns: 50px 1fr 24px;
   align-items: center;
   gap: 10px;
   padding: 4px 0;
-  border-bottom: 1px dashed rgba(0,0,0,.15);
+  border-bottom: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
 }
 .stt-k { font-size: 12px; font-weight: 700; }
 .stt-bars b {
@@ -4364,8 +4320,3 @@ body:has(.rl.open) .bgm { display: none !important; }
 .is-flipped .stt.re .stt-track i { animation-delay: calc(var(--n, 0) * .06s); }
 @keyframes sttGrow { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes sttBar  { from { transform: scaleX(0); } to { transform: none; } }
-
-@media (max-width: 1100px) {
-  .dt-hgrid { grid-template-columns: 1fr; }
-  .dt-hr { padding-left: 0; border-left: 0; }
-}
