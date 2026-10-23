@@ -4197,24 +4197,30 @@ body:has(.rl.open) .bgm { display: none !important; }
 .ch-stat.swap, .is-flipped.stat-on .ch-stat.swap { opacity: 0; transition: opacity .2s; }
 
 /* 카드 모드: 왼쪽 섹션(left 40px ~ right 54vw)과 같은 너비, 아래쪽 가운데 */
-body[data-chview="card"] .ch-stat { right: 54vw; bottom: 36px; padding: 0 2vw; }
-body[data-chview="full"] .ch-stat { top: 130px; width: clamp(200px, 15vw, 260px); }
+body[data-chview="card"] .ch-stat { right: calc(52vw + 170px + 20px); bottom: 36px; padding: 0 12px; }
+/* 전신 모드: 가로 위치 · 너비는 JS(placeStat)가 일러스트 왼쪽 빈 공간 중앙에 맞춰요 (아래는 JS 가 없을 때 기본값) */
+body[data-chview="full"] .ch-stat { top: 150px; width: clamp(180px, 15vw, 260px); }
 
 .stt { width: 100%; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
 .stt:focus-visible { outline: 2px dashed currentColor; outline-offset: 6px; }
 
 /* 육각 */
 .stt-svg { display: block; width: 100%; margin: 0 auto; overflow: visible; }
-body[data-chview="card"] .stt-svg { width: auto; height: min(32vh, 280px); }
+body[data-chview="card"] .stt-svg { width: auto; height: min(37vh, 330px); }
+body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
 .stt-frame, .stt-data { transform-origin: 160px 120px; }
-.stt-ring, .stt-axis { fill: none; stroke: currentColor; stroke-linejoin: round; }
-.stt-ring { stroke-width: 1.4; stroke-opacity: .5; }
-.stt-ring.out { stroke-width: 2.2; stroke-opacity: .95; }
-.stt-axis { stroke-width: 1.2; stroke-opacity: .45; }
+.stt-ring, .stt-axis {
+  fill: none;
+  stroke: color-mix(in srgb, var(--c, #888) 30%, #b4b4b4);   /* 채도 뺀 연한 색 (검은 배경 · 흰 배경 모두 보여요) */
+  stroke-linejoin: round;
+}
+.stt-ring { stroke-width: 1.2; }
+.stt-ring.out { stroke-width: 1.8; }   /* 바깥 테두리 기준 */
+.stt-axis { stroke-width: 1; }
 .stt-poly {
   fill: color-mix(in srgb, var(--c, #222) 16%, transparent);
   stroke: var(--c, #222);
-  stroke-width: 1.6;
+  stroke-width: 2.4;                    /* 틀보다 굵게 */
   stroke-linejoin: round;
 }
 .stt-dot { fill: var(--c, #222); stroke: none; }
