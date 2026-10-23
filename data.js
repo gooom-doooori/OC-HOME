@@ -433,6 +433,16 @@ const SITE = {
       tags: ["태그", "키워드"],
       number: "0001",
 
+      /* 스테이터스 (상세 프로필 PROFILE 탭에 육각 / 막대 그래프로 표시)
+         stUse : true → 표시 / false → 숨김
+         신체 · 지능 · 언변 · 정신력 · 신뢰도 · 자유스탯 수치는 1 ~ 20
+         stFreeName : 자유스탯 이름 / stFreeDesc : 부가 설명 (막대 모드에서만 글로 표시) */
+      stats: {
+        stUse: true,
+        stBody: 10, stIntel: 10, stSpeech: 10, stMind: 10, stTrust: 10,
+        stFreeName: "운", stFreeValue: 10, stFreeDesc: "부가 설명을 적어주세요."
+      },
+
       profile: [
         { label: "나이", value: "17세" },
         { label: "키", value: "170cm" },
