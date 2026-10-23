@@ -4199,6 +4199,9 @@ body:has(.rl.open) .bgm { display: none !important; }
 /* 카드 모드: 왼쪽 섹션(left 40px ~ right 54vw)과 같은 너비, 아래쪽 가운데 */
 body[data-chview="card"] .ch-stat { --stt-h: min(37vh, 330px); right: calc(52vw + 170px + 20px); bottom: 18px; height: var(--stt-h); align-items: flex-start; padding: 0 12px; }
 /* 전신 모드: 크기는 고정, 가로 위치만 JS(placeStat)가 일러스트 왼쪽 빈 공간 중앙에 맞춰요 */
+body[data-chview="full"] .stt-bars li { grid-template-columns: 42px 1fr 24px; }
+body[data-chview="full"] .stt-k { text-align: right; }
+body[data-chview="full"] .stt:has(.stt-bars) { padding-left: 24px; }   /* 막대 그래프 전체(자유스탯 포함)의 왼쪽 여백 */
 body[data-chview="full"] .ch-stat { top: 150px; width: clamp(200px, 15vw, 260px); transition: opacity .3s, visibility 0s .3s, left .7s cubic-bezier(.6, 0, .2, 1); }
 body.is-flipped.stat-on[data-chview="full"] .ch-stat { transition: opacity .6s .55s, left .7s cubic-bezier(.6, 0, .2, 1); }
 
@@ -4219,13 +4222,13 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
   stroke: color-mix(in srgb, var(--c, #888) 30%, #6c6c6c);   /* 채도 뺀 어두운 색 (검은 배경 · 흰 배경 모두 보여요) */
   stroke-linejoin: round;
 }
-.stt-ring { stroke-width: 1; stroke-dasharray: 3 3; }   /* 안쪽 선 : 점선 */
-.stt-ring.out { stroke-width: 1.5; stroke-dasharray: none; }   /* 바깥 테두리 기준 */
-.stt-axis { stroke-width: .9; stroke-dasharray: 3 3; }
+.stt-ring { stroke-width: 0.8; stroke-dasharray: 3 3; }   /* 안쪽 선 : 점선 */
+.stt-ring.out { stroke-width: 1.0; stroke-dasharray: none; }   /* 바깥 테두리 기준 */
+.stt-axis { stroke-width: .8; stroke-dasharray: 3 3; }
 .stt-poly {
   fill: color-mix(in srgb, var(--c, #222) 16%, transparent);
   stroke: var(--c, #222);
-  stroke-width: 2;                    /* 틀보다 굵게 */
+  stroke-width: 1.2;                    /* 틀보다 굵게 */
   stroke-linejoin: round;
 }
 .stt-dot { fill: var(--c, #222); stroke: none; }
@@ -4276,9 +4279,8 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
 /* 자유스탯: 스킬처럼 글로만 */
 .stt-skill {
   margin-top: 10px;
-  padding: 8px 12px;
-  border-left: 4px solid var(--c, #222);
-  background: rgba(0,0,0,.05);
+  padding: 0 0 0 10px;                   /* 위아래 여백 0 → 왼쪽 막대가 글 높이에 딱 맞아요 */
+  border-left: 2px solid var(--c, #222);
 }
 .stt-skill-n { font-size: 13px; font-weight: 900; }
 .stt-skill-n span {
