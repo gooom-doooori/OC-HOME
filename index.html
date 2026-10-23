@@ -976,7 +976,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
         let g = "";
-        (document.body.getAttribute("data-chview") === "card" ? [2, 4, 8, 10, 14, 20] : [5, 10, 15, 20]).forEach(function (l) {
+        (document.body.getAttribute("data-chview") === "card" ? [2, 6, 10, 14, 18] : [5, 10, 15, 20]).forEach(function (l) {
           g += '<polygon class="stt-ring' + (l === 20 ? ' out' : '') + '" points="' + items.map(function (_, i) { return f(pt(i, R * l / 20)); }).join(" ") + '"/>';
         });
         items.forEach(function (_, i) {
