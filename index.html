@@ -990,9 +990,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
-          const p = pt(i, R + 10);
+          const p = pt(i, R + 5);
           const anchor = c > 0.3 ? "start" : c < -0.3 ? "end" : "middle";
-          const dy = i === 0 ? "-0.25em" : i === 3 ? "0.9em" : "0.35em";
+          const dy = i === 0 ? "-0.2em" : i === 3 ? "0.85em" : "0.35em";
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
           return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
         }).join("");
@@ -1186,12 +1186,18 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function placeStat() {
         if (document.body.getAttribute("data-chview") !== "full") { statBox.style.left = ""; return; }
         const img = holder.querySelector(".fb-img");
-        if (!img || !img.offsetWidth) return;
-        const L = 40, stageR = window.innerWidth * 0.46;      // 상세 프로필이 열렸을 때 무대의 왼쪽 · 오른쪽
-        const imgLeft = (L + stageR) / 2 - img.offsetWidth / 2;
-        const region = imgLeft - 20 - L;
-        const w = statBox.offsetWidth;                         // 크기는 그대로, 위치만 조정
-        statBox.style.left = Math.max(L, L + (region - w) / 2) + "px";
+        if (!img) return;
+        // 상세 프로필이 열렸을 때의 무대(왼쪽 40px ~ 46vw) 가운데에 전신 이미지가 서요 → 그 왼쪽 끝에 맞춰 따라가요
+        const L = 40, stageR = window.innerWidth * 0.46;
+        let w = img.offsetWidth;
+        if (img.naturalWidth && img.naturalHeight) {
+          const hh = Math.min(img.naturalHeight, window.innerHeight - 170);
+          w = Math.min(img.naturalWidth * hh / img.naturalHeight, stageR - L);
+        }
+        if (!w) return;
+        const imgLeft = (L + stageR) / 2 - w * 0.95 / 2;     // 열렸을 땐 살짝(95%) 줄어들어 있어요
+        const overlap = 24;                                    // 전신 이미지와 아주 살짝 겹치게
+        statBox.style.left = Math.max(12, imgLeft - statBox.offsetWidth + overlap) + "px";
       }
       function renderStat(ch) {
         const html = statsBlock(ch);
