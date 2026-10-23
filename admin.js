@@ -64,16 +64,19 @@
     fade: '아래 그라데이션', fadeColor: '그라데이션 색', fadeHeight: '그라데이션 높이(%)', fadeStrength: '그라데이션 진하기(0~1)',
     grid: '모눈 무늬', gridColor: '선 색', gridSize: '칸 크기', gridLine: '선 두께', gridStrength: '선 진하기(0~1)',
     frontImage: '격자 위 이미지', frontPosition: '격자 위 이미지 위치', frontWidth: '격자 위 이미지 가로 크기', frontOpacity: '격자 위 이미지 진하기(0~1)',
-    titleWeight: '타이틀 굵기', menu: '메뉴 글꼴', body: '본문 글꼴', mono: '번호 글꼴', hand: '손글씨 글꼴'
+    titleWeight: '타이틀 굵기', menu: '메뉴 글꼴', body: '본문 글꼴', mono: '번호 글꼴', hand: '손글씨 글꼴',
+    stats: '스테이터스', stUse: '스테이터스 표시',
+    stBody: '신체 (1~20)', stIntel: '지능 (1~20)', stSpeech: '언변 (1~20)', stMind: '정신력 (1~20)', stTrust: '신뢰도 (1~20)',
+    stFreeName: '자유스탯 이름', stFreeValue: '자유스탯 수치 (1~20)', stFreeDesc: '자유스탯 부가 설명 (막대 모드에서만 표시)'
   };
-  var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1 };
+  var LONG_KEYS = { text: 1, desc: 1, intro: 1, about: 1, story: 1, review: 1, idNotice: 1, backNotice: 1, code: 1, message: 1, note: 1, stFreeDesc: 1 };
   /* 이미지 칸 : [올리기] 버튼이 붙어요 */
   var IMAGE_KEYS = { image: 1, frontImage: 1, sd: 1, tile: 1, fullBody: 1, portraits: 1, outfits: 1, icon: 1, customFront: 1, customBack: 1, pairImage: 1, titleImage: 1,
                      wantedPaper: 1, ownerImage: 1, bgm: 1};
   /* 색 칸 : 색 선택기가 붙어요 */
   var COLOR_KEYS = { themeColor: 1, color: 1, subColor: 1, textColor: 1, overlayColor: 1, fadeColor: 1, gridColor: 1 };
   /* 체크 칸 옆에 붙는 글자 (없으면 "사용") */
-  var BOOL_TEXT = { useRealName: '본명 · 본명 영문 표시', spoiler: '스포일러 포함 여부', useOutfitName: '의상명으로 이름 변경' };
+  var BOOL_TEXT = { useRealName: '본명 · 본명 영문 표시', spoiler: '스포일러 포함 여부', useOutfitName: '의상명으로 이름 변경', stUse: '육각 · 막대 스테이터스 표시' };
   /* 고르는 칸 : 부모 이름.칸 이름 → 선택지 */
   var SELECTS = {
     'characters.type': [['id', '학생증 / 사원증'], ['ticket', '공연 티켓'], ['wanted', '수배지'], ['custom', '직접 만든 카드']],
@@ -205,6 +208,8 @@
   PH['owner.about'] = '';
   PH['owner.likeTitle'] = '비우면 LIKE';
   PH['owner.dislikeTitle'] = '비우면 DISLIKE';
+  PH['stats.stFreeName'] = '예: 운, 손재주, 마력 (비우면 "자유")';
+  PH['stats.stFreeDesc'] = '막대 모드에서 스킬처럼 글로 표시돼요 (육각 그래프에서는 숨김)';
 
   /* 카드 한 장에 들어가는 모든 칸의 기본값 (비어 있으면 사이트는 예전과 똑같이 동작해요) */
   var OUTFIT_DEFAULT = { image: '', sd: '', outfitName: '', outfitNameEn: '', useOutfitName: false };
@@ -214,6 +219,7 @@
     number: '', seat: { gate: '', row: '', seat: '' }, profile: [], quote: '', story: '', gallery: [], relations: [],
     customFront: '', customBack: '', customRatio: '', customRadius: 12, bgm: '', bgmTitle: ''
   };
+  CARD_DEFAULTS.stats = { stUse: false, stBody: 10, stIntel: 10, stSpeech: 10, stMind: 10, stTrust: 10, stFreeName: '', stFreeValue: 10, stFreeDesc: '' };
   var OWNER_DEFAULTS = {
     label: '', hint: '', type: 'id', color: '', subColor: '', textColor: '', strap: '', cardTitle: '', cardSub: '', image: '', sd: '', sdSize: '',
     name: '', nameEn: '', intro: '', number: '', seat: { gate: '', row: '', seat: '' }, tags: [],
@@ -266,6 +272,7 @@
     { t: '이미지', tag: '공통', rows: [['image', 'pairImage'], ['tile', 'tilePosition'], ['fullBody', 'portraits'], 'outfits', ['sd', 'sdSize']] },
     { t: '상세 프로필', tag: '공통', rows: ['profile', 'quote', 'story'] },
     { t: '갤러리 · 관계', tag: '공통', rows: ['gallery', 'relations'] },
+    { t: '스테이터스', tag: '선택', rows: ['stats'] },
     { t: '테마곡', tag: '선택', rows: [['bgm', 'bgmTitle']] },
     { t: '티켓 카드 전용', tag: '티켓일 때만', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
     { t: '직접 만든 카드 전용', tag: '직접 만든 카드일 때만', when: function (o) { return cardType(o) === 'custom'; },
@@ -298,6 +305,9 @@
       { t: '티켓 카드 전용', tag: '티켓', when: function (o) { return cardType(o) === 'ticket'; }, rows: ['seat'] },
       { t: '직접 만든 카드 전용', tag: '직접 만든 카드', when: function (o) { return cardType(o) === 'custom'; },
         rows: [['customFront', 'customBack'], ['customRatio', 'customRadius']] }
+    ],
+    stats: [
+      { t: '', rows: ['stUse', ['stBody', 'stIntel', 'stSpeech'], ['stMind', 'stTrust'], ['stFreeName', 'stFreeValue'], 'stFreeDesc'] }
     ],
     banner: [
       { t: '내 배너', rows: [['mineTitle', 'siteUrl'], 'mine', 'note'] },
@@ -943,8 +953,21 @@
     }
     if (typeof val === 'number') {
       var n = h('input', { class: 'oha-in', type: 'number', step: 'any' }); n.value = val;
+      if (pkey === 'stats') { n.min = '1'; n.max = '20'; n.step = '1'; }
       var phn = PH[pkey + '.' + key] || PH[key]; if (phn) n.placeholder = phn;
-      n.oninput = function () { set(n.value === '' ? 0 : Number(n.value)); touch(); };
+      n.oninput = function () {
+        if (pkey === 'stats') {
+          var x = Math.round(Number(n.value));
+          if (n.value !== '' && !isNaN(x) && (x < 1 || x > 20)) { x = Math.max(1, Math.min(20, x)); n.value = x; }
+          set(n.value === '' || isNaN(x) ? 1 : x); touch(); return;
+        }
+        set(n.value === '' ? 0 : Number(n.value)); touch();
+      };
+      if (pkey === 'stats') n.onblur = function () {
+        var x = Math.round(Number(n.value));
+        x = isNaN(x) || n.value === '' ? 1 : Math.max(1, Math.min(20, x));
+        n.value = x; set(x); touch();
+      };
       return n;
     }
     return stringEd(val == null ? '' : String(val), set, key, pkey, obj);
