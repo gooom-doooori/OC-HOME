@@ -494,6 +494,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       }
       let CH_START = null;
       const spoilSeen = {};     // "예" 한 스포일러 캐릭터 (새로고침 전까지, 페이지를 오가도 기억해요)
+      let statView = "hex";     // 스테이터스 보기 방식 ("hex" | "bar") — 캐릭터를 옮겨도 유지
       const outfitSel = {};     // 옷장에서 고른 의상 (새로고침 전까지, 프로필을 열고 닫거나 오가도 기억해요)
 
       /* ##################################################### */
@@ -951,6 +952,89 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }, 45);
       }
 
+      /* ---------- 스테이터스 (육각 ↔ 막대) ---------- */
+      function statsData(ch) {
+        const s = (ch && ch.stats) || {};
+        const v = function (x) { x = Math.round(+x); return isNaN(x) ? 1 : Math.max(1, Math.min(20, x)); };
+        const fn = String(s.stFreeName || "").trim();
+        const fd = String(s.stFreeDesc || "").trim();
+        return {
+          use: s.stUse === true,
+          items: [
+            { k: "신체", v: v(s.stBody) }, { k: "지능", v: v(s.stIntel) }, { k: "언변", v: v(s.stSpeech) },
+            { k: "정신력", v: v(s.stMind) }, { k: "신뢰도", v: v(s.stTrust) }
+          ],
+          free: { k: fn ? plainName(fn) : "자유", v: v(s.stFreeValue), d: fd, has: !!(fn || fd) }
+        };
+      }
+
+      function hexSVG(items) {
+        const cx = 160, cy = 120, R = 78;
+        const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+        const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
+        let g = "";
+        [5, 10, 15, 20].forEach(function (l) {
+          g += '<polygon class="stt-ring" points="' + items.map(function (_, i) { return f(pt(i, R * l / 20)); }).join(" ") + '"/>';
+        });
+        items.forEach(function (_, i) {
+          const p = pt(i, R);
+          g += '<line class="stt-axis" x1="' + cx + '" y1="' + cy + '" x2="' + p[0].toFixed(1) + '" y2="' + p[1].toFixed(1) + '"/>';
+        });
+        const poly = items.map(function (it, i) { return f(pt(i, R * it.v / 20)); }).join(" ");
+        const dots = items.map(function (it, i) {
+          const p = pt(i, R * it.v / 20);
+          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="4"/>';
+        }).join("");
+        const labels = items.map(function (it, i) {
+          const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
+          const p = pt(i, R + 20);
+          const anchor = c > 0.3 ? "start" : c < -0.3 ? "end" : "middle";
+          const y = p[1] + (i === 0 ? -2 : i === 3 ? 6 : 0);
+          const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
+          return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + anchor + '">' + name + '</text>' +
+                 '<text class="stt-num" x="' + p[0].toFixed(1) + '" y="' + (y + 14).toFixed(1) + '" text-anchor="' + anchor + '">' + it.v + '</text>';
+        }).join("");
+        return '<svg class="stt-svg" viewBox="0 0 320 245" role="img" aria-label="스테이터스 육각 그래프">' +
+          g + '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' + labels + '</svg>';
+      }
+
+      function statsBlock(ch, re) {
+        const d = statsData(ch);
+        if (!d.use) return "";
+        const bar = statView === "bar";
+        let body;
+        if (!bar) {
+          body = '<div class="stt-chart">' + hexSVG(d.items.concat([{ k: d.free.k, v: d.free.v }])) + '</div>';
+        } else {
+          body = '<ul class="stt-bars">' + d.items.map(function (it, n) {
+            return '<li style="--n:' + n + '"><span class="stt-k">' + it.k + '</span>' +
+              '<span class="stt-track"><i style="width:' + (it.v / 20 * 100) + '%"></i></span><b>' + it.v + '</b></li>';
+          }).join("") + '</ul>' +
+          (d.free.has
+            ? '<div class="stt-skill"><p class="stt-skill-n"><span>SKILL</span>' + d.free.k + '</p>' +
+              (d.free.d ? '<div class="stt-skill-d">' + d.free.d + '</div>' : "") + '</div>'
+            : "");
+        }
+        return '<section class="stt' + (re ? " re" : "") + '">' +
+          '<header class="stt-head"><span class="stt-title">STATUS</span>' +
+            '<div class="stt-tog" role="group" aria-label="보기 방식">' +
+              '<button type="button" data-v="hex" class="' + (bar ? "" : "on") + '">HEX</button>' +
+              '<button type="button" data-v="bar" class="' + (bar ? "on" : "") + '">BAR</button>' +
+            '</div></header>' + body + '</section>';
+      }
+
+      function bindStats(ch) {
+        detail.querySelectorAll(".stt-tog button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            statView = b.getAttribute("data-v");
+            const box = detail.querySelector(".stt");
+            if (!box) return;
+            box.outerHTML = statsBlock(ch, true);
+            bindStats(ch);
+          });
+        });
+      }
+
       function renderDetail(ch, i) {
         const color = cardColor(ch.color);
         detail.style.setProperty("--c", color);
@@ -963,6 +1047,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }).join("");
         const paneProfile =
           (ch.intro ? '<p class="dt-intro">' + ch.intro + '</p>' : "") +
+          statsBlock(ch) +
           (rows ? '<dl class="dt-list">' + rows + '</dl>' : "") +
           (ch.quote ? '<blockquote class="dt-quote">' + ch.quote + '</blockquote>' : "") +
           storyBlock(ch) +
@@ -1028,6 +1113,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           });
         }
 
+        bindStats(ch);
         // 탭 전환
         detail.querySelectorAll(".dt-tabs button").forEach(function (btn) {
           btn.addEventListener("click", function () {
