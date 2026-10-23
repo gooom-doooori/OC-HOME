@@ -160,6 +160,9 @@
     <!-- 상세 프로필 경계의 옷장 (옷걸이 버튼 + 의상 목록) -->
     <div class="wd none" id="chWd"></div>
 
+    <!-- 스테이터스 (카드 모드: 카드 아래 / 전신 모드: 전신 왼쪽) -->
+    <div class="ch-stat" id="chStat"></div>
+
     <!-- 오른쪽: 카드 -->
     <div class="ch-stage">
       <div class="ch-holder" id="chHolder"></div>
@@ -987,14 +990,13 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
-          const p = pt(i, R + 20);
+          const p = pt(i, R + 8);
           const anchor = c > 0.3 ? "start" : c < -0.3 ? "end" : "middle";
-          const y = p[1] + (i === 0 ? -2 : i === 3 ? 6 : 0);
+          const dy = i === 0 ? "-0.25em" : i === 3 ? "0.9em" : "0.35em";
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
-          return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + anchor + '">' + name + '</text>' +
-                 '<text class="stt-num" x="' + p[0].toFixed(1) + '" y="' + (y + 13).toFixed(1) + '" text-anchor="' + anchor + '">' + it.v + '</text>';
+          return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
         }).join("");
-        return '<svg class="stt-svg" viewBox="0 0 320 245" role="img" aria-label="스테이터스 육각 그래프">' +
+        return '<svg class="stt-svg" viewBox="0 14 320 210" role="img" aria-label="스테이터스 육각 그래프">' +
           g + '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' + labels + '</svg>';
       }
 
@@ -1024,10 +1026,10 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       }
 
       function bindStats(ch) {
-        detail.querySelectorAll(".stt-tog button").forEach(function (b) {
+        statBox.querySelectorAll(".stt-tog button").forEach(function (b) {
           b.addEventListener("click", function () {
             statView = b.getAttribute("data-v");
-            const box = detail.querySelector(".stt");
+            const box = statBox.querySelector(".stt");
             if (!box) return;
             box.outerHTML = statsBlock(ch, true);
             bindStats(ch);
@@ -1092,13 +1094,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '</nav>' +
               '<span>No. ' + num2(i + 1 + OFFSET) + '</span>' +
             '</div>' +
-            '<div class="dt-hgrid' + (statsData(ch).use ? "" : " solo") + '">' +
-              '<div class="dt-hl">' +
-                '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
-                '<p class="dt-en">' + shownDetailNameEn(ch) + '</p>' +
-              '</div>' +
-              (statsData(ch).use ? '<div class="dt-hr">' + statsBlock(ch) + '</div>' : "") +
-            '</div>' +
+            '<h2 class="dt-name">' + shownDetailName(ch) + '</h2>' +
+            '<p class="dt-en">' + shownDetailNameEn(ch) + '</p>' +
           '</header>' +
           '<div class="dt-panes">' +
             '<section class="dt-pane on" data-pane="profile">' + paneProfile + '</section>' +
@@ -1117,7 +1114,6 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           });
         }
 
-        bindStats(ch);
         // 탭 전환
         detail.querySelectorAll(".dt-tabs button").forEach(function (btn) {
           btn.addEventListener("click", function () {
@@ -1186,6 +1182,14 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
          ===================================================== */
       const holder = document.getElementById("chHolder");
       const tilesBox = document.getElementById("chTilesIn");
+      const statBox = document.getElementById("chStat");
+      function renderStat(ch) {
+        const html = statsBlock(ch);
+        statBox.style.setProperty("--c", cardColor(ch.color));
+        statBox.innerHTML = html;
+        document.body.classList.toggle("stat-on", !!html);
+        bindStats(ch);
+      }
       const count = document.getElementById("chCount");
       let current = 0;
 
@@ -1242,9 +1246,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
 
       // 오른쪽 무대를 그려요. mode: "card" | "full",  open: 상세 프로필이 열려 있는지
       function drawStage(ch, mode, open) {
+        document.body.setAttribute("data-chview", mode);
         const cls = open ? " flipped" : "";
         if (mode === "full") {
-          const ports = (ch.portraits || []).filter(Boolean).slice(0, 3);
           holder.innerHTML =
             '<div class="cd cd-fb" style="--c:' + cardColor(ch.color) + ';--ct:' + cardText(ch.textColor, ch.color) + ';--sd-w:' + sdW(ch) + '">' +
               '<div class="fb-flip' + cls + '" id="cdFlip">' +
@@ -1252,22 +1256,11 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
                   '<div class="fb-art">' +
                     '<img class="fb-img" src="' + curBody(ch) + '" alt="">' +
                   '</div>' +
-                  (ports.length
-                    ? '<div class="fb-ports">' + ports.map(function (p, n) {
-                        return '<span style="--i:' + n + '"><img src="' + p + '" alt=""></span>';
-                      }).join("") + '</div>'
-                    : "") +
                 '</div>' +
               '</div>' +
             '</div>';
           holder.setAttribute("data-type", "full");
           document.getElementById("cdFlip").addEventListener("click", function () { flip(); });
-          holder.querySelectorAll(".fb-ports span").forEach(function (sp, n) {
-            sp.addEventListener("click", function (e) {
-              e.stopPropagation();
-              openBox(ports.map(function (p) { return { image: p, caption: ch.name || "" }; }), n);
-            });
-          });
           drawSd(ch, mode);
           return;
         }
@@ -1296,6 +1289,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const ch = list[current];
         if (spinning || !ch || v === modeOf(ch) || (v === "full" && !curBody(ch))) return;
         spinning = true;
+        statBox.classList.add("swap");
         view = v;
         syncView(ch);
       
@@ -1303,7 +1297,6 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const old = holder.querySelector(".cd");
         const oldSd = holder.querySelector(".sd-fx");
         if (oldSd) oldSd.classList.add("gone");             // 1단계: SD 사라짐
-        if (old) old.classList.add("ports-out");            // 1단계: 포트레이트 사라짐
       
         setTimeout(function () {
           if (old) old.classList.add("spin-out");          // 2단계: 카드/전신 회전 시작
@@ -1316,9 +1309,6 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           const fresh = holder.querySelector(".cd");
           if (fresh) {
             fresh.classList.add("spin-in");
-            if (fresh.classList.contains("cd-fb") && document.body.classList.contains("is-flipped")) {
-              fresh.classList.add("hold");                 // 회전이 끝날 때까지 포트레이트 숨김
-            }
           }
       
           // 설정 글 모양만 바뀌니까, 보던 탭 · 스크롤은 그대로 두기
@@ -1334,11 +1324,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           setTimeout(function () {
             const s = holder.querySelector(".sd-fx");
             if (s) s.classList.remove("gone");
-            const f = holder.querySelector(".cd-fb.hold");
-            if (f) {
-              f.style.setProperty("--pd", "0s");
-              f.classList.remove("hold");
-            }
+            statBox.classList.remove("swap");
             spinning = false;
           }, 200);
         }, HIDE + 150);
@@ -1531,6 +1517,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         syncView(ch);
         renderDetail(ch, i);
         buildWd(i);
+        renderStat(ch);
 
         count.textContent = String(i + 1 + OFFSET).padStart(2, "0") + " / " + String(list.length + OFFSET).padStart(2, "0");
         Array.prototype.forEach.call(tilesBox.querySelectorAll(".ch-tile-row"), function (t) {
@@ -3055,7 +3042,8 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         onResize = null; onDocDown = null;
         BGM.reset();
         document.querySelectorAll("#spoilBanner, .spoil-ask").forEach(function (n) { n.remove(); });
-        document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single");
+        document.body.classList.remove("is-flipped", "no-tint", "sd-always", "ch-single", "stat-on");
+        document.body.removeAttribute("data-chview");
         document.body.setAttribute("data-page", route);
                 app.innerHTML = document.getElementById("tpl-" + ((route === "floormaster" || route === "other") ? "character" : route)).innerHTML;
         app.classList.remove("page-in");
