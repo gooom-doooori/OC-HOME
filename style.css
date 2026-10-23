@@ -4199,8 +4199,6 @@ body:has(.rl.open) .bgm { display: none !important; }
 /* 카드 모드: 왼쪽 섹션(left 40px ~ right 54vw)과 같은 너비, 아래쪽 가운데 */
 body[data-chview="card"] .ch-stat { --stt-h: min(37vh, 330px); right: calc(52vw + 170px + 20px); bottom: 18px; height: var(--stt-h); align-items: flex-start; padding: 0 12px; }
 /* 전신 모드: 크기는 고정, 가로 위치만 JS(placeStat)가 일러스트 왼쪽 빈 공간 중앙에 맞춰요 */
-body[data-chview="full"] .stt-bars li { grid-template-columns: 42px 1fr 24px; }
-body[data-chview="full"] .stt-k { text-align: right; }
 body[data-chview="full"] .stt:has(.stt-bars) { padding-left: 24px; }   /* 막대 그래프 전체(자유스탯 포함)의 왼쪽 여백 */
 body[data-chview="full"] .ch-stat { top: 150px; width: clamp(200px, 15vw, 260px); transition: opacity .3s, visibility 0s .3s, left .7s cubic-bezier(.6, 0, .2, 1); }
 body.is-flipped.stat-on[data-chview="full"] .ch-stat { transition: opacity .6s .55s, left .7s cubic-bezier(.6, 0, .2, 1); }
@@ -4214,7 +4212,7 @@ body[data-chview="card"] .stt-svg { width: auto; height: var(--stt-h); }
 /* 막대 그래프: 육각형의 맨 윗부분(꼭짓점 · 글자) 높이에서 시작해서 전환해도 높이 차가 안 보여요 */
 body[data-chview="card"] .stt-bars { margin-top: calc(var(--stt-h) * .125); }
 body[data-chview="card"] .stt-bars li { padding: 9px 0; }
-body[data-chview="card"] .stt-track { height: 12px; border-radius: 999px; overflow: hidden; }
+body[data-chview="card"] .stt-track { height: 12px; }
 body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
 .stt-frame, .stt-data { transform-origin: 160px 120px; }
 .stt-ring, .stt-axis {
@@ -4222,20 +4220,20 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
   stroke: color-mix(in srgb, var(--c, #888) 30%, #6c6c6c);   /* 채도 뺀 어두운 색 (검은 배경 · 흰 배경 모두 보여요) */
   stroke-linejoin: round;
 }
-.stt-ring { stroke-width: 0.7; stroke-dasharray: 3 3; }   /* 안쪽 선 : 점선 */
-.stt-ring.out { stroke-width: 1.2; stroke-dasharray: none; }   /* 바깥 테두리 기준 */
+.stt-ring { stroke-width: 1; stroke-dasharray: 3 3; }   /* 안쪽 선 : 점선 */
+.stt-ring.out { stroke-width: 1.5; stroke-dasharray: none; }   /* 바깥 테두리 기준 */
 .stt-axis { stroke-width: .9; stroke-dasharray: 3 3; }
 .stt-poly {
   fill: color-mix(in srgb, var(--c, #222) 16%, transparent);
   stroke: var(--c, #222);
-  stroke-width: 1.5;                    /* 틀보다 굵게 */
+  stroke-width: 2;                    /* 틀보다 굵게 */
   stroke-linejoin: round;
 }
 .stt-dot { fill: var(--c, #222); stroke: none; }
 .stt-lab {
   fill: currentColor;
   font-family: var(--font-body), sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .3px;
 }
@@ -4244,13 +4242,13 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
 .stt-bars { list-style: none; }
 .stt-bars li {
   display: grid;
-  grid-template-columns: 56px 1fr 26px;
+  grid-template-columns: 42px 1fr 26px;
   align-items: center;
   gap: 10px;
   padding: 5px 0;
   border-bottom: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
 }
-.stt-k { font-size: 13px; font-weight: 700; }
+.stt-k { font-size: 13px; font-weight: 700; text-align: right; }
 .stt-bars b {
   text-align: right;
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
@@ -4263,6 +4261,8 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
   position: relative;
   display: block;
   height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
   background: color-mix(in srgb, var(--c, #222) 15%, transparent);   /* 대표색 15% */
 }
 .stt-track i { display: block; height: 100%; background: var(--c, #222); }
@@ -4271,7 +4271,7 @@ body[data-chview="card"] .stt-lab { font-size: 12px; font-weight: 500; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(255,255,255,.85) 1px, transparent 1px) -.5px 0 / 5% 100% repeat-x;
+  background: linear-gradient(to right, rgba(255,255,255,.5) 1px, transparent 1px) -.5px 0 / 5% 100% repeat-x;
   clip-path: inset(0 4.9% 0 4.9%);
   pointer-events: none;
 }
