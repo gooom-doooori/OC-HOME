@@ -976,7 +976,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
         let g = "";
-        [5, 10, 15, 20].forEach(function (l) {
+        (document.body.getAttribute("data-chview") === "card" ? [2, 4, 6, 8, 10, 12, 14, 16, 18, 20] : [5, 10, 15, 20]).forEach(function (l) {
           g += '<polygon class="stt-ring' + (l === 20 ? ' out' : '') + '" points="' + items.map(function (_, i) { return f(pt(i, R * l / 20)); }).join(" ") + '"/>';
         });
         items.forEach(function (_, i) {
@@ -1015,7 +1015,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
               '<span class="stt-track"><i style="width:' + (it.v / 20 * 100) + '%"></i></span><b>' + it.v + '</b></li>';
           }).join("") + '</ul>' +
           (d.free.has
-            ? '<div class="stt-skill"><p class="stt-skill-n"><span>SKILL</span>' + d.free.k + '</p>' +
+            ? '<div class="stt-skill"><p class="stt-skill-n">' + d.free.k + '</p>' +
               (d.free.d ? '<div class="stt-skill-d">' + d.free.d + '</div>' : "") + '</div>'
             : "");
         }
@@ -1324,6 +1324,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       
         setTimeout(function () {
           drawStage(ch, modeOf(ch), document.body.classList.contains("is-flipped"));
+          renderStat(ch);
           const newSd = holder.querySelector(".sd-fx");
           if (newSd) newSd.classList.add("gone");
           const fresh = holder.querySelector(".cd");
