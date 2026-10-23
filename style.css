@@ -4218,6 +4218,8 @@ body[data-chview="full"] .stt-svg {
   margin: -11% -12.5%;
 }
 .stt-frame, .stt-data { transform-origin: 160px 120px; }
+body[data-chview="full"] .stt-frame,
+body[data-chview="full"] .stt-data { transform-origin: 130px 90px; }
 .stt-ring, .stt-axis {
   fill: none;
   stroke: color-mix(in srgb, var(--c, #888) 30%, #6c6c6c);   /* 채도 뺀 어두운 색 (검은 배경 · 흰 배경 모두 보여요) */
