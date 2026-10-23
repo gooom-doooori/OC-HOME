@@ -4215,7 +4215,7 @@ body[data-chview="card"] .stt-bars li { padding: 9px 0; }
 body[data-chview="card"] .stt-track { height: 12px; }
 body[data-chview="card"] .stt-lab { font-size: 10px; font-weight: 500; }
 body[data-chview="full"] .stt-svg {
-  margin: -11% -17.5%;
+  margin: 9% 3.5%;
 }
 .stt-frame, .stt-data { transform-origin: 160px 120px; }
 body[data-chview="full"] .stt-frame,
