@@ -4236,7 +4236,7 @@ body[data-chview="full"] .stt-data { transform-origin: 90px 50px; }
 }
 .stt-dot { fill: var(--c, #222); stroke: none; }
 .stt-lab {
-  fill: oklch(from var(--c) l 0.25 h);
+  fill: oklch(from var(--c) l 0.20 h);
   font-family: var(--font-body), sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -4253,7 +4253,7 @@ body[data-chview="full"] .stt-data { transform-origin: 90px 50px; }
   padding: 5px 0;
   border-bottom: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
 }
-.stt-k { font-size: 13px; font-weight: 700; text-align: right; color: oklch(from var(--c) l 0.25 h); }
+.stt-k { font-size: 13px; font-weight: 700; text-align: right; color: oklch(from var(--c) l 0.20 h); }
 .stt-bars b {
   text-align: right;
   font-family: var(--font-menu), Impact, 'Arial Narrow', sans-serif;
@@ -4286,7 +4286,7 @@ body[data-chview="full"] .stt-data { transform-origin: 90px 50px; }
   margin-top: 10px;
   padding: 0 0 0 10px;                   /* 위아래 여백 0 → 왼쪽 막대가 글 높이에 딱 맞아요 */
   border-left: 2px solid var(--c, #222);
-  color: oklch(from var(--c) l 0.25 h);
+  color: oklch(from var(--c) l 0.20 h);
 }
 .stt-skill-n { font-size: 13px; font-weight: 900; }
 .stt-skill-n span {
