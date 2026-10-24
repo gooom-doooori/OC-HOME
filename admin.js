@@ -717,6 +717,7 @@
   var TWO_OPEN = '<div class="st-two"><div>';
   var FN_OPEN = '<sup class="fn" tabindex="0">1<span>';
   var FN_CLOSE = '</span></sup>';
+  var FN_RE = /<sup class="fn" tabindex="0">([^<>]*)<span>/y;
   var VOID_TAG = { br: 1, img: 1, hr: 1, input: 1, wbr: 1, meta: 1, link: 1 };
   var TWO_CLOSE_RE = /<\/div><img src="([^"<>]*)" alt=""><\/div>/y;
 
@@ -764,8 +765,8 @@
             var x = TWO_CLOSE_RE.exec(s);
             return x ? { len: x[0].length, disp: '<2단이미지 ' + x[1] + '></2단>' } : null;
           } };
-        } else if (src.substr(pos, FN_OPEN.length) === FN_OPEN) {
-          rep = '<각주>'; adv = FN_OPEN.length; ent = { name: 'sup', close: simpleClose(FN_CLOSE, '</각주>') };
+        } else if ((FN_RE.lastIndex = pos, mm = FN_RE.exec(src))) {
+          rep = '<각주 ' + mm[1] + '>'; adv = mm[0].length; ent = { name: 'sup', close: simpleClose(FN_CLOSE, '</각주>') };
         } else if (OPEN_MAP[tag]) {
           var o = OPEN_MAP[tag]; rep = o[0]; ent = { name: o[1], close: simpleClose(o[2], o[3]) };
         } else if (tag === '<div>' && src.slice(Math.max(0, pos - 10), pos) === '</summary>') {
@@ -803,7 +804,7 @@
     '</링크>': '</a>', '</새탭링크>': '</a>', '</캐릭터링크>': '</a>'
   };
   var NAMES = '볼드|기울임|취소선|단어|발음|스포일러|각주|토글제목|토글내용|토글|목록|점목록|항목|스포주의|스포내용|링크|새탭링크|캐릭터링크|2단';
-  var D2C_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지) ([^<>]*)>|<2단이미지 ([^<>]*)></2단>|</?(?:' + NAMES + ')>', 'g');
+  var D2C_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지|각주) ([^<>]*)>|<2단이미지 ([^<>]*)></2단>|</?(?:' + NAMES + ')>', 'g');
   function toCode(d) {
     return String(d == null ? '' : d).replace(D2C_RE, function (all, n, a, u) {
       if (n) {
@@ -811,6 +812,7 @@
         if (n === '링크') return '<a href="' + a + '">';
         if (n === '새탭링크') return '<a href="' + a + '" target="_blank" rel="noopener">';
         if (n === '캐릭터링크') return '<a class="ch-link" data-ch="' + a + '">';
+        if (n === '각주') return '<sup class="fn" tabindex="0">' + a + '<span>';
         return '<img class="st-img" src="' + a + '" alt="">';
       }
       if (u !== undefined) return '</div><img src="' + u.replace(/"/g, '&quot;') + '" alt=""></div>';
@@ -819,7 +821,7 @@
   }
 
   /* 지우기용: 편집 칸 글자 속의 코드 위치 찾기 */
-  var TOK_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지) [^<>]*>|<2단이미지 [^<>]*></2단>|</?(?:' + NAMES + ')>|<br>', 'g');
+  var TOK_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지|각주) [^<>]*>|<2단이미지 [^<>]*></2단>|</?(?:' + NAMES + ')>|<br>', 'g');
   function scanTokens(v) {
     var out = [], m;
     TOK_RE.lastIndex = 0;
@@ -1618,9 +1620,9 @@
     { html: '<i class="k">▒</i>스포일러', tip: '<스포일러>숨길 내용</스포일러>',
       make: wrapSnip('<스포일러>', '</스포일러>', '숨길 내용') },
     { html: '<i class="k" style="color:#d93025">⚠</i>스포 주의', tip: '스포일러 주의 안내칸 (글을 선택하면 그 글만 묶여요)', make: spoilNote },
-    { html: '<i class="k">¹</i>각주', tip: '각주<각주>각주 내용</각주>',
+    { html: '<i class="k">¹</i>각주', tip: '각주<각주 1>각주 내용</각주>  (번호는 직접 바꿀 수 있어요)',
       make: function (sel) {
-        var o = (sel || '각주 달 글') + '<각주>', c = '각주 내용';
+        var o = (sel || '각주 달 글') + '<각주 1>', c = '각주 내용';
         return { text: o + c + '</각주>', from: o.length, to: o.length + c.length };
       } },
     { html: '<i class="k">▸</i>토글', tip: '<토글><토글제목>제목</토글제목><토글내용>내용</토글내용></토글>',
