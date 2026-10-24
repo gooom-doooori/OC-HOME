@@ -682,7 +682,7 @@
      코드 구분 입력칸 (회색 = 태그 코드, 파랑 = 링크 / 이미지 주소, 검정 = 본문)
      + 크게 편집 팝업 (왼쪽 미리보기 / 오른쪽 편집 / 위에 코드 버튼 바)
      ========================================================== */
-  var HL_RE = /(<\/?[a-zA-Z][^>]*>?)|(https?:\/\/[^\s<>"']+)|(\b[\w\-.\/%]+\.(?:png|jpe?g|gif|webp|svg|bmp|mp3|ogg|wav|html?)\b)/gi;
+  var HL_RE = /(<\/?(?:[a-zA-Z가-힣]|2단)[^>]*>?)|(https?:\/\/[^\s<>"']+)|(\b[\w\-.\/%]+\.(?:png|jpe?g|gif|webp|svg|bmp|mp3|ogg|wav|html?)\b)/gi;
   var LINK_RE = /(https?:\/\/[^\s<>"']+|[\w\-.\/%]+\.(?:png|jpe?g|gif|webp|svg|bmp|mp3|ogg|wav|html?)\b)/gi;
   function escH(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function hlTag(raw) {
@@ -708,14 +708,160 @@
     return out;
   }
 
-  /* 글자는 투명한 textarea, 색은 뒤에 깔린 <pre> 가 보여줘요 (두 층이 정확히 겹쳐요) */
+  /* ==========================================================
+     코드 ↔ 보기 쉬운 이름 변환
+     - 편집 칸에는 <스포일러> 처럼 보이고, 저장할 때는 원래 코드로 돌아가요.
+     ========================================================== */
+  var SPOIL_MSG = '아래 내용에는 직·간접적인 스포일러가 포함되어 있습니다.';
+  var SPOIL_OPEN = '<div class="spoil-box"><p class="spoil-box-head">' + SPOIL_MSG + '</p>';
+  var TWO_OPEN = '<div class="st-two"><div>';
+  var FN_OPEN = '<sup class="fn" tabindex="0">1<span>';
+  var FN_CLOSE = '</span></sup>';
+  var VOID_TAG = { br: 1, img: 1, hr: 1, input: 1, wbr: 1, meta: 1, link: 1 };
+  var TWO_CLOSE_RE = /<\/div><img src="([^"<>]*)" alt=""><\/div>/y;
+
+  /* 여는 태그 → [보이는 이름, 태그 이름, 진짜 닫는 태그, 보이는 닫는 이름] */
+  var OPEN_MAP = {
+    '<b>': ['<볼드>', 'b', '</b>', '</볼드>'],
+    '<i>': ['<기울임>', 'i', '</i>', '</기울임>'],
+    '<s>': ['<취소선>', 's', '</s>', '</취소선>'],
+    '<ruby>': ['<단어>', 'ruby', '</ruby>', '</단어>'],
+    '<rt>': ['<발음>', 'rt', '</rt>', '</발음>'],
+    '<span class="spoil">': ['<스포일러>', 'span', '</span>', '</스포일러>'],
+    '<details class="tg">': ['<토글>', 'details', '</details>', '</토글>'],
+    '<summary>': ['<토글제목>', 'summary', '</summary>', '</토글제목>'],
+    '<ul class="dash-list">': ['<목록>', 'ul', '</ul>', '</목록>'],
+    '<ul class="dot-list">': ['<점목록>', 'ul', '</ul>', '</점목록>'],
+    '<li>': ['<항목>', 'li', '</li>', '</항목>'],
+    '<div class="spoil-box-body">': ['<스포내용>', 'div', '</div>', '</스포내용>']
+  };
+  function simpleClose(real, disp) {
+    return function (src, pos) { return src.substr(pos, real.length) === real ? { len: real.length, disp: disp } : null; };
+  }
+
+  /* 원래 코드 → 보기 쉬운 이름 */
+  function toDisp(src) {
+    src = String(src == null ? '' : src);
+    var re = /<\/?[a-zA-Z][^>]*>/g, out = '', last = 0, st = [], m;
+    while ((m = re.exec(src))) {
+      var pos = m.index, tag = m[0], adv = tag.length, rep = tag, ent = null, mm;
+      out += src.slice(last, pos);
+      if (tag.charAt(1) === '/') {
+        var top = st[st.length - 1], c = (top && top.close) ? top.close(src, pos) : null;
+        if (c) { rep = c.disp; adv = c.len; st.pop(); }
+        else {
+          var nm = tag.slice(2).replace(/[\s>][\s\S]*$/, '').toLowerCase();
+          for (var k = st.length - 1; k >= 0; k--) if (st[k].name === nm) { st.length = k; break; }
+        }
+      } else {
+        var name = /^<([a-zA-Z0-9]+)/.exec(tag)[1].toLowerCase();
+        if (src.substr(pos, SPOIL_OPEN.length) === SPOIL_OPEN) {
+          rep = '<스포주의>'; adv = SPOIL_OPEN.length; ent = { name: 'div', close: simpleClose('</div>', '</스포주의>') };
+        } else if (src.substr(pos, TWO_OPEN.length) === TWO_OPEN) {
+          rep = '<2단>'; adv = TWO_OPEN.length;
+          ent = { name: 'div', close: function (s, p) {
+            TWO_CLOSE_RE.lastIndex = p;
+            var x = TWO_CLOSE_RE.exec(s);
+            return x ? { len: x[0].length, disp: '<2단이미지 ' + x[1] + '></2단>' } : null;
+          } };
+        } else if (src.substr(pos, FN_OPEN.length) === FN_OPEN) {
+          rep = '<각주>'; adv = FN_OPEN.length; ent = { name: 'sup', close: simpleClose(FN_CLOSE, '</각주>') };
+        } else if (OPEN_MAP[tag]) {
+          var o = OPEN_MAP[tag]; rep = o[0]; ent = { name: o[1], close: simpleClose(o[2], o[3]) };
+        } else if (tag === '<div>' && src.slice(Math.max(0, pos - 10), pos) === '</summary>') {
+          rep = '<토글내용>'; ent = { name: 'div', close: simpleClose('</div>', '</토글내용>') };
+        } else if ((mm = /^<a href="([^"<>]*)"( target="_blank" rel="noopener")?>$/.exec(tag))) {
+          var nt = !!mm[2]; rep = (nt ? '<새탭링크 ' : '<링크 ') + mm[1] + '>';
+          ent = { name: 'a', close: simpleClose('</a>', nt ? '</새탭링크>' : '</링크>') };
+        } else if ((mm = /^<a class="ch-link" data-ch="([^"<>]*)">$/.exec(tag))) {
+          rep = '<캐릭터링크 ' + mm[1] + '>'; ent = { name: 'a', close: simpleClose('</a>', '</캐릭터링크>') };
+        } else if ((mm = /^<img class="st-img" src="([^"<>]*)" alt="">$/.exec(tag))) {
+          rep = '<이미지 ' + mm[1] + '>';
+        } else if (!VOID_TAG[name] && !/\/>$/.test(tag)) {
+          ent = { name: name, close: null };
+        }
+        if (ent) st.push(ent);
+      }
+      out += rep; last = pos + adv; re.lastIndex = last;
+    }
+    return out + src.slice(last);
+  }
+
+  /* 보기 쉬운 이름 → 원래 코드 */
+  var D2C = {
+    '<볼드>': '<b>', '</볼드>': '</b>', '<기울임>': '<i>', '</기울임>': '</i>', '<취소선>': '<s>', '</취소선>': '</s>',
+    '<단어>': '<ruby>', '</단어>': '</ruby>', '<발음>': '<rt>', '</발음>': '</rt>',
+    '<스포일러>': '<span class="spoil">', '</스포일러>': '</span>',
+    '<각주>': FN_OPEN, '</각주>': FN_CLOSE,
+    '<토글>': '<details class="tg">', '</토글>': '</details>',
+    '<토글제목>': '<summary>', '</토글제목>': '</summary>', '<토글내용>': '<div>', '</토글내용>': '</div>',
+    '<목록>': '<ul class="dash-list">', '</목록>': '</ul>', '<점목록>': '<ul class="dot-list">', '</점목록>': '</ul>',
+    '<항목>': '<li>', '</항목>': '</li>',
+    '<2단>': TWO_OPEN, '</2단>': '</div></div>',
+    '<스포주의>': SPOIL_OPEN, '</스포주의>': '</div>',
+    '<스포내용>': '<div class="spoil-box-body">', '</스포내용>': '</div>',
+    '</링크>': '</a>', '</새탭링크>': '</a>', '</캐릭터링크>': '</a>'
+  };
+  var NAMES = '볼드|기울임|취소선|단어|발음|스포일러|각주|토글제목|토글내용|토글|목록|점목록|항목|스포주의|스포내용|링크|새탭링크|캐릭터링크|2단';
+  var D2C_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지) ([^<>]*)>|<2단이미지 ([^<>]*)></2단>|</?(?:' + NAMES + ')>', 'g');
+  function toCode(d) {
+    return String(d == null ? '' : d).replace(D2C_RE, function (all, n, a, u) {
+      if (n) {
+        a = a.replace(/"/g, '&quot;');
+        if (n === '링크') return '<a href="' + a + '">';
+        if (n === '새탭링크') return '<a href="' + a + '" target="_blank" rel="noopener">';
+        if (n === '캐릭터링크') return '<a class="ch-link" data-ch="' + a + '">';
+        return '<img class="st-img" src="' + a + '" alt="">';
+      }
+      if (u !== undefined) return '</div><img src="' + u.replace(/"/g, '&quot;') + '" alt=""></div>';
+      return D2C[all] !== undefined ? D2C[all] : all;
+    });
+  }
+
+  /* 지우기용: 편집 칸 글자 속의 코드 위치 찾기 */
+  var TOK_RE = new RegExp('<(링크|새탭링크|캐릭터링크|이미지) [^<>]*>|<2단이미지 [^<>]*></2단>|</?(?:' + NAMES + ')>|<br>', 'g');
+  function scanTokens(v) {
+    var out = [], m;
+    TOK_RE.lastIndex = 0;
+    while ((m = TOK_RE.exec(v))) {
+      var t = m[0], kind, name = '';
+      if (t === '<br>' || m[1] === '이미지') kind = 'void';
+      else if (t.indexOf('<2단이미지 ') === 0) { kind = 'close'; name = '2단'; }
+      else if (m[1]) { kind = 'open'; name = m[1]; }
+      else { kind = t.charAt(1) === '/' ? 'close' : 'open'; name = t.replace(/[<\/>]/g, ''); }
+      out.push({ s: m.index, e: m.index + t.length, kind: kind, name: name });
+    }
+    return out;
+  }
+  function pairOf(toks, i) {                       /* 여는 코드 ↔ 닫는 코드 짝 찾기 */
+    var t = toks[i], d = 1, j, u;
+    if (t.kind === 'void') return -1;
+    if (t.kind === 'open') {
+      for (j = i + 1; j < toks.length; j++) {
+        u = toks[j]; if (u.name !== t.name || u.kind === 'void') continue;
+        d += u.kind === 'open' ? 1 : -1; if (!d) return j;
+      }
+    } else {
+      for (j = i - 1; j >= 0; j--) {
+        u = toks[j]; if (u.name !== t.name || u.kind === 'void') continue;
+        d += u.kind === 'close' ? 1 : -1; if (!d) return j;
+      }
+    }
+    return -1;
+  }
+
+  /* 글자는 투명한 textarea, 색은 뒤에 깔린 <pre> 가 보여줘요 (두 층이 정확히 겹쳐요)
+     - 칸 안의 글자는 "보기 쉬운 이름" 이고, getCode() 가 원래 코드를 돌려줘요 */
+  var BLOCK_RE = /<\/?(?:(?:ul|ol|li|details|summary|div|p|h[1-6])(?=[\s>\/])|(?:목록|점목록|항목|토글제목|토글내용|토글|스포주의|스포내용|2단))[^>]*>\s*$/i;
   function hlArea(value, onChange, opt) {
     opt = opt || {};
+    var conv = opt.conv !== false;
     var pre = h('pre', { class: 'oha-hl-pre', 'aria-hidden': 'true' });
     var ta = h('textarea', { spellcheck: 'false', rows: opt.one ? '1' : null });
-    ta.value = value;
+    ta.value = conv ? toDisp(value) : String(value == null ? '' : value);
     var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') + (opt.one ? ' is-one' : '') + (opt.nowrap ? ' is-nowrap' : '') }, [pre, ta]);
     var lastW = -1;
+    function getCode() { return conv ? toCode(ta.value) : ta.value; }
     function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; }
     function fit() {
       if (opt.fill) return;
@@ -723,17 +869,17 @@
       ta.style.height = Math.min(ta.scrollHeight, opt.max || 260) + 'px';
     }
     function refresh() { fit(); paint(); }
+    function setCode(v) { ta.value = conv ? toDisp(v) : String(v == null ? '' : v); refresh(); }
     ta.addEventListener('input', function () {
       if (opt.one && /[\r\n]/.test(ta.value)) {          /* 한 줄 칸: 붙여넣은 줄바꿈은 띄어쓰기로 */
         var p = ta.selectionStart;
         ta.value = ta.value.replace(/[\r\n]+/g, ' ');
         ta.setSelectionRange(p, p);
       }
-      refresh(); if (onChange) onChange(ta.value);
+      refresh(); if (onChange) onChange(getCode());
     });
     if (opt.one) ta.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });   /* 한 줄 칸: 엔터 막기 */
     ta.addEventListener('scroll', function () { pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; });
-    /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
     function insertAt(t) {
       ta.focus();
       if (!document.execCommand || !document.execCommand('insertText', false, t)) {
@@ -741,12 +887,46 @@
         ta.dispatchEvent(new Event('input', { bubbles: true }));
       }
     }
+    /* 코드 지우기: 코드 위에서 Backspace / Delete 를 누르면 그 코드(와 짝 코드)가 통째로 지워져요. 안쪽 글자는 그대로 */
+    function delRanges(rs, caret) {
+      rs.sort(function (a, b) { return b[0] - a[0]; });
+      ta.focus();
+      rs.forEach(function (r) {
+        ta.setSelectionRange(r[0], r[1]);
+        if (!document.execCommand || !document.execCommand('delete')) {
+          ta.setRangeText('', r[0], r[1], 'end');
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      ta.setSelectionRange(caret, caret);
+    }
+    if (conv) ta.addEventListener('keydown', function (e) {
+      if ((e.key !== 'Backspace' && e.key !== 'Delete') || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (ta.selectionStart !== ta.selectionEnd) return;              /* 드래그로 고른 건 평소처럼 */
+      var p = ta.selectionStart, v = ta.value, back = e.key === 'Backspace';
+      if (back && p >= 5 && v.substr(p - 5, 5) === '<br>\n') { e.preventDefault(); delRanges([[p - 5, p]], p - 5); return; }   /* 엔터로 들어간 <br> + 줄바꿈 */
+      if (!back && v.substr(p, 5) === '<br>\n') { e.preventDefault(); delRanges([[p, p + 5]], p); return; }
+      var toks = scanTokens(v), hit = -1, i;
+      for (i = 0; i < toks.length; i++) {
+        var t = toks[i];
+        if ((back && t.e === p) || (!back && t.s === p) || (t.s < p && p < t.e)) { hit = i; break; }
+      }
+      if (hit < 0) return;                                            /* 코드가 아니면 평소처럼 한 글자 */
+      e.preventDefault();
+      var tk = toks[hit], rs = [[tk.s, tk.e]], caret = tk.s, pj = pairOf(toks, hit);
+      if (pj >= 0) {
+        var u = toks[pj]; rs.push([u.s, u.e]);
+        if (u.s < tk.s) caret = tk.s - (u.e - u.s);
+      }
+      delRanges(rs, caret);
+    });
+    /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
     if (opt.autoBr) {
       ta.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter' || e.shiftKey || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
         var before = ta.value.slice(0, ta.selectionStart);
         if (before.lastIndexOf('<') > before.lastIndexOf('>')) return;
-        if (/<\/?(?:ul|ol|li|details|summary|div|p|h[1-6])\b[^>]*>\s*$/i.test(before)) return;
+        if (BLOCK_RE.test(before)) return;
         e.preventDefault();
         insertAt('<br>\n');
       });
@@ -754,14 +934,13 @@
         var t = e.clipboardData && e.clipboardData.getData('text');
         if (!t || !/\n/.test(t)) return;
         var before = ta.value.slice(0, ta.selectionStart);
-        if (before.lastIndexOf('<') > before.lastIndexOf('>')) return;   /* 태그 안쪽에 붙여넣을 땐 그대로 */
-        var BLOCK = /<\/?(?:ul|ol|li|details|summary|div|p|h[1-6])\b[^>]*>\s*$/i;
+        if (before.lastIndexOf('<') > before.lastIndexOf('>')) return;
         var lines = t.replace(/\r\n?/g, '\n').split('\n'), prevBlock = false;
         var out = lines.map(function (ln, i) {
-          if (i === lines.length - 1) return ln;                       /* 마지막 줄은 뒤에 이어지는 글과 붙어요 */
+          if (i === lines.length - 1) return ln;
           var tr = ln.replace(/\s+$/, '');
-          var isBlock = BLOCK.test(tr);
-          var skip = /<br\s*\/?>$/i.test(tr) || isBlock || (tr === '' && prevBlock);   /* 이미 <br> 가 있거나 블록 태그 뒤면 줄바꿈만 */
+          var isBlock = BLOCK_RE.test(tr);
+          var skip = /<br\s*\/?>$/i.test(tr) || isBlock || (tr === '' && prevBlock);
           prevBlock = isBlock || (tr === '' && prevBlock);
           return ln + (skip ? '' : '<br>');
         }).join('\n');
@@ -777,7 +956,7 @@
         if (w && w !== lastW) { lastW = w; refresh(); }
       }).observe(box);
     }
-    return { el: box, ta: ta, refresh: refresh };
+    return { el: box, ta: ta, refresh: refresh, getCode: getCode, setCode: setCode, conv: conv };
   }
 
   /* 크게 편집 : 왼쪽 미리보기 / 오른쪽 편집 */
@@ -799,12 +978,12 @@
           (toggles.length ? '<div class="dt-story dt-story-tg">' + toggles.join('') + '</div>' : '');
       } else pvIn.innerHTML = v;
     }
-    var area = hlArea(hl.ta.value, function (v) {
-      hl.ta.value = v; hl.refresh();                   /* 원래 칸 · 저장할 값 · 미리보기에 바로 반영 */
+    var area = hlArea(hl.getCode(), function (v) {
+      hl.setCode(v);                                   /* 원래 칸 · 저장할 값 · 미리보기에 바로 반영 */
       set(v); touch();
       paintPv(v);
-    }, { fill: true, autoBr: autoBr });
-    paintPv(area.ta.value);
+    }, { fill: true, autoBr: autoBr, conv: hl.conv });
+    paintPv(area.getCode());
 
     function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
     function close() { pop.remove(); document.removeEventListener('keydown', onKey, true); hl.refresh(); }
@@ -827,7 +1006,7 @@
         b.onclick = function () {
           view = st.storyView = m[0];
           [].forEach.call(seg.children, function (x, i) { x.classList.toggle('is-on', ['card', 'full'][i] === view); });
-          paintPv(area.ta.value);
+          paintPv(area.getCode());
         };
         seg.appendChild(b);
       });
@@ -870,7 +1049,7 @@
     var long = LONG_KEYS[key] || (key === 'value' && pkey === 'profile') || String(val).indexOf('\n') >= 0;
     if (long && !isImg) {
       var autoBr = key !== 'code' && key !== 'message';
-      var hl = hlArea(val, function (v) { set(v); touch(); }, { autoBr: autoBr });
+      var hl = hlArea(val, function (v) { set(v); touch(); }, { autoBr: autoBr, conv: key !== 'code' });
       var phl = PH[pkey + '.' + key] || PH[key]; if (phl) hl.ta.placeholder = phl;
       var ex = h('button', { class: 'oha-btn oha-xs', type: 'button', text: '⤢ 크게 편집 · 미리보기' });
       var ctx = (key === 'story' && obj && /^(characters|floormasters|others)$/.test(pkey)) ? obj : null;
@@ -882,7 +1061,7 @@
       return wrap;
     }
     /* 일반 입력칸도 코드(회색) · 링크(파랑) · 본문(검정) 색으로 구분해요 */
-    var hl1 = hlArea(val, function (v) { set(v); touch(); if (prev) prev.src = v; }, { one: !long, nowrap: isImg && !long });   /* 이미지 · 음악 주소 칸은 줄바꿈 없이 한 줄 높이 그대로 */
+    var hl1 = hlArea(val, function (v) { set(v); touch(); if (prev) prev.src = v; }, { one: !long, nowrap: isImg && !long, conv: !isImg });   /* 이미지 · 음악 주소 칸은 줄바꿈 없이 한 줄 높이 그대로 */
     var inp = hl1.ta;
     var ph = PH[pkey + '.' + key] || PH[key]; if (ph) inp.placeholder = ph;
     var prev = null;
@@ -1375,10 +1554,11 @@
     return function (sel) { var inner = sel || ph; return { text: open + inner + close, from: open.length, to: open.length + inner.length }; };
   }
   function listSnip(cls) {
+    var tag = cls === 'dash-list' ? '목록' : '점목록';
     return function (sel) {
       var lines = sel ? sel.split(/\r?\n/).filter(function (l) { return l.trim(); }) : ['내용', '내용'];
       if (!lines.length) lines = ['내용'];
-      var t = '<ul class="' + cls + '">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';
+      var t = '<' + tag + '>' + lines.map(function (l) { return '<항목>' + l + '</항목>'; }).join('') + '</' + tag + '>';
       return { text: t, from: t.length, to: t.length };
     };
   }
@@ -1388,24 +1568,23 @@
   var ICON_IMG_ONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 17l5-4.5 4 3.5 3-2.5 6 4.5"/></svg>';
   /* 이미지 추가 : 주소 칸(https://)이 바로 선택돼서 붙여넣기만 하면 돼요 */
   function imgOne(sel) {
-    var o = '<img class="st-img" src="', url = 'https://';
-    return { text: o + url + '" alt="">' + (sel || ''), from: o.length, to: o.length + url.length };
+    var o = '<이미지 ', url = 'https://';
+    return { text: o + url + '>' + (sel || ''), from: o.length, to: o.length + url.length };
   }
   function imgTwo(sel) {
-    var o = '<div class="st-two"><div>' + (sel || '글 내용') + '</div><img src="', url = 'https://';
-    return { text: o + url + '" alt=""></div>', from: o.length, to: o.length + url.length };
+    var o = '<2단>' + (sel || '글 내용') + '<2단이미지 ', url = 'https://';
+    return { text: o + url + '></2단>', from: o.length, to: o.length + url.length };
   }
   /* 스포일러 주의 안내칸 : 글을 선택해 두면 그 글만 안내문 아래에 묶여요 */
   function spoilNote(sel) {
-    var t = '<div class="spoil-box"><p class="spoil-box-head">아래 내용에는 직·간접적인 스포일러가 포함되어 있습니다.</p>' +
-      (sel ? '<div class="spoil-box-body">' + sel + '</div>' : '') + '</div>';
+    var t = '<스포주의>' + (sel ? '<스포내용>' + sel + '</스포내용>' : '') + '</스포주의>';
     return { text: t, from: t.length, to: t.length };
   }
   /* 캐릭터 링크 : 관계 탭 링크와 같은 방식으로 그 캐릭터 상세 프로필을 열어요 */
   function chLinkSnip(ref, name) {
     return function (sel) {
-      var o = '<a class="ch-link" data-ch="' + ref + '">', inner = sel || name;
-      return { text: o + inner + '</a>', from: o.length, to: o.length + inner.length };
+      var o = '<캐릭터링크 ' + ref + '>', inner = sel || name;
+      return { text: o + inner + '</캐릭터링크>', from: o.length, to: o.length + inner.length };
     };
   }
   function charChoices() {
@@ -1421,36 +1600,36 @@
   }
   function linkSnip(newTab) {
     return function (sel) {
-      var o = '<a href="', url = 'https://';
-      return { text: o + url + '"' + (newTab ? ' target="_blank" rel="noopener"' : '') + '>' + (sel || '링크 글') + '</a>', from: o.length, to: o.length + url.length };
+      var o = newTab ? '<새탭링크 ' : '<링크 ', url = 'https://', c = newTab ? '</새탭링크>' : '</링크>';
+      return { text: o + url + '>' + (sel || '링크 글') + c, from: o.length, to: o.length + url.length };
     };
   }
   var SNIPS = [
     { html: '<i class="k">↵</i>줄바꿈', tip: '<br>',
       make: function (sel) { var t = sel + '<br>'; return { text: t, from: t.length, to: t.length }; } },
-    { html: '<i class="k"><b>B</b></i>볼드체', tip: '<b>내용</b>', make: wrapSnip('<b>', '</b>', '내용') },
-    { html: '<i class="k"><em>I</em></i>기울임체', tip: '<i>내용</i>', make: wrapSnip('<i>', '</i>', '내용') },
-    { html: '<i class="k"><s>S</s></i>취소선', tip: '<s>내용</s>', make: wrapSnip('<s>', '</s>', '내용') },
-    { html: '<i class="k">振</i>요미가나', tip: '<ruby>한자<rt>요미가나</rt></ruby>',
+    { html: '<i class="k"><b>B</b></i>볼드체', tip: '<볼드>내용</볼드>', make: wrapSnip('<볼드>', '</볼드>', '내용') },
+    { html: '<i class="k"><em>I</em></i>기울임체', tip: '<기울임>내용</기울임>', make: wrapSnip('<기울임>', '</기울임>', '내용') },
+    { html: '<i class="k"><s>S</s></i>취소선', tip: '<취소선>내용</취소선>', make: wrapSnip('<취소선>', '</취소선>', '내용') },
+    { html: '<i class="k">振</i>요미가나', tip: '<단어>한자<발음>요미가나</발음></단어>',
       make: function (sel) {
-        var o = '<ruby>' + (sel || '한자') + '<rt>', rt = '요미가나';
-        return { text: o + rt + '</rt></ruby>', from: o.length, to: o.length + rt.length };
+        var o = '<단어>' + (sel || '한자') + '<발음>', rt = '요미가나';
+        return { text: o + rt + '</발음></단어>', from: o.length, to: o.length + rt.length };
       } },
-    { html: '<i class="k">▒</i>스포일러', tip: '<span class="spoil">숨길 내용</span>',
-      make: wrapSnip('<span class="spoil">', '</span>', '숨길 내용') },
+    { html: '<i class="k">▒</i>스포일러', tip: '<스포일러>숨길 내용</스포일러>',
+      make: wrapSnip('<스포일러>', '</스포일러>', '숨길 내용') },
     { html: '<i class="k" style="color:#d93025">⚠</i>스포 주의', tip: '스포일러 주의 안내칸 (글을 선택하면 그 글만 묶여요)', make: spoilNote },
-    { html: '<i class="k">¹</i>각주', tip: '각주<sup class="fn" tabindex="0">1<span>각주 내용</span></sup>',
+    { html: '<i class="k">¹</i>각주', tip: '각주<각주>각주 내용</각주>',
       make: function (sel) {
-        var o = (sel || '각주 달 글') + '<sup class="fn" tabindex="0">1<span>', c = '각주 내용';
-        return { text: o + c + '</span></sup>', from: o.length, to: o.length + c.length };
+        var o = (sel || '각주 달 글') + '<각주>', c = '각주 내용';
+        return { text: o + c + '</각주>', from: o.length, to: o.length + c.length };
       } },
-    { html: '<i class="k">▸</i>토글', tip: '<details class="tg"><summary>제목</summary><div>펼쳐질 내용</div></details>',
+    { html: '<i class="k">▸</i>토글', tip: '<토글><토글제목>제목</토글제목><토글내용>내용</토글내용></토글>',
       make: function (sel) {
-        var o = '<details class="tg"><summary>', c = '제목';
-        return { text: o + c + '</summary><div>' + (sel || '펼쳐질 내용') + '</div></details>', from: o.length, to: o.length + c.length };
+        var o = '<토글><토글제목>', c = '제목';
+        return { text: o + c + '</토글제목><토글내용>' + (sel || '펼쳐질 내용') + '</토글내용></토글>', from: o.length, to: o.length + c.length };
       } },
-    { html: '<i class="k">-</i>목록', tip: '<ul class="dash-list"><li>내용</li></ul>', make: listSnip('dash-list') },
-    { html: '<i class="k">•</i>목록', tip: '<ul class="dot-list"><li>내용</li></ul>', make: listSnip('dot-list') },
+    { html: '<i class="k">-</i>목록', tip: '<목록><항목>내용</항목></목록>', make: listSnip('dash-list') },
+    { html: '<i class="k">•</i>목록', tip: '<점목록><항목>내용</항목></점목록>', make: listSnip('dot-list') },
     { html: '<i class="k">▣</i>이미지 추가 ▾', tip: '이미지 넣기 (2단 뷰 / 일반 삽입) — 넣은 뒤 주소를 바로 붙여넣어요',
       choices: [
         { icon: ICON_IMG_TWO, label: '2단 뷰', tip: '선택한 글 + 이미지를 2단으로', make: imgTwo },
@@ -1458,8 +1637,8 @@
       ] },
     { html: '<i class="k">↗</i>링크 ▾', tip: '링크 걸기 (새 탭 / 현재 탭 선택)',
       choices: [
-        { icon: ICON_NEWTAB, label: '새 탭', tip: '<a href="주소" target="_blank" rel="noopener">내용</a>', make: linkSnip(true) },
-        { icon: ICON_SAMETAB, label: '현재 탭', tip: '<a href="주소">내용</a>', make: linkSnip(false) }
+        { icon: ICON_NEWTAB, label: '새 탭', tip: '<새탭링크 주소>내용</새탭링크>', make: linkSnip(true) },
+        { icon: ICON_SAMETAB, label: '현재 탭', tip: '<링크 주소>내용</링크>', make: linkSnip(false) }
       ] },
     { html: '<i class="k">☺</i>캐릭터 링크 ▾', tip: '글을 누르면 그 캐릭터 상세 프로필이 열려요', listMenu: true, choices: charChoices }
   ];
