@@ -855,15 +855,33 @@
   /* 글자는 투명한 textarea, 색은 뒤에 깔린 <pre> 가 보여줘요 (두 층이 정확히 겹쳐요)
      - 칸 안의 글자는 "보기 쉬운 이름" 이고, getCode() 가 원래 코드를 돌려줘요 */
   var BLOCK_RE = /<\/?(?:(?:ul|ol|li|details|summary|div|p|h[1-6])(?=[\s>\/])|(?:목록|점목록|항목|토글제목|토글내용|토글|스포주의|스포내용|2단))[^>]*>\s*$/i;
+  /* <br> 숨기기 : 편집 칸에는 그냥 줄바꿈으로 보이고, 저장할 때 줄바꿈이 <br> 로 바뀌어요.
+     (블록 태그 <ul> <li> <div> … 바로 뒤의 줄바꿈은 그대로 둬요) */
+  var BLOCKC_RE = /<\/?(?:ul|ol|li|details|summary|div|p|h[1-6])(?=[\s>\/])[^>]*>\s*$/i;
+  function brOut(d) { return d.replace(/<br\s*\/?>(?:\r?\n)?/gi, '\n'); }
+  function brIn(code) {
+    var lines = String(code).replace(/\r\n?/g, '\n').split('\n'), out = lines[0], prev = false, i;
+    function keep(ln, pv) { return BLOCKC_RE.test(ln) || /<br\s*\/?>\s*$/i.test(ln) || (ln.trim() === '' && pv); }
+    prev = keep(lines[0], false);
+    for (i = 1; i < lines.length; i++) {
+      out += (prev ? '\n' : '<br>') + lines[i];
+      prev = keep(lines[i], prev);
+    }
+    return out;
+  }
   function hlArea(value, onChange, opt) {
     opt = opt || {};
     var conv = opt.conv !== false;
+    var hideBr = conv && !!opt.autoBr;
+    function toD(v) { var d = toDisp(v); return hideBr ? brOut(d) : d; }
+    function toC(d) { var c = toCode(d); return hideBr ? brIn(c) : c; }
     var pre = h('pre', { class: 'oha-hl-pre', 'aria-hidden': 'true' });
     var ta = h('textarea', { spellcheck: 'false', rows: opt.one ? '1' : null });
-    ta.value = conv ? toDisp(value) : String(value == null ? '' : value);
+    ta.value = conv ? toD(value) : String(value == null ? '' : value);
+    if (hideBr) ta.dataset.hideBr = '1';
     var box = h('div', { class: 'oha-hl' + (opt.fill ? ' is-fill' : '') + (opt.one ? ' is-one' : '') + (opt.nowrap ? ' is-nowrap' : '') }, [pre, ta]);
     var lastW = -1;
-    function getCode() { return conv ? toCode(ta.value) : ta.value; }
+    function getCode() { return conv ? toC(ta.value) : ta.value; }
     function paint() { pre.innerHTML = highlight(ta.value); pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; }
     function fit() {
       if (opt.fill) return;
@@ -871,7 +889,7 @@
       ta.style.height = Math.min(ta.scrollHeight, opt.max || 260) + 'px';
     }
     function refresh() { fit(); paint(); }
-    function setCode(v) { ta.value = conv ? toDisp(v) : String(v == null ? '' : v); refresh(); }
+    function setCode(v) { ta.value = conv ? toD(v) : String(v == null ? '' : v); refresh(); }
     ta.addEventListener('input', function () {
       if (opt.one && /[\r\n]/.test(ta.value)) {          /* 한 줄 칸: 붙여넣은 줄바꿈은 띄어쓰기로 */
         var p = ta.selectionStart;
@@ -923,7 +941,7 @@
       delRanges(rs, caret);
     });
     /* 엔터 = <br> 자동 입력 (Shift+Enter 는 그냥 줄바꿈 / 태그 안쪽 · 목록 같은 블록 태그 바로 뒤에서는 넣지 않아요) */
-    if (opt.autoBr) {
+    if (opt.autoBr && !hideBr) {
       ta.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter' || e.shiftKey || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
         var before = ta.value.slice(0, ta.selectionStart);
@@ -1607,7 +1625,7 @@
     };
   }
   var SNIPS = [
-    { html: '<i class="k">↵</i>줄바꿈', tip: '<br>',
+    { html: '<i class="k">↵</i>줄바꿈', tip: '줄바꿈', isBr: true,
       make: function (sel) { var t = sel + '<br>'; return { text: t, from: t.length, to: t.length }; } },
     { html: '<i class="k"><b>B</b></i>볼드체', tip: '<볼드>내용</볼드>', make: wrapSnip('<볼드>', '</볼드>', '내용') },
     { html: '<i class="k"><em>I</em></i>기울임체', tip: '<기울임>내용</기울임>', make: wrapSnip('<기울임>', '</기울임>', '내용') },
@@ -1649,6 +1667,7 @@
     if (!el || !document.body.contains(el)) { toast('먼저 글을 적을 칸을 눌러 주세요.', true); return; }
     var s = el.selectionStart, e = el.selectionEnd, v = el.value;
     var r = it.make(v.slice(s, e));
+    if (it.isBr && el.dataset.hideBr) r = { text: v.slice(s, e) + '\n', from: e - s + 1, to: e - s + 1 };
     el.focus();
     el.value = v.slice(0, s) + r.text + v.slice(e);
     el.setSelectionRange(s + r.from, s + r.to);
