@@ -4311,15 +4311,13 @@ body[data-chview="full"] .stt-data { transform-origin: 130px 90px; }
 }
 
 .is-flipped .stt-frame { animation: sttGrow .6s .9s cubic-bezier(.2,.8,.2,1) both; }
-.is-flipped .stt-lab-g { animation: sttFade .4s 1.1s ease both; }
-.is-flipped .stt-data { animation: sttGrow .7s 1.5s cubic-bezier(.2,.8,.2,1) both; }   /* 틀이 다 펼쳐진 뒤 그래프 */
+.is-flipped .stt-lab { animation: sttFade .4s calc(1.1s + var(--n, 0) * .1s) ease both; }
 .is-flipped .stt-track i {
   transform-origin: left;
   animation: sttBar .7s calc(.9s + var(--n, 0) * .07s) cubic-bezier(.2,.8,.2,1) both;
 }
 .is-flipped .stt.re .stt-frame { animation-delay: 0s; }
-.is-flipped .stt.re .stt-lab-g { animation-delay: .2s; }
-.is-flipped .stt.re .stt-data { animation-delay: .6s; }
+.is-flipped .stt.re .stt-lab { animation-delay: calc(.2s + var(--n, 0) * .06s); }
 .is-flipped .stt.re .stt-track i { animation-delay: calc(var(--n, 0) * .06s); }
 @keyframes sttGrow { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes sttFade { from { opacity: 0; } to { opacity: 1; } }
