@@ -974,7 +974,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
       function hexSVG(items) {
         const full = document.body.getAttribute("data-chview") === "full";
         const VW = full ? 180 : 320, VH = full ? 100 : 240;
-        const cx = VW / 2, cy = VH / 2, R = full ? 38 : 78;
+        const cx = VW / 2, cy = VH / 2, R = full ? 58 : 78;
         const pt = function (i, r) { const a = (-90 + i * 60) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
         const f = function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); };
         let g = "";
@@ -988,7 +988,7 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         const poly = items.map(function (it, i) { return f(pt(i, R * it.v / 20)); }).join(" ");
         const dots = items.map(function (it, i) {
           const p = pt(i, R * it.v / 20);
-          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="1.3"/>';
+          return '<circle class="stt-dot" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="1.3" data-x="' + p[0].toFixed(1) + '" data-y="' + p[1].toFixed(1) + '"/>';
         }).join("");
         const labels = items.map(function (it, i) {
           const a = (-90 + i * 60) * Math.PI / 180, c = Math.cos(a);
@@ -996,9 +996,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
           const anchor = c > 0.3 ? "start" : c < -0.3 ? "end" : "middle";
           const dy = i === 0 ? "-0.2em" : i === 3 ? "0.85em" : "0.35em";
           const name = it.k.length > 7 ? it.k.slice(0, 7) + "…" : it.k;
-          return '<text class="stt-lab" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
+          return '<text class="stt-lab" style="--n:' + i + '" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" dy="' + dy + '" text-anchor="' + anchor + '">' + name + '</text>';
         }).join("");
-        return '<svg class="stt-svg" viewBox="0 0 ' + VW + ' ' + VH + '" role="img" aria-label="스테이터스 육각 그래프">' +
+        return '<svg class="stt-svg" data-cx="' + cx + '" data-cy="' + cy + '" viewBox="0 0 ' + VW + ' ' + VH + '" role="img" aria-label="스테이터스 육각 그래프">' +
           '<g class="stt-frame">' + g + '</g>' +
           '<g class="stt-data"><polygon class="stt-poly" points="' + poly + '"/>' + dots + '</g>' +
           '<g class="stt-lab-g">' + labels + '</g></svg>';
@@ -1024,13 +1024,50 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         return '<section class="stt' + (re ? " re" : "") + '" role="button" tabindex="0" aria-label="스테이터스 (누르면 육각/막대 전환)">' + body + '</section>';
       }
 
+      /* 육각 그래프 수치: 중앙에서 첫 번째 항목부터 차례로 뻗어 나가요 */
+      let hexRaf = 0;
+      function hexPlay(delay, root) {
+        cancelAnimationFrame(hexRaf);
+        const svg = (root || statBox).querySelector(".stt-svg");
+        if (!svg) return;
+        const poly = svg.querySelector(".stt-poly");
+        const dots = Array.prototype.slice.call(svg.querySelectorAll(".stt-dot"));
+        if (!poly || !dots.length) return;
+        const cx = +svg.getAttribute("data-cx"), cy = +svg.getAttribute("data-cy");
+        const tg = dots.map(function (d) { return [+d.getAttribute("data-x"), +d.getAttribute("data-y")]; });
+        const STEP = 110, DUR = 650;                       // 항목 사이 간격 / 항목 하나가 뻗는 시간(ms)
+        function draw(t) {
+          const pts = tg.map(function (p, i) {
+            let k = Math.min(1, Math.max(0, (t - i * STEP) / DUR));
+            k = 1 - Math.pow(1 - k, 3);                    // 부드럽게 감속
+            return [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k, k];
+          });
+          poly.setAttribute("points", pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" "));
+          poly.style.opacity = t < 0 ? 0 : 1;
+          dots.forEach(function (d, i) {
+            d.setAttribute("cx", pts[i][0].toFixed(1));
+            d.setAttribute("cy", pts[i][1].toFixed(1));
+            d.style.opacity = pts[i][2] > 0 ? 1 : 0;
+          });
+        }
+        draw(-1);                                          // 시작 전: 중앙에 숨겨둠
+        const t0 = performance.now() + delay, end = (tg.length - 1) * STEP + DUR;
+        (function tick(now) {
+          const t = now - t0;
+          draw(t < 0 ? -1 : Math.min(t, end));
+          if (t < end) hexRaf = requestAnimationFrame(tick);
+        })(performance.now());
+      }
+
       function bindStats(ch) {
         const el = statBox.querySelector(".stt");
         if (!el) return;
+        if (document.body.classList.contains("is-flipped")) hexPlay(1500);
         const toggle = function () {
           statView = statView === "hex" ? "bar" : "hex";
           el.outerHTML = statsBlock(ch, true);
           bindStats(ch);
+          if (statView === "hex") hexPlay(600);
         };
         el.addEventListener("click", toggle);
         el.addEventListener("keydown", function (e) {
@@ -1220,6 +1257,9 @@ const TITLES = { home: "", character: "Character", floormaster: "Floormaster", o
         f.classList.toggle("flipped", next);
         document.body.classList.toggle("is-flipped", next);
         if (!next) closeWd();
+        if (next !== was) {
+          if (next) hexPlay(1500); else cancelAnimationFrame(hexRaf);
+        }
         if (next !== was) {
           clearTimeout(morphDelay);
           if (next) morphDelay = setTimeout(runMorph, 550);
